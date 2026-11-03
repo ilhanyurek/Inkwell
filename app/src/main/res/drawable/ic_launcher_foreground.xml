@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A folded page with three text lines. 108dp canvas, art kept inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/launcher_foreground"
+        android:pathData="M38,30h22l12,12v34a2,2 0,0 1,-2 2h-32a2,2 0,0 1,-2 -2v-44a2,2 0,0 1,2 -2z" />
+    <path
+        android:fillColor="@color/launcher_background"
+        android:pathData="M60,30v10a2,2 0,0 0,2 2h10z" />
+    <path
+        android:fillColor="@color/launcher_background"
+        android:pathData="M43,50h22v3h-22z M43,57h22v3h-22z M43,64h14v3h-14z" />
+</vector>
