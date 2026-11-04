@@ -1,11 +1,13 @@
 package com.office.app
 
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isEnabled
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
@@ -30,12 +32,9 @@ class PdfFormTest {
         ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(Fixtures.asset("form.pdf"), "application/pdf")).use {
             rule.waitForText(str(R.string.pdf_page_of, 1, 2))
             // Form fields are read in the background after the PDF opens.
-            rule.waitUntil(20_000) {
-                rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
-                val shown = rule.onAllNodesWithText(str(R.string.pdf_fill_form)).fetchSemanticsNodes().isNotEmpty()
-                if (!shown) pressBack()
-                shown
-            }
+            rule.waitUntil(20_000) { rule.onAllNodes(hasTestTag("pdf_form_ready")).fetchSemanticsNodes().isNotEmpty() }
+            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+            rule.waitForText(str(R.string.pdf_fill_form))
             rule.onNodeWithText(str(R.string.pdf_fill_form)).performClick()
             rule.onNode(hasSetTextAction() and hasText("full_name")).performTextInput("Ada Lovelace")
             rule.screenshot("30_pdf_form")
@@ -56,12 +55,14 @@ class PdfFormTest {
         drafts.drafts.value.forEach { drafts.delete(it.key) }
         ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(Fixtures.asset("form.pdf"), "application/pdf")).use {
             rule.waitForText(str(R.string.pdf_page_of, 1, 2))
-            rule.onNodeWithText(str(R.string.pdf_tool_redact)).performClick()
+            rule.onNodeWithText(str(R.string.pdf_tool_redact)).performScrollTo().performClick()
+            rule.waitForText(str(R.string.pdf_redact_apply))
             rule.waitUntil(10_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_page_0")).fetchSemanticsNodes().isNotEmpty() }
             // The title line "Application form (Inkwell fixture)" sits near the top of page 1.
             rule.onNode(androidx.compose.ui.test.hasTestTag("pdf_page_0")).performTouchInput {
                 swipe(androidx.compose.ui.geometry.Offset(width * 0.05f, height * 0.03f), androidx.compose.ui.geometry.Offset(width * 0.95f, height * 0.12f), 400)
             }
+            rule.waitUntil(10_000) { rule.onAllNodes(hasText(str(R.string.pdf_redact_apply)) and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithText(str(R.string.pdf_redact_apply)).performClick()
             rule.onNodeWithText(str(R.string.pdf_tool_redact)).performClick()
             rule.waitUntil(30_000) {
