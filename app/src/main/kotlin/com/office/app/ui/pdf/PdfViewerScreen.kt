@@ -95,12 +95,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.office.app.AppContainer
 import com.office.app.R
 import com.office.app.data.FileInfo
 import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
+import com.office.app.ui.common.DraftBanner
 import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.common.UndoRedoButtons
@@ -124,6 +127,7 @@ fun PdfViewerScreen(
     onOpenOther: (Uri) -> Unit,
 ) {
     val vm: PdfViewerViewModel = viewModel(key = "pdf:$uri") { PdfViewerViewModel(container, uri, info) }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.flushDraft() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -253,6 +257,7 @@ fun PdfViewerScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (vm.busy) LinearProgressIndicator(Modifier.fillMaxWidth().height(2.dp))
+            vm.recoverableDraft?.let { d -> DraftBanner(d.savedAt, onRestore = vm::restoreDraft, onDiscard = vm::discardDraft) }
             vm.searchResults?.let { results ->
                 SearchResults(results) { page ->
                     scope.launch { listState.animateScrollToItem(page) }
@@ -309,7 +314,7 @@ fun PdfViewerScreen(
     if (showUnsaved) {
         UnsavedChangesDialog(
             onSave = { showUnsaved = false; closeAfterSave = true; requestSave() },
-            onDiscard = { showUnsaved = false; onClose() },
+            onDiscard = { showUnsaved = false; vm.discardDraft(); onClose() },
             onDismiss = { showUnsaved = false },
         )
     }

@@ -89,12 +89,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.office.app.AppContainer
 import com.office.app.R
 import com.office.app.data.FileInfo
 import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
+import com.office.app.ui.common.DraftBanner
 import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.common.UndoRedoButtons
@@ -121,8 +124,10 @@ fun SheetEditorScreen(
     kind: FileKind,
     onClose: () -> Unit,
     @Suppress("UNUSED_PARAMETER") onOpenOther: (Uri) -> Unit,
+    draftKey: String? = null,
 ) {
-    val vm: SheetEditorViewModel = viewModel(key = "sheet:$uri:$kind") { SheetEditorViewModel(container, uri, info, kind) }
+    val vm: SheetEditorViewModel = viewModel(key = "sheet:$uri:$kind:$draftKey") { SheetEditorViewModel(container, uri, info, kind, draftKey) }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.flushDraft() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val untitled = stringResource(R.string.untitled)
@@ -231,6 +236,7 @@ fun SheetEditorScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             if (vm.saving) LinearProgressIndicator(Modifier.fillMaxWidth().height(2.dp))
+            vm.recoverableDraft?.let { d -> DraftBanner(d.savedAt, onRestore = vm::restoreDraft, onDiscard = vm::discardDraft) }
             FormulaBar(vm)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -247,7 +253,7 @@ fun SheetEditorScreen(
     if (showUnsaved) {
         UnsavedChangesDialog(
             onSave = { showUnsaved = false; closeAfterSave = true; requestSave() },
-            onDiscard = { showUnsaved = false; onClose() },
+            onDiscard = { showUnsaved = false; vm.discardDraft(); onClose() },
             onDismiss = { showUnsaved = false },
         )
     }

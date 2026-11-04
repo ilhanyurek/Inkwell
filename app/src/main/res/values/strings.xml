@@ -184,4 +184,11 @@
     <string name="embed_object">Object</string>
     <string name="embed_preview">Preview</string>
     <string name="embed_table_note">Tables, images and other objects are kept unchanged when you save. Edit them in Word if needed.</string>
+    <string name="draft_found">Unsaved changes from %1$s were found.</string>
+    <string name="draft_restore">Restore</string>
+    <string name="draft_discard">Discard</string>
+    <string name="draft_unsaved">Unsaved draft · %1$s</string>
+    <string name="home_drafts">Recovered drafts</string>
+    <string name="settings_autosave">Also save automatically to the file</string>
+    <string name="settings_autosave_desc">Changes are always kept as a draft a few seconds after you type. With this on, they are also written to the file itself.</string>
 </resources>

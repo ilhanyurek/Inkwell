@@ -98,6 +98,13 @@ fun SettingsScreen(container: AppContainer, onBack: () -> Unit) {
                 )
             }
 
+            SwitchRow(
+                title = stringResource(R.string.settings_autosave),
+                subtitle = stringResource(R.string.settings_autosave_desc),
+                checked = settings.autoSaveToFile,
+                onChange = { v -> scope.launch { container.settings.setAutoSaveToFile(v) } },
+            )
+
             Divider()
             Section(stringResource(R.string.settings_language))
             val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()

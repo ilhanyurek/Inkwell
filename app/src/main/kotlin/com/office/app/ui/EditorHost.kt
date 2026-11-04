@@ -27,6 +27,7 @@ fun EditorHost(
     newKind: FileKind?,
     onClose: () -> Unit,
     onOpenOther: (Uri) -> Unit,
+    draftKey: String? = null,
 ) {
     var info by remember(uri) { mutableStateOf<FileInfo?>(null) }
     var failed by remember(uri) { mutableStateOf(false) }
@@ -45,7 +46,7 @@ fun EditorHost(
 
     val kind = newKind ?: info?.kind
     when {
-        uri == null && newKind != null -> Editor(container, null, null, newKind, onClose, onOpenOther)
+        uri == null && newKind != null -> Editor(container, null, null, newKind, onClose, onOpenOther, draftKey)
         failed -> ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
         info == null -> LoadingScreen(onBack = onClose)
         kind == null -> ErrorScreen(
@@ -65,12 +66,13 @@ private fun Editor(
     kind: FileKind,
     onClose: () -> Unit,
     onOpenOther: (Uri) -> Unit,
+    draftKey: String? = null,
 ) {
     when (kind) {
         FileKind.DOCUMENT, FileKind.TEXT, FileKind.MARKDOWN ->
-            DocumentEditorScreen(container, uri, info, kind, onClose, onOpenOther)
+            DocumentEditorScreen(container, uri, info, kind, onClose, onOpenOther, draftKey)
         FileKind.SPREADSHEET, FileKind.CSV ->
-            SheetEditorScreen(container, uri, info, kind, onClose, onOpenOther)
+            SheetEditorScreen(container, uri, info, kind, onClose, onOpenOther, draftKey)
         FileKind.PDF -> if (uri != null && info != null) PdfViewerScreen(container, uri, info, onClose, onOpenOther) else ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
         FileKind.PRESENTATION -> if (uri != null && info != null) PresentationScreen(container, uri, info, onClose) else ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
     }

@@ -9,6 +9,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.office.app.AppContainer
+import com.office.app.data.Draft
+import com.office.app.data.DraftAutosaver
+import com.office.app.data.DraftStore
 import com.office.app.data.FileInfo
 import com.office.app.export.PdfExporter
 import com.office.core.FileKind
@@ -38,6 +41,7 @@ class DocumentEditorViewModel(
     initialUri: Uri?,
     info: FileInfo?,
     val kind: FileKind,
+    draftKey: String? = null,
 ) : ViewModel() {
 
     sealed interface LoadState {
@@ -88,8 +92,50 @@ class DocumentEditorViewModel(
     val supportsRichFormatting get() = kind == FileKind.DOCUMENT
     val supportsMarkdownFormatting get() = kind == FileKind.MARKDOWN
 
+    /** Keeps an unsaved copy in app storage a few seconds after each change. */
+    val autosaver = DraftAutosaver(
+        scope = container.appScope,
+        store = container.drafts,
+        settings = container.settings,
+        key = draftKey ?: initialUri?.let(DraftStore::keyFor) ?: DraftStore.newKey(),
+        describe = { Triple(uri, fileName ?: "Untitled.${kind.primaryExtension}", kind) },
+        writeDraft = { f -> f.writeBytes(withContext(Dispatchers.Default) { serialize() }) },
+        saveToFile = {
+            val target = uri
+            if (target == null || lossyImport) false
+            else {
+                container.files.writeBytes(target, withContext(Dispatchers.Default) { serialize() })
+                dirty = false
+                true
+            }
+        },
+    )
+
+    /** A draft with unsaved changes found when opening the file; the user decides whether to restore it. */
+    var recoverableDraft by mutableStateOf<Draft?>(null)
+        private set
+
     init {
-        if (initialUri != null) load(initialUri)
+        when {
+            initialUri != null -> load(initialUri)
+            draftKey != null -> container.drafts.get(draftKey)?.let { restore(it) }
+        }
+    }
+
+    private fun parse(bytes: ByteArray): TextDocument = when (kind) {
+        FileKind.DOCUMENT -> ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
+            originalPackage = pkg
+            DocxReader.read(pkg)
+        }
+        FileKind.MARKDOWN -> MarkdownCodec.read(bytes)
+        else -> PlainTextCodec.read(bytes)
+    }
+
+    private fun apply(doc: TextDocument) {
+        model = RichText.fromDocument(doc)
+        lossyImport = doc.lossyImport
+        embeds = doc.embeds
+        value = TextFieldValue(model.text, TextRange(0))
     }
 
     private fun load(uri: Uri) {
@@ -97,26 +143,54 @@ class DocumentEditorViewModel(
             loadState = LoadState.Loading
             runCatching {
                 val bytes = container.files.readBytes(uri)
-                withContext(Dispatchers.Default) {
-                    when (kind) {
-                        FileKind.DOCUMENT -> ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
-                            originalPackage = pkg
-                            DocxReader.read(pkg)
-                        }
-                        FileKind.MARKDOWN -> MarkdownCodec.read(bytes)
-                        else -> PlainTextCodec.read(bytes)
-                    }
-                }
+                withContext(Dispatchers.Default) { parse(bytes) }
             }.onSuccess { doc ->
-                model = RichText.fromDocument(doc)
-                lossyImport = doc.lossyImport
-                embeds = doc.embeds
-                value = TextFieldValue(model.text, TextRange(0))
+                apply(doc)
+                recoverableDraft = container.drafts.get(autosaver.key)
                 loadState = LoadState.Ready
             }.onFailure {
                 loadState = LoadState.Failed(it.message)
             }
         }
+    }
+
+    /** Replaces the content with the saved draft; the document stays unsaved until the user saves. */
+    fun restoreDraft() {
+        recoverableDraft?.let { restore(it) }
+    }
+
+    private fun restore(draft: Draft) {
+        viewModelScope.launch {
+            loadState = LoadState.Loading
+            runCatching { withContext(Dispatchers.IO) { parse(draft.file.readBytes()) } }
+                .onSuccess { doc ->
+                    apply(doc)
+                    undoStack.clear(); redoStack.clear(); canUndo = false; canRedo = false
+                    dirty = true
+                    if (fileName == null) fileName = draft.name.takeIf { draft.uri != null }
+                }
+            recoverableDraft = null
+            loadState = LoadState.Ready
+        }
+    }
+
+    fun discardDraft() {
+        recoverableDraft = null
+        autosaver.discard()
+    }
+
+    /** Writes any pending draft right away (when the app goes to the background). */
+    fun flushDraft() {
+        container.appScope.launch { autosaver.flush() }
+    }
+
+    private fun markDirty() {
+        dirty = true
+        autosaver.changed()
+    }
+
+    override fun onCleared() {
+        flushDraft()
     }
 
     // --- editing ----------------------------------------------------------------------
@@ -136,7 +210,7 @@ class DocumentEditorViewModel(
         lastTypingAt = now
         model = next
         value = if (next.text == new.text) new else TextFieldValue(next.text, old.selection)
-        dirty = true
+        markDirty()
     }
 
     private fun pushUndo() {
@@ -153,7 +227,7 @@ class DocumentEditorViewModel(
         lastTypingAt = 0
         model = next
         value = TextFieldValue(next.text, selection)
-        dirty = true
+        markDirty()
     }
 
     fun undo() {
@@ -161,7 +235,7 @@ class DocumentEditorViewModel(
         redoStack.addLast(Snapshot(model, value.selection))
         model = snap.model
         value = TextFieldValue(snap.model.text, snap.selection)
-        dirty = true
+        markDirty()
         canUndo = undoStack.isNotEmpty()
         canRedo = true
         lastTypingAt = 0
@@ -172,7 +246,7 @@ class DocumentEditorViewModel(
         undoStack.addLast(Snapshot(model, value.selection))
         model = snap.model
         value = TextFieldValue(snap.model.text, snap.selection)
-        dirty = true
+        markDirty()
         canUndo = true
         canRedo = redoStack.isNotEmpty()
         lastTypingAt = 0
@@ -293,6 +367,7 @@ class DocumentEditorViewModel(
                 }
                 dirty = false
                 lossyImport = false
+                autosaver.discard()
             }
             onDone(result.exceptionOrNull())
         }

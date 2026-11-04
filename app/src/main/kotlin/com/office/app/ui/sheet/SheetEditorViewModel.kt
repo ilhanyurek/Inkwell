@@ -10,6 +10,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.office.app.AppContainer
+import com.office.app.data.Draft
+import com.office.app.data.DraftAutosaver
+import com.office.app.data.DraftStore
 import com.office.app.data.FileInfo
 import com.office.app.export.PdfExporter
 import com.office.core.FileKind
@@ -47,6 +50,7 @@ class SheetEditorViewModel(
     initialUri: Uri?,
     info: FileInfo?,
     val kind: FileKind,
+    draftKey: String? = null,
 ) : ViewModel() {
 
     sealed interface LoadState {
@@ -93,34 +97,98 @@ class SheetEditorViewModel(
     val sheet: Sheet get() = workbook.sheets[activeSheetIndex.coerceIn(0, workbook.sheets.lastIndex)]
     val isCsv get() = kind == FileKind.CSV
 
+    val autosaver = DraftAutosaver(
+        scope = container.appScope,
+        store = container.drafts,
+        settings = container.settings,
+        key = draftKey ?: initialUri?.let(DraftStore::keyFor) ?: DraftStore.newKey(),
+        describe = { Triple(uri, fileName ?: "Untitled.${kind.primaryExtension}", kind) },
+        writeDraft = { f -> f.writeBytes(withContext(Dispatchers.Default) { serialize(kind) }) },
+        saveToFile = {
+            val target = uri
+            if (target == null) false
+            else {
+                container.files.writeBytes(target, withContext(Dispatchers.Default) { serialize(kind) })
+                dirty = false
+                true
+            }
+        },
+    )
+
+    var recoverableDraft by mutableStateOf<Draft?>(null)
+        private set
+
     init {
-        if (initialUri != null) load(initialUri) else {
-            loadEditTextForSelection()
+        when {
+            initialUri != null -> load(initialUri)
+            draftKey != null && container.drafts.get(draftKey) != null -> restore(container.drafts.get(draftKey)!!)
+            else -> loadEditTextForSelection()
         }
+    }
+
+    private fun parse(bytes: ByteArray): Workbook =
+        if (kind == FileKind.CSV) {
+            val parsed = Csv.parse(bytes)
+            csvDelimiter = parsed.delimiter
+            Csv.toWorkbook(parsed, fileName?.substringBeforeLast('.')?.take(31) ?: "Sheet1")
+        } else {
+            XlsxReader.read(ByteArrayInputStream(bytes))
+        }
+
+    private fun apply(wb: Workbook) {
+        workbook = wb
+        engine = FormulaEngine(wb)
+        activeSheetIndex = 0
+        loadEditTextForSelection()
+        revision++
     }
 
     private fun load(uri: Uri) {
         viewModelScope.launch {
             runCatching {
                 val bytes = container.files.readBytes(uri)
-                withContext(Dispatchers.Default) {
-                    if (kind == FileKind.CSV) {
-                        val parsed = Csv.parse(bytes)
-                        csvDelimiter = parsed.delimiter
-                        Csv.toWorkbook(parsed, fileName?.substringBeforeLast('.')?.take(31) ?: "Sheet1")
-                    } else {
-                        XlsxReader.read(ByteArrayInputStream(bytes))
-                    }
-                }
+                withContext(Dispatchers.Default) { parse(bytes) }
             }.onSuccess { wb ->
-                workbook = wb
-                engine = FormulaEngine(wb)
-                activeSheetIndex = 0
-                loadEditTextForSelection()
-                revision++
+                apply(wb)
+                recoverableDraft = container.drafts.get(autosaver.key)
                 loadState = LoadState.Ready
             }.onFailure { loadState = LoadState.Failed(it.message) }
         }
+    }
+
+    fun restoreDraft() {
+        recoverableDraft?.let { restore(it) }
+    }
+
+    private fun restore(draft: Draft) {
+        viewModelScope.launch {
+            loadState = LoadState.Loading
+            runCatching { withContext(Dispatchers.IO) { parse(draft.file.readBytes()) } }.onSuccess { wb ->
+                apply(wb)
+                undoStack.clear(); redoStack.clear(); canUndo = false; canRedo = false
+                dirty = true
+            }
+            recoverableDraft = null
+            loadState = LoadState.Ready
+        }
+    }
+
+    fun discardDraft() {
+        recoverableDraft = null
+        autosaver.discard()
+    }
+
+    fun flushDraft() {
+        container.appScope.launch { autosaver.flush() }
+    }
+
+    private fun markDirty() {
+        dirty = true
+        autosaver.changed()
+    }
+
+    override fun onCleared() {
+        flushDraft()
     }
 
     // --- reading ------------------------------------------------------------------------
@@ -242,7 +310,7 @@ class SheetEditorViewModel(
         redoStack.clear()
         block()
         engine.invalidate()
-        dirty = true
+        markDirty()
         canUndo = true
         canRedo = false
         revision++
@@ -253,7 +321,7 @@ class SheetEditorViewModel(
         workbook.sheets.addAll(state.first)
         activeSheetIndex = state.second.coerceIn(0, workbook.sheets.lastIndex)
         engine = FormulaEngine(workbook)
-        dirty = true
+        markDirty()
         revision++
         loadEditTextForSelection()
     }
@@ -448,6 +516,7 @@ class SheetEditorViewModel(
                         container.recents.record(info.copy(kind = kind))
                     }
                     dirty = false
+                    autosaver.discard()
                 }
             }
             onDone(result.exceptionOrNull())

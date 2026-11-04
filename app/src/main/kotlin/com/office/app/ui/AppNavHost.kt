@@ -18,9 +18,11 @@ object Routes {
     const val SETTINGS = "settings"
     const val OPEN = "open?uri={uri}"
     const val NEW = "new/{kind}"
+    const val DRAFT = "draft/{key}"
 
     fun open(uri: Uri) = "open?uri=" + Uri.encode(uri.toString())
     fun new(kind: FileKind) = "new/${kind.name}"
+    fun draft(key: String) = "draft/$key"
 }
 
 @Composable
@@ -41,7 +43,18 @@ fun AppNavHost(container: AppContainer, incomingUri: Uri?, onIncomingConsumed: (
                 onOpen = { nav.navigate(Routes.open(it)) },
                 onNew = { nav.navigate(Routes.new(it)) },
                 onSettings = { nav.navigate(Routes.SETTINGS) },
+                onOpenDraft = { nav.navigate(Routes.draft(it)) },
             )
+        }
+        composable(Routes.DRAFT, arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
+            val key = entry.arguments?.getString("key").orEmpty()
+            val draft = container.drafts.get(key)
+            when {
+                draft == null -> LaunchedEffect(key) { nav.popBackStack() }
+                // Drafts of existing files open the file; the editor then offers to restore the draft.
+                draft.uri != null -> EditorHost(container, draft.uri, null, onClose = { nav.popBackStack() }, onOpenOther = { nav.navigate(Routes.open(it)) })
+                else -> EditorHost(container, null, draft.kind, onClose = { nav.popBackStack() }, onOpenOther = { nav.navigate(Routes.open(it)) }, draftKey = key)
+            }
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(container = container, onBack = { nav.popBackStack() })

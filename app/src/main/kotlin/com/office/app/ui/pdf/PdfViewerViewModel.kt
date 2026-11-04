@@ -13,6 +13,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.office.app.AppContainer
+import com.office.app.data.Draft
+import com.office.app.data.DraftAutosaver
+import com.office.app.data.DraftStore
 import com.office.app.data.FileInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -82,6 +85,18 @@ class PdfViewerViewModel(
         override fun sizeOf(key: String, value: Bitmap) = value.byteCount
     }
 
+    val autosaver = DraftAutosaver(
+        scope = container.appScope,
+        store = container.drafts,
+        settings = container.settings,
+        key = DraftStore.keyFor(uri),
+        describe = { Triple(uri, fileName, com.office.core.FileKind.PDF) },
+        writeDraft = { f -> withContext(Dispatchers.IO) { working?.copyTo(f, overwrite = true) } },
+    )
+
+    var recoverableDraft by mutableStateOf<Draft?>(null)
+        private set
+
     init {
         viewModelScope.launch {
             runCatching {
@@ -91,6 +106,7 @@ class PdfViewerViewModel(
                 copy.copyTo(work, overwrite = true)
                 working = work
                 openRenderer()
+                recoverableDraft = container.drafts.get(autosaver.key)
             }.onFailure { e ->
                 state = if (e is SecurityException) State.NeedsPassword else State.Failed(e.message)
             }
@@ -205,6 +221,38 @@ class PdfViewerViewModel(
         canUndo = undoStack.isNotEmpty()
         canRedo = redoStack.isNotEmpty()
         dirty = stateId != savedStateId
+        if (dirty) autosaver.changed() else autosaver.discard()
+    }
+
+    /** Replaces the working copy with the saved draft (all PDF edits are kept in the file itself). */
+    fun restoreDraft() {
+        val draft = recoverableDraft ?: return
+        val file = working ?: return
+        recoverableDraft = null
+        viewModelScope.launch {
+            busy = true
+            runCatching {
+                renderLock.withLock { withContext(Dispatchers.IO) { closeRendererLocked() } }
+                withContext(Dispatchers.IO) {
+                    undoStack.addLast(snapshot())
+                    draft.file.copyTo(file, overwrite = true)
+                }
+                stateId = nextStateId++
+                pageTexts = null
+            }
+            runCatching { openRenderer() }.onFailure { state = State.Failed(it.message) }
+            updateHistoryFlags()
+            busy = false
+        }
+    }
+
+    fun discardDraft() {
+        recoverableDraft = null
+        autosaver.discard()
+    }
+
+    fun flushDraft() {
+        container.appScope.launch { autosaver.flush() }
     }
 
     private fun modify(block: suspend (File) -> Unit, onError: (Throwable) -> Unit = {}) {
@@ -307,6 +355,8 @@ class PdfViewerViewModel(
     fun workingFile(): File? = working
 
     override fun onCleared() {
+        // Copy the working file synchronously: it is deleted with the cache below otherwise.
+        if (dirty) kotlinx.coroutines.runBlocking { autosaver.flush() }
         closeRendererLocked()
         (undoStack + redoStack).forEach { it.file.delete() }
         cache.evictAll()

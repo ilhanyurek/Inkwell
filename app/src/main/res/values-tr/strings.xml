@@ -184,4 +184,11 @@
     <string name="embed_object">Nesne</string>
     <string name="embed_preview">Önizle</string>
     <string name="embed_table_note">Tablolar, görseller ve diğer nesneler kaydederken olduğu gibi korunur. Gerekirse Word\'de düzenleyebilirsiniz.</string>
+    <string name="draft_found">%1$s tarihli kaydedilmemiş değişiklikler bulundu.</string>
+    <string name="draft_restore">Geri yükle</string>
+    <string name="draft_discard">Sil</string>
+    <string name="draft_unsaved">Kaydedilmemiş taslak · %1$s</string>
+    <string name="home_drafts">Kurtarılan taslaklar</string>
+    <string name="settings_autosave">Dosyaya da otomatik kaydet</string>
+    <string name="settings_autosave_desc">Değişiklikler yazdıktan birkaç saniye sonra her zaman taslak olarak saklanır. Bu açıkken dosyanın kendisine de yazılır.</string>
 </resources>

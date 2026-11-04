@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.office.app.AppContainer
 import com.office.app.R
+import com.office.app.data.Draft
 import com.office.app.data.RecentFile
 import com.office.app.ui.common.KindBadge
 import com.office.app.ui.common.formatRelative
@@ -95,8 +96,10 @@ fun HomeScreen(
     onOpen: (Uri) -> Unit,
     onNew: (FileKind) -> Unit,
     onSettings: () -> Unit,
+    onOpenDraft: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
+    val drafts by container.drafts.drafts.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val recents by container.recents.files.collectAsStateWithLifecycle(initialValue = null)
     var filter by rememberSaveable { mutableStateOf(Filter.ALL) }
@@ -220,6 +223,12 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(24.dp),
                     )
+                }
+            }
+            if (drafts.isNotEmpty() && query.isBlank()) {
+                item { SectionHeader(stringResource(R.string.home_drafts)) }
+                items(drafts, key = { "d" + it.key }) { d ->
+                    DraftRow(d, onOpen = { onOpenDraft(d.key) }, onDiscard = { container.drafts.delete(d.key) })
                 }
             }
             if (pinned.isNotEmpty()) {
@@ -406,6 +415,38 @@ private fun NewRow(kind: FileKind, title: Int, desc: Int, onPick: (FileKind) -> 
         Column {
             Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
             Text(stringResource(desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun DraftRow(draft: Draft, onOpen: () -> Unit, onDiscard: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpen)
+            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        KindBadge(draft.kind)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(draft.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                stringResource(R.string.draft_unsaved, formatRelative(draft.savedAt)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+            )
+        }
+        Box {
+            IconButton(onClick = { menu = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.draft_discard)) }, onClick = { menu = false; onDiscard() })
+            }
         }
     }
 }

@@ -80,6 +80,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.office.app.AppContainer
@@ -88,6 +90,7 @@ import com.office.app.data.FileInfo
 import com.office.app.data.Settings
 import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
+import com.office.app.ui.common.DraftBanner
 import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.common.UndoRedoButtons
@@ -113,8 +116,10 @@ fun DocumentEditorScreen(
     kind: FileKind,
     onClose: () -> Unit,
     @Suppress("UNUSED_PARAMETER") onOpenOther: (Uri) -> Unit,
+    draftKey: String? = null,
 ) {
-    val vm: DocumentEditorViewModel = viewModel(key = "doc:$uri:$kind") { DocumentEditorViewModel(container, uri, info, kind) }
+    val vm: DocumentEditorViewModel = viewModel(key = "doc:$uri:$kind:$draftKey") { DocumentEditorViewModel(container, uri, info, kind, draftKey) }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.flushDraft() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = Settings())
@@ -224,6 +229,7 @@ fun DocumentEditorScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             if (vm.saving) LinearProgressIndicator(Modifier.fillMaxWidth().height(2.dp))
+            vm.recoverableDraft?.let { d -> DraftBanner(d.savedAt, onRestore = vm::restoreDraft, onDiscard = vm::discardDraft) }
             if (vm.lossyImport) LossyBanner()
             if (showFind) FindBar(vm, onClose = { showFind = false })
 
@@ -269,7 +275,7 @@ fun DocumentEditorScreen(
     if (showUnsaved) {
         UnsavedChangesDialog(
             onSave = { showUnsaved = false; closeAfterSave = true; requestSave() },
-            onDiscard = { showUnsaved = false; onClose() },
+            onDiscard = { showUnsaved = false; vm.discardDraft(); onClose() },
             onDismiss = { showUnsaved = false },
         )
     }

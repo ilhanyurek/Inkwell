@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -186,6 +187,26 @@ fun UndoRedoButtons(canUndo: Boolean, canRedo: Boolean, onUndo: () -> Unit, onRe
         }
         IconButton(onClick = onRedo, enabled = canRedo) {
             Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = stringResource(R.string.action_redo))
+        }
+    }
+}
+
+/** Offers to bring back unsaved changes found from an earlier session. */
+@Composable
+fun DraftBanner(savedAt: Long, onRestore: () -> Unit, onDiscard: () -> Unit) {
+    androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.primaryContainer) {
+        Row(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.draft_found, formatRelative(savedAt)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onDiscard) { Text(stringResource(R.string.draft_discard)) }
+            TextButton(onClick = onRestore) { Text(stringResource(R.string.draft_restore)) }
         }
     }
 }
