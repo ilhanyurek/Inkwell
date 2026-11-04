@@ -7,20 +7,18 @@ third-party "office" library: the file-format engine lives in its own `core` mod
 
 | Format | Open | Edit | Save as |
 |---|---|---|---|
-| **DOCX** | ✓ | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace | DOCX, export to PDF, print |
-| **TXT / MD** | ✓ | Plain text; headings, lists and bold/italic in Markdown | TXT / MD, export to PDF |
-| **XLSX** | ✓ (multiple sheets, shared strings, date formats) | Cell editing, 30+ formulas (SUM, IF, SUMIF… also under their Turkish names such as TOPLA, EĞER, ETOPLA), insert/delete rows and columns, sort, copy/paste, fill down, add/rename sheets | XLSX, CSV, PDF |
-| **CSV / TSV** | ✓ (delimiter and encoding detected automatically: `,` `;` tab, UTF-8 / Windows-1254) | Spreadsheet editor | CSV, XLSX, PDF |
-| **PDF** | ✓ (including password-protected files) | Highlight, add text, rotate/delete pages, extract pages, merge, text search | PDF |
-| **PPTX** | ✓ (text boxes, images, layout placeholders, speaker notes) | — (view only, presentation mode) | — |
+| **DOCX** | ✓ — images, tables, links, equations, headers and styles are kept | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace | DOCX (only the text you changed is rewritten), PDF, print |
+| **TXT / MD** | ✓ | Plain text; headings, lists and bold/italic in Markdown | TXT / MD, PDF |
+| **XLSX** | ✓ — multiple sheets, styles, number and date formats; charts, merged cells and conditional formatting are kept | Cell editing; bold/italic/colours/fill/borders/alignment/number formats; 50+ formulas incl. VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates and TEXT (also under Turkish names such as DÜŞEYARA, ETOPLA, BUGÜN); rows/columns, sort, fill down, sheets | XLSX, CSV, PDF |
+| **CSV / TSV** | ✓ — delimiter and encoding detected automatically | Spreadsheet editor; typed dates, percentages and amounts become numbers | CSV, XLSX, PDF |
+| **PDF** | ✓ — including password-protected files | Highlights and notes you can delete later, signatures, form filling, **real redaction** (blur or black box — the hidden content is removed from the file), rotate/delete/extract pages, merge, search | PDF |
+| **PPTX** | ✓ — text boxes, images, layouts, speaker notes, presentation mode | Slide text | PPTX, PDF |
 
-Every editor (document, spreadsheet, PDF) has undo / redo buttons in its bottom toolbar.
-
-Also: recent and pinned files, type filters, file search, opening files from "Open with" and "Share",
-light/dark theme, Material You colours (Android 12+), Turkish and English interface.
-
-The app icon has no fixed colour: on Android 12+ it takes its colours from the wallpaper palette, and with
-"Themed icons" turned on (Android 13+) the system recolours it to match the rest of the home screen.
+- Undo / redo in every editor.
+- **Never lose work:** changes are kept as a draft a few seconds after you type and can be restored after a crash; optionally also saved straight to the file.
+- Home: recent and pinned files, list or thumbnail grid, search, type filters, recovered drafts, and a **Folders** tab to browse, rename and delete files.
+- 22 interface languages: Turkish, English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, Indonesian, German, Japanese, Marathi, Telugu, Tamil, Vietnamese, Filipino, Korean, Persian and Swahili.
+- Light/dark theme, Material You colours; the app icon follows the wallpaper palette and themed icons.
 
 ## Download
 
@@ -51,9 +49,15 @@ core/   Pure Kotlin (no Android dependency): XML parser, DOCX/XLSX/PPTX readers 
 app/    Android app: Compose UI, file access (SAF), PDF (PdfRenderer + PdfBox-Android)
 ```
 
+## Testing
+
+- `core` unit tests, including files produced by python-docx, openpyxl, python-pptx and reportlab (`scripts/make_fixtures.py`).
+- Files saved by Inkwell are re-opened with those libraries in CI (`scripts/validate_outputs.py`).
+- Compose UI tests run on an Android emulator in CI, plus a smoke test of the minified release APK.
+
 ## Known limitations
 
 - Legacy binary formats (.doc, .xls, .ppt) are not supported.
-- Images, tables and equations inside DOCX files are shown as plain text; the app warns before saving such files and offers to save a copy.
-- XLSX cell formatting (colours, borders, fonts) and charts are not preserved; for unsupported formulas the last value saved by Excel is shown.
-- PPTX files are view-only.
+- DOCX tables, images and equations are kept but not editable in the app (they appear as labelled chips).
+- XLSX charts are kept but not shown; formulas the app does not know show the value Excel last saved.
+- PPTX: only text can be edited; shapes and images are kept as they are.
