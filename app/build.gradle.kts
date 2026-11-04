@@ -14,6 +14,10 @@ android {
         targetSdk = 35
         versionCode = (findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
         versionName = (findProperty("versionName") as String?) ?: "1.0.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Lets UI tests write screenshots that end up in build/outputs/connected_android_test_additional_output.
+        testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
 
     // Release signing comes from the environment (set by the release workflow from
@@ -84,4 +88,13 @@ dependencies {
     implementation(libs.pdfbox.android)
 
     debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.storage)
+    androidTestUtil(libs.androidx.test.services)
 }

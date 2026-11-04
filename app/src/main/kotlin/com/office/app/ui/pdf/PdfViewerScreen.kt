@@ -87,6 +87,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -364,6 +365,7 @@ private fun PdfPage(
     Box(
         Modifier
             .width(width)
+            .testTag("pdf_page_$index")
             .aspectRatio(pw.toFloat() / ph)
             .background(Color.White)
             .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
