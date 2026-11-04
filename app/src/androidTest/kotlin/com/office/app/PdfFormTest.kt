@@ -1,6 +1,5 @@
 package com.office.app
 
-import androidx.compose.ui.test.and
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
