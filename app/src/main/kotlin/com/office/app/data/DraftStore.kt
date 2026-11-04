@@ -114,8 +114,9 @@ class DraftAutosaver(
         val (uri, name, kind) = describe()
         runCatching { store.save(key, uri, name, kind) { f -> writeDraft(f) } }
         val autoToFile = runCatching { settings.settings.first().autoSaveToFile }.getOrDefault(false)
-        if (autoToFile && uri != null && saveToFile != null) {
-            if (runCatching { saveToFile.invoke() }.getOrDefault(false)) store.delete(key)
+        val save = saveToFile
+        if (autoToFile && uri != null && save != null) {
+            if (runCatching { save() }.getOrDefault(false)) store.delete(key)
         }
     }
 
