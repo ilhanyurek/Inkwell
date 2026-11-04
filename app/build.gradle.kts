@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.office.app"
+        applicationId = "com.inkwell.app"
         minSdk = 26
         targetSdk = 35
         versionCode = (findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
