@@ -5,6 +5,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
@@ -28,7 +29,13 @@ class PdfFormTest {
         drafts.drafts.value.forEach { drafts.delete(it.key) }
         ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(Fixtures.asset("form.pdf"), "application/pdf")).use {
             rule.waitForText(str(R.string.pdf_page_of, 1, 2))
-            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+            // Form fields are read in the background after the PDF opens.
+            rule.waitUntil(20_000) {
+                rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+                val shown = rule.onAllNodesWithText(str(R.string.pdf_fill_form)).fetchSemanticsNodes().isNotEmpty()
+                if (!shown) pressBack()
+                shown
+            }
             rule.onNodeWithText(str(R.string.pdf_fill_form)).performClick()
             rule.onNode(hasSetTextAction() and hasText("full_name")).performTextInput("Ada Lovelace")
             rule.screenshot("30_pdf_form")
