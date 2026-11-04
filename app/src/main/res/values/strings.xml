@@ -204,4 +204,15 @@
     <string name="numfmt_iso_date">ISO date</string>
     <string name="numfmt_time">Time</string>
     <string name="numfmt_text">Text</string>
+    <string name="pdf_tool_sign">Sign</string>
+    <string name="pdf_signature_choose">Choose a signature</string>
+    <string name="pdf_signature_new">Draw new</string>
+    <string name="pdf_signature_draw">Draw your signature</string>
+    <string name="pdf_signature_hint">Sign with your finger. The signature is saved on this device for next time.</string>
+    <string name="pdf_signature_place_hint">Drag the signature to position it.</string>
+    <string name="pdf_signature_size">Size</string>
+    <string name="pdf_signature_apply">Place signature</string>
+    <string name="pdf_fill_form">Fill in form</string>
+    <string name="pdf_form_flatten">Lock the form</string>
+    <string name="pdf_form_flatten_desc">Turns the fields into plain text so they can no longer be changed.</string>
 </resources>

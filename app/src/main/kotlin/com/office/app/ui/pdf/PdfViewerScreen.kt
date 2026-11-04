@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -113,7 +114,10 @@ import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
 import kotlinx.coroutines.launch
 
-private enum class Tool { VIEW, HIGHLIGHT, TEXT }
+private enum class Tool { VIEW, HIGHLIGHT, TEXT, SIGN }
+
+/** Where a signature is about to be placed: page, centre and width as a fraction of the page width. */
+private data class Placement(val page: Int, val center: PagePoint, val width: Float)
 
 private val HighlightColors = listOf(0xFFE45C, 0x7EE0A1, 0x8EC5FF, 0xFF9EB5)
 
@@ -143,6 +147,10 @@ fun PdfViewerScreen(
     var pendingText by remember { mutableStateOf<Pair<Int, PagePoint>?>(null) }
     var extractRange by remember { mutableStateOf(0 to 0) }
     var scale by remember { mutableFloatStateOf(1f) }
+    var signature by remember { mutableStateOf<Bitmap?>(null) }
+    var placement by remember { mutableStateOf<Placement?>(null) }
+    var pickSignatureAt by remember { mutableStateOf<Pair<Int, PagePoint>?>(null) }
+    var showForm by remember { mutableStateOf(false) }
 
     val currentPage by remember { derivedStateOf { listState.firstVisibleItemIndex } }
     val savedMsg = stringResource(R.string.saved)
@@ -221,6 +229,9 @@ fun PdfViewerScreen(
                                     DropdownMenuItem(text = { Text(stringResource(R.string.pdf_delete_page)) }, onClick = { menuOpen = false; vm.deletePage(currentPage) })
                                 }
                                 DropdownMenuItem(text = { Text(stringResource(R.string.pdf_extract_pages)) }, onClick = { menuOpen = false; showExtract = true })
+                                if (vm.formFields.isNotEmpty()) {
+                                    DropdownMenuItem(text = { Text(stringResource(R.string.pdf_fill_form)) }, onClick = { menuOpen = false; showForm = true })
+                                }
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                 DropdownMenuItem(text = { Text(stringResource(R.string.action_save_as)) }, onClick = { menuOpen = false; saveAs.launch(vm.fileName) })
                                 DropdownMenuItem(text = { Text(stringResource(R.string.action_print)) }, onClick = {
@@ -242,7 +253,26 @@ fun PdfViewerScreen(
             }
         },
         bottomBar = {
-            if (!searching) {
+            val p = placement
+            if (p != null && signature != null) {
+                PlacementBar(
+                    width = p.width,
+                    onWidth = { placement = p.copy(width = it) },
+                    onCancel = { placement = null },
+                    onConfirm = {
+                        val bmp = signature!!
+                        val (pw, ph) = vm.pageSizes.getOrNull(p.page) ?: (612 to 792)
+                        val h = p.width * bmp.height / bmp.width * pw / ph
+                        vm.stampSignature(
+                            p.page,
+                            PagePoint(p.center.x - p.width / 2, p.center.y - h / 2),
+                            PagePoint(p.center.x + p.width / 2, p.center.y + h / 2),
+                            bmp,
+                        )
+                        placement = null
+                    },
+                )
+            } else if (!searching) {
                 ToolBar(
                     vm = vm,
                     tool = tool,
@@ -303,6 +333,13 @@ fun PdfViewerScreen(
                                 highlightColor = highlightColor,
                                 onHighlight = { a, b -> vm.highlight(index, a, b, highlightColor) },
                                 onTextAt = { p -> pendingText = index to p },
+                                placement = placement?.takeIf { it.page == index },
+                                signature = signature,
+                                onSignAt = { pt ->
+                                    if (signature == null) pickSignatureAt = index to pt
+                                    else placement = Placement(index, pt, placement?.width ?: 0.3f)
+                                },
+                                onMovePlacement = { pt -> placement = placement?.copy(center = pt) },
                             )
                         }
                     }
@@ -337,6 +374,16 @@ fun PdfViewerScreen(
             },
         )
     }
+    pickSignatureAt?.let { (page, point) ->
+        SignaturePicker(
+            store = vm.signatures,
+            onPick = { bmp -> signature = bmp; placement = Placement(page, point, 0.3f); pickSignatureAt = null },
+            onDismiss = { pickSignatureAt = null },
+        )
+    }
+    if (showForm) {
+        FormDialog(vm.formFields, onDismiss = { showForm = false }, onApply = { values, flatten -> showForm = false; vm.fillForm(values, flatten) })
+    }
     pendingText?.let { (page, point) ->
         AddTextDialog(
             onDismiss = { pendingText = null },
@@ -357,6 +404,10 @@ private fun PdfPage(
     highlightColor: Int,
     onHighlight: (PagePoint, PagePoint) -> Unit,
     onTextAt: (PagePoint) -> Unit,
+    placement: Placement? = null,
+    signature: Bitmap? = null,
+    onSignAt: (PagePoint) -> Unit = {},
+    onMovePlacement: (PagePoint) -> Unit = {},
 ) {
     val (pw, ph) = vm.pageSizes.getOrNull(index) ?: (612 to 792)
     val density = LocalDensity.current
@@ -397,12 +448,45 @@ private fun PdfPage(
                     Tool.TEXT -> Modifier.pointerInput(index) {
                         detectTapGestures { p -> onTextAt(PagePoint(p.x / size.width, p.y / size.height)) }
                     }
+                    Tool.SIGN -> Modifier.pointerInput(index) {
+                        detectTapGestures { p -> onSignAt(PagePoint(p.x / size.width, p.y / size.height)) }
+                    }
                     Tool.VIEW -> Modifier
                 },
             ),
     ) {
         bitmap?.let {
             Image(it.asImageBitmap(), contentDescription = null, contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
+        }
+        if (placement != null && signature != null) {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val pagePx = with(density) { maxWidth.toPx() }
+                val pageHeightPx = with(density) { maxHeight.toPx() }
+                val wPx = placement.width * pagePx
+                val hPx = wPx * signature.height / signature.width
+                var center by remember(placement.page) { mutableStateOf(Offset(placement.center.x * pagePx, placement.center.y * pageHeightPx)) }
+                androidx.compose.runtime.LaunchedEffect(placement.center) {
+                    center = Offset(placement.center.x * pagePx, placement.center.y * pageHeightPx)
+                }
+                Image(
+                    signature.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .offset { androidx.compose.ui.unit.IntOffset((center.x - wPx / 2).toInt(), (center.y - hPx / 2).toInt()) }
+                        .size(with(density) { wPx.toDp() }, with(density) { hPx.toDp() })
+                        .border(1.dp, MaterialTheme.colorScheme.primary)
+                        .pointerInput(placement.page) {
+                            detectDragGestures(
+                                onDrag = { change, drag ->
+                                    change.consume()
+                                    center += drag
+                                },
+                                onDragEnd = { onMovePlacement(PagePoint(center.x / pagePx, center.y / pageHeightPx)) },
+                            )
+                        },
+                )
+            }
         }
         val a = dragStart
         val b = dragEnd
@@ -431,6 +515,7 @@ private fun ToolBar(vm: PdfViewerViewModel, tool: Tool, onTool: (Tool) -> Unit, 
                 FilterChip(selected = tool == Tool.VIEW, onClick = { onTool(Tool.VIEW) }, label = { Text(stringResource(R.string.pdf_tool_view)) })
                 FilterChip(selected = tool == Tool.HIGHLIGHT, onClick = { onTool(Tool.HIGHLIGHT) }, label = { Text(stringResource(R.string.pdf_tool_highlight)) })
                 FilterChip(selected = tool == Tool.TEXT, onClick = { onTool(Tool.TEXT) }, label = { Text(stringResource(R.string.pdf_tool_text)) })
+                FilterChip(selected = tool == Tool.SIGN, onClick = { onTool(Tool.SIGN) }, label = { Text(stringResource(R.string.pdf_tool_sign)) })
                 Spacer(Modifier.width(4.dp))
                 if (tool == Tool.HIGHLIGHT) {
                     HighlightColors.forEach { c ->
@@ -620,6 +705,79 @@ private fun AddTextDialog(onDismiss: () -> Unit, onConfirm: (String, Float) -> U
             }
         },
         confirmButton = { TextButton(onClick = { onConfirm(text, size) }, enabled = text.isNotBlank()) { Text(stringResource(R.string.action_add)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+@Composable
+private fun PlacementBar(width: Float, onWidth: (Float) -> Unit, onCancel: () -> Unit, onConfirm: () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(stringResource(R.string.pdf_signature_place_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.pdf_signature_size), style = MaterialTheme.typography.labelLarge)
+                androidx.compose.material3.Slider(value = width, onValueChange = onWidth, valueRange = 0.1f..0.8f, modifier = Modifier.weight(1f).padding(horizontal = 12.dp))
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = onConfirm) { Text(stringResource(R.string.pdf_signature_apply)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FormDialog(fields: List<FormField>, onDismiss: () -> Unit, onApply: (Map<String, String>, Boolean) -> Unit) {
+    val values = remember(fields) { androidx.compose.runtime.mutableStateMapOf<String, String>().apply { fields.forEach { put(it.name, it.value) } } }
+    var flatten by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.pdf_fill_form)) },
+        text = {
+            LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(fields, key = { it.name }) { f ->
+                    when (f.type) {
+                        FieldType.TEXT -> OutlinedTextField(
+                            value = values[f.name].orEmpty(),
+                            onValueChange = { values[f.name] = it },
+                            label = { Text(f.label) },
+                            enabled = !f.readOnly,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        FieldType.CHECKBOX -> Row(verticalAlignment = Alignment.CenterVertically) {
+                            androidx.compose.material3.Checkbox(
+                                checked = values[f.name] == "true",
+                                onCheckedChange = { values[f.name] = it.toString() },
+                                enabled = !f.readOnly,
+                            )
+                            Text(f.label)
+                        }
+                        FieldType.CHOICE, FieldType.RADIO -> Column {
+                            Text(f.label, style = MaterialTheme.typography.labelLarge)
+                            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                f.options.forEach { o ->
+                                    FilterChip(selected = values[f.name] == o, onClick = { values[f.name] = o }, label = { Text(o) }, enabled = !f.readOnly)
+                                }
+                            }
+                        }
+                    }
+                }
+                item {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(checked = flatten, onCheckedChange = { flatten = it })
+                        Column {
+                            Text(stringResource(R.string.pdf_form_flatten))
+                            Text(stringResource(R.string.pdf_form_flatten_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onApply(values.filter { (k, v) -> fields.first { it.name == k }.value != v }, flatten) }) {
+                Text(stringResource(R.string.action_ok))
+            }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

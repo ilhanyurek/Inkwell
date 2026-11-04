@@ -204,4 +204,15 @@
     <string name="numfmt_iso_date">ISO tarih</string>
     <string name="numfmt_time">Saat</string>
     <string name="numfmt_text">Metin</string>
+    <string name="pdf_tool_sign">İmzala</string>
+    <string name="pdf_signature_choose">İmza seçin</string>
+    <string name="pdf_signature_new">Yeni çiz</string>
+    <string name="pdf_signature_draw">İmzanızı çizin</string>
+    <string name="pdf_signature_hint">Parmağınızla imzalayın. İmza bir dahaki sefer için bu cihazda saklanır.</string>
+    <string name="pdf_signature_place_hint">İmzayı sürükleyerek yerleştirin.</string>
+    <string name="pdf_signature_size">Boyut</string>
+    <string name="pdf_signature_apply">İmzayı yerleştir</string>
+    <string name="pdf_fill_form">Formu doldur</string>
+    <string name="pdf_form_flatten">Formu kilitle</string>
+    <string name="pdf_form_flatten_desc">Alanları düz metne çevirir; artık değiştirilemezler.</string>
 </resources>

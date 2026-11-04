@@ -20,6 +20,18 @@ import java.io.File
 /** A point on a rendered page, normalised to 0..1 from the top-left of what the user sees. */
 data class PagePoint(val x: Float, val y: Float)
 
+enum class FieldType { TEXT, CHECKBOX, CHOICE, RADIO }
+
+/** An interactive form field and its current value ("true"/"false" for check boxes). */
+data class FormField(
+    val name: String,
+    val label: String,
+    val type: FieldType,
+    val value: String,
+    val options: List<String> = emptyList(),
+    val readOnly: Boolean = false,
+)
+
 /** PDF operations backed by PDFBox. All functions run on the IO dispatcher. */
 object PdfTools {
 
@@ -117,6 +129,65 @@ object PdfTools {
             }
             cs.endText()
         }
+    }
+
+    /** Stamps an image (e.g. a signature PNG) into the page between two corners. */
+    suspend fun stampImage(file: File, pageIndex: Int, a: PagePoint, b: PagePoint, image: android.graphics.Bitmap) = edit(file, null) { doc ->
+        val page = doc.getPage(pageIndex)
+        val p1 = toUserSpace(page, a)
+        val p2 = toUserSpace(page, b)
+        val xobject = com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory.createFromImage(doc, image)
+        PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true).use { cs ->
+            cs.drawImage(
+                xobject,
+                minOf(p1.first, p2.first),
+                minOf(p1.second, p2.second),
+                kotlin.math.abs(p1.first - p2.first),
+                kotlin.math.abs(p1.second - p2.second),
+            )
+        }
+    }
+
+    /** Lists the fillable fields of an AcroForm, or an empty list when the PDF has none. */
+    suspend fun formFields(file: File): List<FormField> = withContext(Dispatchers.IO) {
+        PDDocument.load(file).use { doc ->
+            val form = doc.documentCatalog.acroForm ?: return@use emptyList()
+            form.fieldTree.mapNotNull { f ->
+                val label = f.alternateFieldName?.takeIf { it.isNotBlank() } ?: f.partialName ?: f.fullyQualifiedName
+                when (f) {
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDTextField ->
+                        FormField(f.fullyQualifiedName, label, FieldType.TEXT, f.value.orEmpty(), readOnly = f.isReadOnly)
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDCheckBox ->
+                        FormField(f.fullyQualifiedName, label, FieldType.CHECKBOX, f.isChecked.toString(), readOnly = f.isReadOnly)
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDRadioButton ->
+                        FormField(f.fullyQualifiedName, label, FieldType.RADIO, f.value.orEmpty(), f.exportValues.orEmpty(), f.isReadOnly)
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDChoice ->
+                        FormField(f.fullyQualifiedName, label, FieldType.CHOICE, f.value.firstOrNull().orEmpty(), f.options.orEmpty(), f.isReadOnly)
+                    else -> null
+                }
+            }.toList()
+        }
+    }
+
+    /** Writes field values; with [flatten] the form becomes plain page content that can no longer be edited. */
+    suspend fun fillForm(file: File, values: Map<String, String>, flatten: Boolean) = edit(file, null) { doc ->
+        val form = doc.documentCatalog.acroForm ?: return@edit
+        for ((name, value) in values) {
+            val f = form.getField(name) ?: continue
+            runCatching {
+                when (f) {
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDCheckBox -> if (value == "true") f.check() else f.unCheck()
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDTextField -> f.value = value
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDRadioButton -> if (value.isNotEmpty()) f.value = value
+                    is com.tom_roush.pdfbox.pdmodel.interactive.form.PDChoice -> if (value.isNotEmpty()) f.setValue(value)
+                    else -> f.setValue(value)
+                }
+            }.onFailure {
+                // Some fonts cannot regenerate appearances; let viewers draw them instead.
+                form.needAppearances = true
+            }
+        }
+        if (flatten) runCatching { form.flatten() }
     }
 
     /** Text of every page, used for search. */

@@ -107,6 +107,7 @@ class PdfViewerViewModel(
                 working = work
                 openRenderer()
                 recoverableDraft = container.drafts.get(autosaver.key)
+                loadFormFields()
             }.onFailure { e ->
                 state = if (e is SecurityException) State.NeedsPassword else State.Failed(e.message)
             }
@@ -311,6 +312,23 @@ class PdfViewerViewModel(
             busy = false
         }
     }
+
+    /** Fillable form fields, loaded after the document opens. */
+    var formFields by mutableStateOf<List<FormField>>(emptyList())
+        private set
+
+    fun loadFormFields() {
+        val file = working ?: return
+        viewModelScope.launch { formFields = runCatching { PdfTools.formFields(file) }.getOrDefault(emptyList()) }
+    }
+
+    fun fillForm(values: Map<String, String>, flatten: Boolean) =
+        modify({ PdfTools.fillForm(it, values, flatten) }).also { viewModelScope.launch { kotlinx.coroutines.delay(800); loadFormFields() } }
+
+    fun stampSignature(page: Int, a: PagePoint, b: PagePoint, image: android.graphics.Bitmap) =
+        modify({ PdfTools.stampImage(it, page, a, b, image) })
+
+    val signatures = SignatureStore(container.appContext)
 
     fun rotate(page: Int, degrees: Int) = modify({ PdfTools.rotate(it, page, degrees) })
 
