@@ -72,7 +72,7 @@ class FormulaTest {
     }
 
     @Test fun unknownFunctionUsesCachedValue() {
-        val (wb, s) = sheetOf("A1" to "=VLOOKUP(1,B1:C2,2,FALSE)")
+        val (wb, s) = sheetOf("A1" to "=WEBSERVICE(\"x\")")
         s.cachedValues[CellRef(0, 0)] = "hit"
         assertEquals("hit", FormulaEngine(wb).display(s, CellRef(0, 0)))
     }
