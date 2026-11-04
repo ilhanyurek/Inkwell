@@ -58,6 +58,8 @@ class StoreScreenshotsTest {
             rule.waitUntil(15_000) {
                 runCatching { rule.onNodeWithContentDescription(str(R.string.action_undo)).assertIsEnabled() }.isSuccess
             }
+            // The page is re-rendered with the new annotation in the background.
+            Thread.sleep(3_000)
             rule.waitForIdle()
             rule.screenshot("store_4_pdf")
         }

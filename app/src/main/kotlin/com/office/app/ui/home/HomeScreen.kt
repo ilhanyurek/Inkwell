@@ -600,7 +600,15 @@ private fun ThumbCard(container: AppContainer, file: RecentFile, onOpen: (Uri) -
         ) {
             val t = thumb
             if (t != null) {
-                Image(t.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, alignment = Alignment.TopCenter, modifier = Modifier.fillMaxSize())
+                // Slides are landscape: show them whole instead of cropping the sides off.
+                val landscape = t.width > t.height
+                Image(
+                    t.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = if (landscape) ContentScale.Fit else ContentScale.Crop,
+                    alignment = if (landscape) Alignment.Center else Alignment.TopCenter,
+                    modifier = Modifier.fillMaxSize(),
+                )
             } else {
                 KindBadge(file.kind, size = 44.dp)
             }
