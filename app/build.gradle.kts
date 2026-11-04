@@ -12,15 +12,29 @@ android {
         applicationId = "com.office.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = (findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
+        versionName = (findProperty("versionName") as String?) ?: "1.0.0"
+    }
+
+    // Release signing comes from the environment (set by the release workflow from
+    // repository secrets). Without it, release builds fall back to the debug key.
+    val keystorePath = System.getenv("SIGNING_KEYSTORE_PATH")
+    signingConfigs {
+        if (!keystorePath.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             // PDFBox relies on reflection/resources; keep the release build unminified for now.
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

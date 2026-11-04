@@ -28,8 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
 import androidx.compose.material.icons.automirrored.filled.FormatAlignRight
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
-import androidx.compose.material.icons.automirrored.filled.Redo
-import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FormatAlignCenter
@@ -91,6 +89,7 @@ import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
 import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.LoadingScreen
+import com.office.app.ui.common.UndoRedoButtons
 import com.office.app.ui.common.UnsavedChangesDialog
 import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
@@ -185,12 +184,6 @@ fun DocumentEditorScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = vm::undo, enabled = vm.canUndo) {
-                        Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = stringResource(R.string.action_undo))
-                    }
-                    IconButton(onClick = vm::redo, enabled = vm.canRedo) {
-                        Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = stringResource(R.string.action_redo))
-                    }
                     IconButton(onClick = ::requestSave, enabled = !vm.saving && (vm.dirty || vm.uri == null)) {
                         Icon(Icons.Outlined.Save, contentDescription = stringResource(R.string.action_save))
                     }
@@ -262,9 +255,7 @@ fun DocumentEditorScreen(
                     },
                 )
             }
-            if (vm.supportsRichFormatting || vm.supportsMarkdownFormatting) {
-                FormattingToolbar(vm)
-            }
+            FormattingToolbar(vm, showFormatting = vm.supportsRichFormatting || vm.supportsMarkdownFormatting)
         }
     }
 
@@ -414,15 +405,20 @@ private fun FindBar(vm: DocumentEditorViewModel, onClose: () -> Unit) {
 }
 
 @Composable
-private fun FormattingToolbar(vm: DocumentEditorViewModel) {
+private fun FormattingToolbar(vm: DocumentEditorViewModel, showFormatting: Boolean) {
     val style = vm.caretStyle
     val para = vm.caretParagraph
     val rich = vm.supportsRichFormatting
     Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+            // Undo/redo stay pinned at the start; the formatting tools scroll beside them.
+            UndoRedoButtons(vm.canUndo, vm.canRedo, vm::undo, vm::redo, modifier = Modifier.padding(start = 4.dp))
+            if (showFormatting) {
+            Divider()
             Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 2.dp),
+                Modifier.weight(1f).horizontalScroll(rememberScrollState()).padding(end = 6.dp, top = 2.dp, bottom = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ParagraphStyleMenu(current = para?.style ?: ParagraphStyle.NORMAL, onPick = vm::setParagraphStyle, rich = rich)
@@ -447,6 +443,8 @@ private fun FormattingToolbar(vm: DocumentEditorViewModel) {
                 IconButton(onClick = vm::clearFormatting) {
                     Icon(Icons.Default.FormatClear, contentDescription = stringResource(R.string.format_clear))
                 }
+            }
+            }
             }
         }
     }

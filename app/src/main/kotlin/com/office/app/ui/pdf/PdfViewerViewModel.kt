@@ -23,6 +23,8 @@ import java.io.File
 
 data class SearchHit(val page: Int, val snippet: String)
 
+private const val MAX_HISTORY = 20
+
 class PdfViewerViewModel(
     private val container: AppContainer,
     val uri: Uri,
@@ -53,6 +55,19 @@ class PdfViewerViewModel(
         private set
     var searchResults by mutableStateOf<List<SearchHit>?>(null)
         private set
+    var canUndo by mutableStateOf(false)
+        private set
+    var canRedo by mutableStateOf(false)
+        private set
+
+    /** Snapshot of the working file plus the id of the state it captured. */
+    private data class Snapshot(val file: File, val stateId: Int)
+
+    private val undoStack = ArrayDeque<Snapshot>()
+    private val redoStack = ArrayDeque<Snapshot>()
+    private var stateId = 0
+    private var nextStateId = 1
+    private var savedStateId = 0
 
     private var original: File? = null
     /** The file we render and edit; saved back to [uri] on demand. */
@@ -178,20 +193,73 @@ class PdfViewerViewModel(
 
     // --- editing ----------------------------------------------------------------------------------
 
+    private fun historyDir(): File = File(working!!.parentFile, "pdf_history").apply { mkdirs() }
+
+    private fun snapshot(): Snapshot {
+        val copy = File(historyDir(), "s_${System.nanoTime()}.pdf")
+        working!!.copyTo(copy, overwrite = true)
+        return Snapshot(copy, stateId)
+    }
+
+    private fun updateHistoryFlags() {
+        canUndo = undoStack.isNotEmpty()
+        canRedo = redoStack.isNotEmpty()
+        dirty = stateId != savedStateId
+    }
+
     private fun modify(block: suspend (File) -> Unit, onError: (Throwable) -> Unit = {}) {
+        if (busy) return
         val file = working ?: return
         viewModelScope.launch {
             busy = true
+            val before = withContext(Dispatchers.IO) { runCatching { snapshot() }.getOrNull() }
             val result = runCatching {
                 // Release the renderer's handle while PDFBox rewrites the file.
                 renderLock.withLock { withContext(Dispatchers.IO) { closeRendererLocked() } }
                 block(file)
             }
-            runCatching { openRenderer() }.onFailure { state = State.Failed(it.message) }
             result.onSuccess {
-                dirty = true
+                if (before != null) {
+                    undoStack.addLast(before)
+                    while (undoStack.size > MAX_HISTORY) undoStack.removeFirst().file.delete()
+                }
+                redoStack.forEach { it.file.delete() }
+                redoStack.clear()
+                stateId = nextStateId++
                 pageTexts = null
-            }.onFailure(onError)
+            }.onFailure {
+                // Roll back a half-written file.
+                if (before != null) withContext(Dispatchers.IO) { before.file.copyTo(file, overwrite = true); before.file.delete() }
+                onError(it)
+            }
+            runCatching { openRenderer() }.onFailure { state = State.Failed(it.message) }
+            updateHistoryFlags()
+            busy = false
+        }
+    }
+
+    fun undo() = travel(from = undoStack, to = redoStack)
+
+    fun redo() = travel(from = redoStack, to = undoStack)
+
+    private fun travel(from: ArrayDeque<Snapshot>, to: ArrayDeque<Snapshot>) {
+        if (busy) return
+        val file = working ?: return
+        val target = from.removeLastOrNull() ?: return
+        viewModelScope.launch {
+            busy = true
+            runCatching {
+                renderLock.withLock { withContext(Dispatchers.IO) { closeRendererLocked() } }
+                withContext(Dispatchers.IO) {
+                    to.addLast(snapshot())
+                    target.file.copyTo(file, overwrite = true)
+                    target.file.delete()
+                }
+                stateId = target.stateId
+                pageTexts = null
+            }
+            runCatching { openRenderer() }.onFailure { state = State.Failed(it.message) }
+            updateHistoryFlags()
             busy = false
         }
     }
@@ -227,7 +295,10 @@ class PdfViewerViewModel(
                 container.files.writeBytes(target, bytes)
             }
             busy = false
-            if (r.isSuccess && target == uri) dirty = false
+            if (r.isSuccess && target == uri) {
+                savedStateId = stateId
+                updateHistoryFlags()
+            }
             onDone(r.exceptionOrNull())
         }
     }
@@ -237,6 +308,7 @@ class PdfViewerViewModel(
 
     override fun onCleared() {
         closeRendererLocked()
+        (undoStack + redoStack).forEach { it.file.delete() }
         cache.evictAll()
     }
 }

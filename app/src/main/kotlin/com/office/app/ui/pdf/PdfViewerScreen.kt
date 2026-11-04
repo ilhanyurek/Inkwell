@@ -102,6 +102,7 @@ import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
 import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.LoadingScreen
+import com.office.app.ui.common.UndoRedoButtons
 import com.office.app.ui.common.UnsavedChangesDialog
 import com.office.app.ui.common.openWithOtherApp
 import com.office.app.ui.common.shareUri
@@ -238,6 +239,7 @@ fun PdfViewerScreen(
         bottomBar = {
             if (!searching) {
                 ToolBar(
+                    vm = vm,
                     tool = tool,
                     onTool = { tool = it },
                     color = highlightColor,
@@ -409,19 +411,20 @@ private fun PdfPage(
 }
 
 @Composable
-private fun ToolBar(tool: Tool, onTool: (Tool) -> Unit, color: Int, onColor: (Int) -> Unit, scale: Float, onZoom: (Float) -> Unit) {
+private fun ToolBar(vm: PdfViewerViewModel, tool: Tool, onTool: (Tool) -> Unit, color: Int, onColor: (Int) -> Unit, scale: Float, onZoom: (Float) -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 4.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                UndoRedoButtons(vm.canUndo && !vm.busy, vm.canRedo && !vm.busy, vm::undo, vm::redo)
                 FilterChip(selected = tool == Tool.VIEW, onClick = { onTool(Tool.VIEW) }, label = { Text(stringResource(R.string.pdf_tool_view)) })
                 FilterChip(selected = tool == Tool.HIGHLIGHT, onClick = { onTool(Tool.HIGHLIGHT) }, label = { Text(stringResource(R.string.pdf_tool_highlight)) })
                 FilterChip(selected = tool == Tool.TEXT, onClick = { onTool(Tool.TEXT) }, label = { Text(stringResource(R.string.pdf_tool_text)) })
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.width(4.dp))
                 if (tool == Tool.HIGHLIGHT) {
                     HighlightColors.forEach { c ->
                         Box(

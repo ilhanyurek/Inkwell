@@ -38,8 +38,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Redo
-import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -99,6 +97,7 @@ import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
 import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.LoadingScreen
+import com.office.app.ui.common.UndoRedoButtons
 import com.office.app.ui.common.UnsavedChangesDialog
 import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
@@ -189,8 +188,6 @@ fun SheetEditorScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = vm::undo, enabled = vm.canUndo) { Icon(Icons.AutoMirrored.Filled.Undo, stringResource(R.string.action_undo)) }
-                    IconButton(onClick = vm::redo, enabled = vm.canRedo) { Icon(Icons.AutoMirrored.Filled.Redo, stringResource(R.string.action_redo)) }
                     IconButton(onClick = ::requestSave, enabled = !vm.saving && (vm.dirty || vm.uri == null)) {
                         Icon(Icons.Outlined.Save, stringResource(R.string.action_save))
                     }
@@ -496,8 +493,11 @@ private fun ActionBar(vm: SheetEditorViewModel, onSort: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+            UndoRedoButtons(vm.canUndo, vm.canRedo, vm::undo, vm::redo, modifier = Modifier.padding(start = 4.dp))
+            Sep()
             Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 4.dp),
+                Modifier.weight(1f).horizontalScroll(rememberScrollState()).padding(end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Action(R.string.sheet_copy) {
@@ -523,6 +523,7 @@ private fun ActionBar(vm: SheetEditorViewModel, onSort: () -> Unit) {
                 Action(R.string.sheet_sort) { onSort() }
                 Action(R.string.sheet_narrower) { vm.adjustColumnWidth(-2f) }
                 Action(R.string.sheet_wider) { vm.adjustColumnWidth(2f) }
+            }
             }
         }
     }

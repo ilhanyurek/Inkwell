@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -173,3 +176,16 @@ fun toast(context: Context, message: String) = Toast.makeText(context, message, 
 /** Divider colour used for hairlines throughout the app. */
 @Composable
 fun hairline(): Color = MaterialTheme.colorScheme.outlineVariant
+
+/** Undo/redo pair placed in bottom toolbars where the thumb can reach them. */
+@Composable
+fun UndoRedoButtons(canUndo: Boolean, canRedo: Boolean, onUndo: () -> Unit, onRedo: () -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onUndo, enabled = canUndo) {
+            Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = stringResource(R.string.action_undo))
+        }
+        IconButton(onClick = onRedo, enabled = canRedo) {
+            Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = stringResource(R.string.action_redo))
+        }
+    }
+}

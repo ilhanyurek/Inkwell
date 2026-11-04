@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 1.0.1)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Decode signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 secret is missing. Add the signing secrets under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: Core unit tests
+        run: ./gradlew :core:test
+
+      - name: Build release APK
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          ./gradlew :app:assembleRelease \
+            -PversionName=${{ steps.version.outputs.version }} \
+            -PversionCode=${{ github.run_number }}
+          cp app/build/outputs/apk/release/app-release.apk "Ofis-${{ steps.version.outputs.version }}.apk"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Ofis ${{ steps.version.outputs.version }}
+          files: Ofis-${{ steps.version.outputs.version }}.apk
+          body: |
+            ## Kurulum
+            1. Aşağıdaki **Ofis-${{ steps.version.outputs.version }}.apk** dosyasını telefonunuza indirin.
+            2. Dosyayı açın; istenirse tarayıcıya veya dosya yöneticisine "bilinmeyen uygulamaları yükleme" izni verin.
+            3. Önceki bir sürüm kuruluysa üzerine güncellenir, verileriniz silinmez.
+
+            ## Neler var
+            - DOCX, TXT ve Markdown belgelerini açma, düzenleme, PDF'e aktarma ve yazdırma
+            - XLSX ve CSV tabloları: formüller (Türkçe adlarla da), sıralama, satır/sütun işlemleri
+            - PDF: arama, vurgulama, metin ekleme, sayfa döndürme/silme/ayırma, birleştirme, parolalı dosyalar
+            - PPTX görüntüleme ve sunum modu
+            - Tüm düzenleyicilerde geri al / yinele
+            - Açık/koyu tema, Türkçe ve İngilizce arayüz
+
+            Android 8.0 ve üzeri gerekir.
