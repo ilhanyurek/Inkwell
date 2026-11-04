@@ -231,4 +231,8 @@
     <string name="pdf_annotations_count">Annotations (%1$d)</string>
     <string name="pdf_annotation_delete_title">Delete this annotation?</string>
     <string name="pdf_annotation_note">Note</string>
+    <string name="slide_edit">Edit text</string>
+    <string name="slide_edit_done">Done editing</string>
+    <string name="slide_edit_hint">Tap a text box to change its text.</string>
+    <string name="slide_edit_text">Edit text</string>
 </resources>

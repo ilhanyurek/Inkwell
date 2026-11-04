@@ -2,6 +2,12 @@ package com.office.app
 
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -38,6 +44,19 @@ class RealFilesTest {
         "Inkwell Deck", str(R.string.slide_of, 1, 3),
         shot = "22_real_pptx",
     )
+
+    @Test fun editSlideText() = rule.explainFailure {
+        ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(Fixtures.asset("deck.pptx"), "application/vnd.openxmlformats-officedocument.presentationml.presentation")).use {
+            rule.waitForText("Inkwell Deck")
+            rule.onNodeWithContentDescription(str(R.string.slide_edit)).performClick()
+            rule.onAllNodesWithText("Inkwell Deck")[0].performClick()
+            rule.onNode(hasSetTextAction()).performTextReplacement("Edited title")
+            rule.onNodeWithText(str(R.string.action_ok)).performClick()
+            rule.waitForText("Edited title")
+            rule.onNodeWithContentDescription(str(R.string.action_save)).assertExists()
+            rule.screenshot("24_pptx_edited")
+        }
+    }
 
     @Test fun pdfForm() = open(
         "form.pdf", "application/pdf",

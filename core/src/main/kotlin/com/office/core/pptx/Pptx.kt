@@ -2,6 +2,10 @@ package com.office.core.pptx
 
 import com.office.core.text.Alignment
 import com.office.core.xml.XmlElement
+import com.office.core.xml.XmlNode
+import com.office.core.xml.XmlText
+import com.office.core.xml.XmlWriter
+import com.office.core.xml.withChildren
 import com.office.core.zip.ZipPackage
 import java.io.InputStream
 
@@ -36,6 +40,8 @@ sealed class SlideShape {
         val fill: Long? = null,
         val isTitle: Boolean = false,
         val verticalCenter: Boolean = false,
+        /** `cNvPr/@id` of the shape, used to edit its text; null for text we cannot edit (tables). */
+        val shapeId: String? = null,
     ) : SlideShape()
 
     data class Picture(override val frame: Frame, val image: ByteArray, val contentPath: String) : SlideShape() {
@@ -46,7 +52,7 @@ sealed class SlideShape {
     data class Rect(override val frame: Frame, val fill: Long) : SlideShape()
 }
 
-data class Slide(val shapes: List<SlideShape>, val background: Long?, val notes: String)
+data class Slide(val shapes: List<SlideShape>, val background: Long?, val notes: String, val path: String = "")
 
 data class Presentation(val width: Long, val height: Long, val slides: List<Slide>) {
     val aspectRatio: Float get() = if (height == 0L) 16f / 9f else width.toFloat() / height
@@ -99,7 +105,7 @@ object PptxReader {
             ?.filter { sp -> sp.path("nvSpPr", "nvPr", "ph")?.attr("type") == "body" }
             ?.joinToString("\n") { sp -> sp.descendants("p").joinToString("\n") { p -> p.descendants("t").joinToString("") { it.text() } } }
             .orEmpty()
-        return Slide(shapes, background, notes.trim())
+        return Slide(shapes, background, notes.trim(), path)
     }
 
     private fun backgroundOf(root: XmlElement, colors: Map<String, Long>): Long? =
@@ -151,7 +157,8 @@ object PptxReader {
                     val paragraphs = body?.children("p")?.map { readParagraph(it, colors, defaultSize, ph != null && !isTitle && phType != "subTitle" && phType != "ctrTitle") }.orEmpty()
                     val anchor = body?.child("bodyPr")?.attr("anchor") ?: if (isTitle) "ctr" else null
                     val hasText = paragraphs.any { it.text.isNotBlank() }
-                    if (hasText) out += SlideShape.TextBox(frame, paragraphs, fill, isTitle, anchor == "ctr")
+                    val id = el.path("nvSpPr", "cNvPr")?.attr("id")
+                    if (hasText) out += SlideShape.TextBox(frame, paragraphs, fill, isTitle, anchor == "ctr", id)
                     else if (fill != null) out += SlideShape.Rect(frame, fill)
                 }
                 "pic" -> {
@@ -258,5 +265,65 @@ object PptxReader {
             rgb.toLongOrNull(16)?.let { out[c.localName] = 0xFF000000 or it }
         }
         return out
+    }
+}
+
+/** Edits slide text in place, keeping every other part of the package untouched. */
+object PptxEditor {
+
+    /**
+     * Replaces the text of shape [shapeId] on [slidePath] with [paragraphs]. Each new paragraph
+     * reuses the paragraph and first-run formatting of the original paragraph at the same position
+     * (or the last one), so the slide keeps its look.
+     */
+    fun replaceText(pkg: ZipPackage, slidePath: String, shapeId: String, paragraphs: List<String>): ZipPackage {
+        val root = pkg.xml(slidePath) ?: return pkg
+        var changed = false
+        val updated = transform(root) { el ->
+            if (el.localName != "sp" || el.path("nvSpPr", "cNvPr")?.attr("id") != shapeId) return@transform null
+            val body = el.child("txBody") ?: return@transform null
+            changed = true
+            el.withChildren(el.children.map { if (it === body) newBody(body, paragraphs) else it })
+        }
+        if (!changed) return pkg
+        val entries = LinkedHashMap(pkg.entries)
+        entries[slidePath] = XmlWriter.write(updated, declaration = true).toByteArray(Charsets.UTF_8)
+        return ZipPackage(entries)
+    }
+
+    private fun newBody(body: XmlElement, paragraphs: List<String>): XmlElement {
+        val old = body.children("p")
+        val aPrefix = old.firstOrNull()?.name?.substringBefore(':', "")?.let { if (it.isEmpty() || it == old.first().name) "" else "$it:" } ?: "a:"
+        val kept = body.children.filter { it !is XmlElement || it.localName != "p" }
+        val newParas = paragraphs.ifEmpty { listOf("") }.mapIndexed { i, text ->
+            val template = old.getOrNull(minOf(i, old.lastIndex))
+            val pPr = template?.child("pPr")
+            val rPr = template?.children("r")?.firstOrNull()?.child("rPr") ?: template?.child("endParaRPr")?.let {
+                XmlElement(it.name.replace("endParaRPr", "rPr"), it.attributes, it.children)
+            }
+            val end = template?.child("endParaRPr")
+            val children = ArrayList<XmlNode>()
+            pPr?.let { children += it }
+            if (text.isNotEmpty()) {
+                val run = ArrayList<XmlNode>()
+                rPr?.let { run += it }
+                run += XmlElement("${aPrefix}t", emptyMap(), listOf(XmlText(text)))
+                children += XmlElement("${aPrefix}r", emptyMap(), run)
+            }
+            end?.let { children += it }
+            XmlElement("${aPrefix}p", emptyMap(), children)
+        }
+        // Keep bodyPr/lstStyle first, then the new paragraphs.
+        return body.withChildren(kept + newParas)
+    }
+
+    /** Rebuilds the tree, replacing any element for which [replace] returns a new element. */
+    private fun transform(el: XmlElement, replace: (XmlElement) -> XmlElement?): XmlElement {
+        replace(el)?.let { return it }
+        var changed = false
+        val kids = el.children.map { c ->
+            if (c is XmlElement) transform(c, replace).also { if (it !== c) changed = true } else c
+        }
+        return if (changed) el.withChildren(kids) else el
     }
 }

@@ -86,7 +86,21 @@ import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.common.openWithOtherApp
 import com.office.app.ui.common.shareUri
+import com.office.app.ui.common.toast
+import com.office.app.ui.common.UnsavedChangesDialog
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EditOff
+import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import com.office.core.pptx.PptxEditor
 import com.office.core.pptx.PptxReader
+import com.office.core.zip.ZipPackage
 import com.office.core.pptx.Presentation
 import com.office.core.pptx.Slide
 import com.office.core.pptx.SlideShape
@@ -97,19 +111,87 @@ import java.io.ByteArrayInputStream
 import kotlin.math.roundToInt
 import com.office.core.text.Alignment as DocAlignment
 
-class PresentationViewModel(container: AppContainer, uri: Uri) : ViewModel() {
+class PresentationViewModel(private val container: AppContainer, val uri: Uri) : ViewModel() {
     var presentation by mutableStateOf<Presentation?>(null)
         private set
     var error by mutableStateOf<String?>(null)
         private set
+    var dirty by mutableStateOf(false)
+        private set
+    var busy by mutableStateOf(false)
+        private set
     private val images = HashMap<String, ImageBitmap?>()
+    /** The package as currently edited; text edits rewrite only the affected slide parts. */
+    private var pkg: ZipPackage? = null
+    private val undo = ArrayDeque<ZipPackage>()
+    var canUndo by mutableStateOf(false)
+        private set
 
     init {
         viewModelScope.launch {
             runCatching {
                 val bytes = container.files.readBytes(uri)
-                withContext(Dispatchers.Default) { PptxReader.read(ByteArrayInputStream(bytes)) }
+                withContext(Dispatchers.Default) {
+                    val p = ZipPackage.read(ByteArrayInputStream(bytes))
+                    pkg = p
+                    PptxReader.read(p)
+                }
             }.onSuccess { presentation = it }.onFailure { error = it.message ?: it.javaClass.simpleName }
+        }
+    }
+
+    fun editText(slide: Slide, box: SlideShape.TextBox, paragraphs: List<String>) {
+        val current = pkg ?: return
+        val id = box.shapeId ?: return
+        viewModelScope.launch {
+            val updated = withContext(Dispatchers.Default) { PptxEditor.replaceText(current, slide.path, id, paragraphs) }
+            if (updated === current) return@launch
+            undo.addLast(current)
+            canUndo = true
+            pkg = updated
+            presentation = withContext(Dispatchers.Default) { PptxReader.read(updated) }
+            dirty = true
+        }
+    }
+
+    fun undoEdit() {
+        val previous = undo.removeLastOrNull() ?: return
+        canUndo = undo.isNotEmpty()
+        pkg = previous
+        viewModelScope.launch {
+            presentation = withContext(Dispatchers.Default) { PptxReader.read(previous) }
+            dirty = undo.isNotEmpty()
+        }
+    }
+
+    fun save(target: Uri = uri, onDone: (Throwable?) -> Unit) {
+        val current = pkg ?: return
+        viewModelScope.launch {
+            busy = true
+            val r = runCatching {
+                val bytes = withContext(Dispatchers.Default) {
+                    java.io.ByteArrayOutputStream().also { ZipPackage.write(it, current.entries.toList()) }.toByteArray()
+                }
+                container.files.writeBytes(target, bytes)
+            }
+            busy = false
+            if (r.isSuccess && target == uri) dirty = false
+            onDone(r.exceptionOrNull())
+        }
+    }
+
+    fun exportPdf(target: Uri, onDone: (Throwable?) -> Unit) {
+        val pres = presentation ?: return
+        viewModelScope.launch {
+            busy = true
+            val r = runCatching {
+                val bytes = withContext(Dispatchers.Default) {
+                    java.io.ByteArrayOutputStream().also { SlideRenderer.exportPdf(pres, it) }.toByteArray()
+                }
+                container.files.writeBytes(target, bytes)
+            }
+            busy = false
+            onDone(r.exceptionOrNull())
         }
     }
 
@@ -152,13 +234,34 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
     val scope = rememberCoroutineScope()
     var presenting by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf(false) }
+    var editBox by remember { mutableStateOf<Pair<Slide, SlideShape.TextBox>?>(null) }
+    var showUnsaved by remember { mutableStateOf(false) }
+    var closeAfterSave by remember { mutableStateOf(false) }
+    val savedMsg = stringResource(R.string.saved)
+    val failedMsg = stringResource(R.string.error_save_failed)
+    fun afterSave(e: Throwable?) {
+        toast(context, if (e == null) savedMsg else failedMsg)
+        if (e == null && closeAfterSave) onClose()
+        closeAfterSave = false
+    }
+    val saveAs = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(info.kind?.primaryMime ?: "*/*")) { t ->
+        if (t != null) vm.save(t, ::afterSave) else { closeAfterSave = false }
+    }
+    val exportPdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { t ->
+        if (t != null) vm.exportPdf(t) { e -> toast(context, context.getString(if (e == null) R.string.exported else R.string.error_save_failed)) }
+    }
+    fun requestSave() {
+        if (container.files.canWrite(uri)) vm.save(onDone = ::afterSave) else saveAs.launch(info.name)
+    }
+    BackHandler(enabled = vm.dirty) { showUnsaved = true }
 
     LaunchedEffect(pager.currentPage) { thumbs.animateScrollToItem((pager.currentPage - 1).coerceAtLeast(0)) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                navigationIcon = { BackButton(onClose) },
+                navigationIcon = { BackButton { if (vm.dirty) showUnsaved = true else onClose() } },
                 title = {
                     Column {
                         Text(info.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
@@ -170,10 +273,28 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                     }
                 },
                 actions = {
+                    if (vm.canUndo) {
+                        IconButton(onClick = vm::undoEdit) { Icon(Icons.AutoMirrored.Filled.Undo, stringResource(R.string.action_undo)) }
+                    }
+                    if (vm.dirty) {
+                        IconButton(onClick = ::requestSave, enabled = !vm.busy) { Icon(Icons.Outlined.Save, stringResource(R.string.action_save)) }
+                    }
+                    IconButton(onClick = { editing = !editing }) {
+                        Icon(
+                            if (editing) Icons.Default.EditOff else Icons.Default.Edit,
+                            stringResource(if (editing) R.string.slide_edit_done else R.string.slide_edit),
+                            tint = if (editing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     IconButton(onClick = { presenting = true }) { Icon(Icons.Default.PlayArrow, stringResource(R.string.slide_present)) }
                     Box {
                         IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.action_more)) }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.action_save_as)) }, onClick = { menu = false; saveAs.launch(info.name) })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.action_export_pdf)) }, onClick = {
+                                menu = false
+                                exportPdf.launch(info.name.substringBeforeLast('.') + ".pdf")
+                            })
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_share)) }, onClick = {
                                 menu = false
                                 shareUri(context, uri, info.kind?.primaryMime ?: "*/*", context.getString(R.string.action_share))
@@ -197,9 +318,18 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                 verticalAlignment = Alignment.CenterVertically,
             ) { page ->
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.Center) {
+                    if (editing) {
+                        Text(
+                            stringResource(R.string.slide_edit_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = 8.dp),
+                        )
+                    }
                     SlideView(
                         vm, pres, pres.slides[page],
                         Modifier.fillMaxWidth().border(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                        onTextBoxClick = if (editing) { box -> editBox = pres.slides[page] to box } else null,
                     )
                     val notes = pres.slides[page].notes
                     if (notes.isNotBlank()) {
@@ -249,6 +379,25 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
         }
     }
 
+    editBox?.let { (slide, box) ->
+        var text by remember(box) { mutableStateOf(box.paragraphs.joinToString("\n") { it.text }) }
+        AlertDialog(
+            onDismissRequest = { editBox = null },
+            title = { Text(stringResource(R.string.slide_edit_text)) },
+            text = { OutlinedTextField(value = text, onValueChange = { text = it }, minLines = 3, modifier = Modifier.fillMaxWidth()) },
+            confirmButton = {
+                TextButton(onClick = { editBox = null; vm.editText(slide, box, text.split('\n')) }) { Text(stringResource(R.string.action_ok)) }
+            },
+            dismissButton = { TextButton(onClick = { editBox = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+    if (showUnsaved) {
+        UnsavedChangesDialog(
+            onSave = { showUnsaved = false; closeAfterSave = true; requestSave() },
+            onDiscard = { showUnsaved = false; onClose() },
+            onDismiss = { showUnsaved = false },
+        )
+    }
     if (presenting) {
         PresentMode(vm, pres, start = pager.currentPage, onExit = { last ->
             presenting = false
@@ -302,7 +451,14 @@ private fun PresentMode(vm: PresentationViewModel, pres: Presentation, start: In
 
 /** Draws a slide by placing its shapes at their EMU positions scaled to the available width. */
 @Composable
-fun SlideView(vm: PresentationViewModel, pres: Presentation, slide: Slide, modifier: Modifier, thumbnail: Boolean = false) {
+fun SlideView(
+    vm: PresentationViewModel,
+    pres: Presentation,
+    slide: Slide,
+    modifier: Modifier,
+    thumbnail: Boolean = false,
+    onTextBoxClick: ((SlideShape.TextBox) -> Unit)? = null,
+) {
     val bg = slide.background?.let { Color(it) } ?: Color.White
     val defaultText = if (bg.luminance() < 0.4f) Color(0xFFF5F5F5) else Color(0xFF1B1C1E)
     val density = LocalDensity.current
@@ -325,7 +481,13 @@ fun SlideView(vm: PresentationViewModel, pres: Presentation, slide: Slide, modif
                     if (img != null) Image(img, contentDescription = null, contentScale = ContentScale.FillBounds, modifier = placed)
                     else Box(placed.background(Color.Gray.copy(alpha = 0.15f)))
                 }
-                is SlideShape.TextBox -> TextBoxView(shape, placed, ptToSp, defaultText, thumbnail, w)
+                is SlideShape.TextBox -> TextBoxView(
+                    shape,
+                    if (onTextBoxClick != null && shape.shapeId != null) {
+                        placed.border(1.dp, MaterialTheme.colorScheme.primary).clickable { onTextBoxClick(shape) }
+                    } else placed,
+                    ptToSp, defaultText, thumbnail, w,
+                )
             }
         }
     }

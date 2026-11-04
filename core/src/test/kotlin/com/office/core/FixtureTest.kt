@@ -124,6 +124,19 @@ class FixtureTest {
         assertEquals("Speaker note for agenda", pres.slides[1].notes)
         assertTrue(pres.slides[2].shapes.any { it is SlideShape.Picture })
         assertTrue(texts(2).any { it.contains("Q2") && it.contains("Q3") })
+        // Edit the agenda body text and save; formatting and other parts stay.
+        val pkg = ZipPackage.read(ByteArrayInputStream(fixture("deck.pptx")))
+        val agendaBody = pres.slides[1].shapes.filterIsInstance<SlideShape.TextBox>().first { b -> b.paragraphs.any { it.text == "Numbers" } }
+        val edited = com.office.core.pptx.PptxEditor.replaceText(pkg, pres.slides[1].path, agendaBody.shapeId!!, listOf("Giriş", "Rakamlar", "Sonraki adımlar", "Sorular"))
+        val out = ByteArrayOutputStream()
+        ZipPackage.write(out, edited.entries.toList())
+        File(outDir, "deck-edited.pptx").writeBytes(out.toByteArray())
+        val again = PptxReader.read(ByteArrayInputStream(out.toByteArray()))
+        val newBody = again.slides[1].shapes.filterIsInstance<SlideShape.TextBox>().first { it.shapeId == agendaBody.shapeId }
+        assertEquals(listOf("Giriş", "Rakamlar", "Sonraki adımlar", "Sorular"), newBody.paragraphs.map { it.text })
+        assertEquals("Agenda", again.slides[1].shapes.filterIsInstance<SlideShape.TextBox>().first().paragraphs[0].text)
+        assertEquals(pkg.entries.keys, edited.entries.keys)
+
         val box = pres.slides[2].shapes.filterIsInstance<SlideShape.TextBox>().first { b -> b.paragraphs.any { it.text == "Free text box" } }
         val run = box.paragraphs[0].runs[0]
         assertTrue(run.bold)

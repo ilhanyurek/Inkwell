@@ -231,4 +231,8 @@
     <string name="pdf_annotations_count">İşaretlemeler (%1$d)</string>
     <string name="pdf_annotation_delete_title">Bu işaretleme silinsin mi?</string>
     <string name="pdf_annotation_note">Not</string>
+    <string name="slide_edit">Metni düzenle</string>
+    <string name="slide_edit_done">Düzenlemeyi bitir</string>
+    <string name="slide_edit_hint">Metnini değiştirmek için bir metin kutusuna dokunun.</string>
+    <string name="slide_edit_text">Metni düzenle</string>
 </resources>

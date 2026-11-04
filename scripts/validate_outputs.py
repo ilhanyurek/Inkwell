@@ -30,3 +30,11 @@ assert any(n.startswith("xl/charts/") for n in zipfile.ZipFile(path).namelist())
 values = load_workbook(path, data_only=True)["Sales"]
 assert values["D6"].value == 1785, values["D6"].value
 print("budget-resaved.xlsx OK: formulas, styles, merged cells, chart and new sheet kept")
+
+from pptx import Presentation
+prs = Presentation(out / "deck-edited.pptx")
+texts = [sh.text_frame.text for sh in prs.slides[1].shapes if sh.has_text_frame]
+assert "Giriş\nRakamlar\nSonraki adımlar\nSorular" in texts, texts
+assert prs.slides[1].notes_slide.notes_text_frame.text == "Speaker note for agenda"
+assert len(prs.slides) == 3
+print("deck-edited.pptx OK: edited text, notes and slides kept")
