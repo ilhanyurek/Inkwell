@@ -26,6 +26,9 @@ The latest APK is on the **[Releases](../../releases/latest)** page. Download `I
 phone and open it (you may need to allow installs from unknown sources). New versions install over the
 old one.
 
+Inkwell is also being listed on **Zapstore**, which picks up each GitHub release automatically
+(`zapstore.yaml`; owner steps in [docs/ZAPSTORE.md](docs/ZAPSTORE.md)).
+
 Development builds are produced on every push: **Actions → Android → Artifacts → `inkwell-debug-apk`**.
 
 ## Publishing a release
@@ -33,6 +36,9 @@ Development builds are produced on every push: **Actions → Android → Artifac
 Push a tag like `v1.2.3`, or run **Actions → Release → Run workflow** and enter a version number.
 Signing requires these repository secrets: `SIGNING_KEYSTORE_BASE64`, `SIGNING_STORE_PASSWORD`,
 `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`.
+
+Release notes live in [CHANGELOG.md](CHANGELOG.md); the release workflow copies the matching section
+into the GitHub release.
 
 ## Building
 
@@ -61,3 +67,8 @@ app/    Android app: Compose UI, file access (SAF), PDF (PdfRenderer + PdfBox-An
 - DOCX tables, images and equations are kept but not editable in the app (they appear as labelled chips).
 - XLSX charts are kept but not shown; formulas the app does not know show the value Excel last saved.
 - PPTX: only text can be edited; shapes and images are kept as they are.
+
+## License
+
+Inkwell is free software under the [GNU General Public License v3.0 or later](LICENSE).
+It uses PdfBox-Android (Apache License 2.0) and AndroidX libraries.
