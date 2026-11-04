@@ -1,0 +1,30 @@
+Inkwell is a clean, fast office app. Open a file, make your change, save it — without losing the parts the app does not edit.
+
+<b>Documents (DOCX, TXT, Markdown)</b>
+• Bold, italic, underline, headings, lists, quotes, alignment, find and replace
+• Images, tables, links, equations and styles are kept when you save
+• Export to PDF or print
+
+<b>Spreadsheets (XLSX, CSV)</b>
+• Cell formatting: colours, fill, borders, alignment, number and date formats
+• 50+ formulas: VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates, TEXT and more
+• Sort, fill down, insert and delete rows and columns, multiple sheets
+• Charts, merged cells and conditional formatting are kept
+
+<b>PDF</b>
+• Highlights and notes you can remove later
+• Draw your signature and place it on the page
+• Fill in forms
+• Real redaction: blur or black out parts of a page; the hidden content is removed from the file, not just covered
+• Rotate, delete and extract pages, merge files, search, password-protected files
+
+<b>Presentations (PPTX)</b>
+• View and present slides with speaker notes
+• Edit slide text and export to PDF
+
+<b>And</b>
+• Undo and redo everywhere
+• Drafts are saved automatically and restored after a crash
+• Folders tab, thumbnail grid, pinned and recent files
+• 22 languages, light and dark theme, icon that follows your wallpaper
+• No ads, no tracking, no account. Free and open source (GPL-3.0).
