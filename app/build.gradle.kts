@@ -36,8 +36,9 @@ android {
 
     buildTypes {
         release {
-            // PDFBox relies on reflection/resources; keep the release build unminified for now.
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
