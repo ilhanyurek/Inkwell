@@ -46,6 +46,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -97,7 +99,12 @@ fun HomeScreen(
     onNew: (FileKind) -> Unit,
     onSettings: () -> Unit,
     onOpenDraft: (String) -> Unit = {},
+    onOpenFolder: (Uri, String) -> Unit = { _, _ -> },
 ) {
+    var tab by rememberSaveable { mutableStateOf(0) }
+    val treeLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { tree ->
+        if (tree != null) kotlinx.coroutines.MainScope().launch { container.folders.add(tree) }
+    }
     val context = LocalContext.current
     val drafts by container.drafts.drafts.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -195,8 +202,16 @@ fun HomeScreen(
         val pinned = filtered.filter { it.pinned }
         val others = filtered.filterNot { it.pinned }
 
+        Column(Modifier.fillMaxSize().padding(padding)) {
+        TabRow(selectedTabIndex = tab, containerColor = MaterialTheme.colorScheme.surface) {
+            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.home_recent)) })
+            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.home_folders)) })
+        }
+        if (tab == 1) {
+            FoldersTab(container, onOpenFolder = onOpenFolder, onAdd = { treeLauncher.launch(null) })
+        } else {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 96.dp),
         ) {
             item {
@@ -245,6 +260,8 @@ fun HomeScreen(
                         onRemove = { scope.launch { container.recents.remove(f.uri) } })
                 }
             }
+        }
+        }
         }
     }
 
@@ -298,6 +315,27 @@ private fun SectionHeader(text: String) {
 private fun FileRow(file: RecentFile, onOpen: (Uri) -> Unit, onPin: () -> Unit, onRemove: () -> Unit) {
     val context = LocalContext.current
     var menu by remember { mutableStateOf(false) }
+    var renaming by remember { mutableStateOf(false) }
+    val container = (context.applicationContext as com.office.app.OfficeApp).container
+    val scope = rememberCoroutineScope()
+    if (renaming) {
+        com.office.app.ui.folders.NameDialog(
+            title = stringResource(R.string.action_rename),
+            initial = file.name,
+            onDismiss = { renaming = false },
+            onConfirm = { name ->
+                renaming = false
+                scope.launch {
+                    val newUri = container.folders.rename(file.uri, name)
+                    if (newUri == null) toast(context, context.getString(R.string.folder_action_failed))
+                    else {
+                        container.recents.remove(file.uri)
+                        container.recents.record(container.files.info(newUri))
+                    }
+                }
+            },
+        )
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -348,6 +386,10 @@ private fun FileRow(file: RecentFile, onOpen: (Uri) -> Unit, onPin: () -> Unit, 
                         menu = false
                         shareUri(context, file.uri, file.kind.primaryMime, context.getString(R.string.action_share))
                     },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_rename)) },
+                    onClick = { menu = false; renaming = true },
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.action_remove_from_list)) },
@@ -447,6 +489,44 @@ private fun DraftRow(draft: Draft, onOpen: () -> Unit, onDiscard: () -> Unit) {
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 DropdownMenuItem(text = { Text(stringResource(R.string.draft_discard)) }, onClick = { menu = false; onDiscard() })
             }
+        }
+    }
+}
+
+@Composable
+private fun FoldersTab(container: AppContainer, onOpenFolder: (Uri, String) -> Unit, onAdd: () -> Unit) {
+    val folders by container.folders.folders.collectAsStateWithLifecycle(initialValue = emptyList())
+    val scope = rememberCoroutineScope()
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
+        if (folders.isEmpty()) {
+            item {
+                Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stringResource(R.string.folders_empty_title), style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(6.dp))
+                    Text(stringResource(R.string.folders_empty_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        items(folders, key = { it.toString() }) { uri ->
+            val name = remember(uri) { container.folders.displayName(uri) }
+            var menu by remember { mutableStateOf(false) }
+            Row(
+                Modifier.fillMaxWidth().clickable { onOpenFolder(uri, name) }.padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.FolderOpen, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                Spacer(Modifier.width(16.dp))
+                Text(name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Box {
+                    IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.action_more)) }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.action_remove_from_list)) }, onClick = { menu = false; scope.launch { container.folders.remove(uri) } })
+                    }
+                }
+            }
+        }
+        item {
+            OutlinedButton(onClick = onAdd, modifier = Modifier.padding(16.dp)) { Text(stringResource(R.string.folders_add)) }
         }
     }
 }

@@ -215,4 +215,16 @@
     <string name="pdf_fill_form">Fill in form</string>
     <string name="pdf_form_flatten">Lock the form</string>
     <string name="pdf_form_flatten_desc">Turns the fields into plain text so they can no longer be changed.</string>
+    <string name="home_folders">Folders</string>
+    <string name="folders_empty_title">No folders yet</string>
+    <string name="folders_empty_body">Add a folder to browse, rename and delete the files in it.</string>
+    <string name="folders_add">Add folder</string>
+    <string name="folder_new">New folder</string>
+    <string name="folder_empty">This folder is empty.</string>
+    <string name="folder_supported_only">Supported files only</string>
+    <string name="folder_action_failed">That didn\'t work. The storage provider may not allow it.</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_delete">Delete</string>
+    <string name="delete_confirm_title">Delete file?</string>
+    <string name="delete_confirm_message">\"%1$s\" will be deleted permanently.</string>
 </resources>

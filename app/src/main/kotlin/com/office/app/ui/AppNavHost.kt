@@ -19,10 +19,12 @@ object Routes {
     const val OPEN = "open?uri={uri}"
     const val NEW = "new/{kind}"
     const val DRAFT = "draft/{key}"
+    const val FOLDER = "folder?uri={uri}&name={name}"
 
     fun open(uri: Uri) = "open?uri=" + Uri.encode(uri.toString())
     fun new(kind: FileKind) = "new/${kind.name}"
     fun draft(key: String) = "draft/$key"
+    fun folder(uri: Uri, name: String) = "folder?uri=" + Uri.encode(uri.toString()) + "&name=" + Uri.encode(name)
 }
 
 @Composable
@@ -44,6 +46,7 @@ fun AppNavHost(container: AppContainer, incomingUri: Uri?, onIncomingConsumed: (
                 onNew = { nav.navigate(Routes.new(it)) },
                 onSettings = { nav.navigate(Routes.SETTINGS) },
                 onOpenDraft = { nav.navigate(Routes.draft(it)) },
+                onOpenFolder = { uri, name -> nav.navigate(Routes.folder(uri, name)) },
             )
         }
         composable(Routes.DRAFT, arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
@@ -55,6 +58,19 @@ fun AppNavHost(container: AppContainer, incomingUri: Uri?, onIncomingConsumed: (
                 draft.uri != null -> EditorHost(container, draft.uri, null, onClose = { nav.popBackStack() }, onOpenOther = { nav.navigate(Routes.open(it)) })
                 else -> EditorHost(container, null, draft.kind, onClose = { nav.popBackStack() }, onOpenOther = { nav.navigate(Routes.open(it)) }, draftKey = key)
             }
+        }
+        composable(
+            Routes.FOLDER,
+            arguments = listOf(navArgument("uri") { type = NavType.StringType }, navArgument("name") { type = NavType.StringType; defaultValue = "" }),
+        ) { entry ->
+            com.office.app.ui.folders.FolderScreen(
+                container = container,
+                folder = Uri.parse(entry.arguments?.getString("uri").orEmpty()),
+                title = entry.arguments?.getString("name").orEmpty(),
+                onBack = { nav.popBackStack() },
+                onOpenFile = { nav.navigate(Routes.open(it)) },
+                onOpenFolder = { uri, name -> nav.navigate(Routes.folder(uri, name)) },
+            )
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(container = container, onBack = { nav.popBackStack() })

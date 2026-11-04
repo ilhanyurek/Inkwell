@@ -215,4 +215,16 @@
     <string name="pdf_fill_form">Formu doldur</string>
     <string name="pdf_form_flatten">Formu kilitle</string>
     <string name="pdf_form_flatten_desc">Alanları düz metne çevirir; artık değiştirilemezler.</string>
+    <string name="home_folders">Klasörler</string>
+    <string name="folders_empty_title">Henüz klasör yok</string>
+    <string name="folders_empty_body">İçindeki dosyalara göz atmak, yeniden adlandırmak ve silmek için bir klasör ekleyin.</string>
+    <string name="folders_add">Klasör ekle</string>
+    <string name="folder_new">Yeni klasör</string>
+    <string name="folder_empty">Bu klasör boş.</string>
+    <string name="folder_supported_only">Yalnızca desteklenen dosyalar</string>
+    <string name="folder_action_failed">Bu işlem yapılamadı. Depolama sağlayıcısı izin vermiyor olabilir.</string>
+    <string name="action_rename">Yeniden adlandır</string>
+    <string name="action_delete">Sil</string>
+    <string name="delete_confirm_title">Dosya silinsin mi?</string>
+    <string name="delete_confirm_message">\"%1$s\" kalıcı olarak silinecek.</string>
 </resources>
