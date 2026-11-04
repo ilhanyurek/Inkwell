@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Ofis</string>
+    <string name="app_name">Inkwell</string>
     <string name="action_add">Ekle</string>
     <string name="action_back">Geri</string>
     <string name="action_cancel">İptal</string>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single-colour version for Android 13+ themed icons; the system tints it. 108dp canvas, art kept inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:pivotX="54" android:pivotY="54" android:scaleX="0.8" android:scaleY="0.8">
+    <!-- Page outline -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:pathData="M38,27h32a4,4 0,0 1,4 4v46a4,4 0,0 1,-4 4h-32a4,4 0,0 1,-4 -4v-46a4,4 0,0 1,4 -4z" />
+    <!-- Nib with breather hole and slit cut out -->
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M54,37 L65,56 L54,73 L43,56 Z M50.5,55 a3.5,3.5 0,1 0,7 0 a3.5,3.5 0,1 0,-7 0 Z M53.2,59.5 h1.6 v11 h-1.6 Z" />
+    </group>
+</vector>

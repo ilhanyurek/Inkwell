@@ -1,4 +1,4 @@
-# Ofis
+# Inkwell
 
 A clean, fast office app for Android. Built with Kotlin and Jetpack Compose. It does not depend on a
 third-party "office" library: the file-format engine lives in its own `core` module.
@@ -19,13 +19,16 @@ Every editor (document, spreadsheet, PDF) has undo / redo buttons in its bottom 
 Also: recent and pinned files, type filters, file search, opening files from "Open with" and "Share",
 light/dark theme, Material You colours (Android 12+), Turkish and English interface.
 
+The app icon has no fixed colour: on Android 12+ it takes its colours from the wallpaper palette, and with
+"Themed icons" turned on (Android 13+) the system recolours it to match the rest of the home screen.
+
 ## Download
 
-The latest APK is on the **[Releases](../../releases/latest)** page. Download `Ofis-x.y.z.apk` to your
+The latest APK is on the **[Releases](../../releases/latest)** page. Download `Inkwell-x.y.z.apk` to your
 phone and open it (you may need to allow installs from unknown sources). New versions install over the
 old one.
 
-Development builds are produced on every push: **Actions → Android → Artifacts → `ofis-debug-apk`**.
+Development builds are produced on every push: **Actions → Android → Artifacts → `inkwell-debug-apk`**.
 
 ## Publishing a release
 

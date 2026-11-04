@@ -59,17 +59,17 @@ jobs:
           ./gradlew :app:assembleRelease \
             -PversionName=${{ steps.version.outputs.version }} \
             -PversionCode=${{ github.run_number }}
-          cp app/build/outputs/apk/release/app-release.apk "Ofis-${{ steps.version.outputs.version }}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "Inkwell-${{ steps.version.outputs.version }}.apk"
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: Ofis ${{ steps.version.outputs.version }}
-          files: Ofis-${{ steps.version.outputs.version }}.apk
+          name: Inkwell ${{ steps.version.outputs.version }}
+          files: Inkwell-${{ steps.version.outputs.version }}.apk
           body: |
             ## Kurulum
-            1. Aşağıdaki **Ofis-${{ steps.version.outputs.version }}.apk** dosyasını telefonunuza indirin.
+            1. Aşağıdaki **Inkwell-${{ steps.version.outputs.version }}.apk** dosyasını telefonunuza indirin.
             2. Dosyayı açın; istenirse tarayıcıya veya dosya yöneticisine "bilinmeyen uygulamaları yükleme" izni verin.
             3. Önceki bir sürüm kuruluysa üzerine güncellenir, verileriniz silinmez.
 
