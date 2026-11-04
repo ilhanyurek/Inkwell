@@ -81,6 +81,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -524,6 +527,11 @@ private fun PdfPage(
         bitmap?.let {
             Image(it.asImageBitmap(), contentDescription = null, contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
         }
+        // Android's PdfRenderer does not draw annotations, so draw ours on top of the page.
+        val pageAnnotations = vm.annotations.filter { it.page == index }
+        if (pageAnnotations.isNotEmpty()) {
+            AnnotationLayer(pageAnnotations, pageWidthPt = pw.toFloat())
+        }
         if (placement != null && signature != null) {
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val pagePx = with(density) { maxWidth.toPx() }
@@ -573,6 +581,39 @@ private fun PdfPage(
                 val c = if (tool == Tool.REDACT) Color.Black else hl
                 drawRect(c.copy(alpha = 0.35f), tl, sz)
                 drawRect(c, tl, sz, style = Stroke(1.5f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnnotationLayer(annotations: List<AnnotationInfo>, pageWidthPt: Float) {
+    Canvas(Modifier.fillMaxSize()) {
+        val ptToPx = size.width / pageWidthPt
+        annotations.forEach { a ->
+            val color = Color(0xFF000000 or a.color.toLong())
+            val tl = Offset(a.left * size.width, a.top * size.height)
+            val sz = Size((a.right - a.left) * size.width, (a.bottom - a.top) * size.height)
+            when (a.subtype) {
+                "Highlight" -> drawRect(color.copy(alpha = 0.4f), tl, sz, blendMode = BlendMode.Multiply)
+                "Underline" -> drawLine(color, Offset(tl.x, tl.y + sz.height), Offset(tl.x + sz.width, tl.y + sz.height), strokeWidth = ptToPx)
+                "StrikeOut" -> drawLine(color, Offset(tl.x, tl.y + sz.height / 2), Offset(tl.x + sz.width, tl.y + sz.height / 2), strokeWidth = ptToPx)
+                "Square" -> drawRect(color, tl, sz, style = Stroke(ptToPx))
+                "Circle" -> drawOval(color, tl, sz, style = Stroke(ptToPx))
+                "Text" -> drawRect(color, tl, Size(14f * ptToPx, 14f * ptToPx))
+                "FreeText" -> {
+                    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                        this.color = 0xFF000000.toInt() or a.color
+                        textSize = a.fontSizePt * ptToPx
+                    }
+                    val pad = 2f * ptToPx
+                    val lineHeight = a.fontSizePt * 1.25f * ptToPx
+                    drawIntoCanvas { canvas ->
+                        a.text.split('\n').forEachIndexed { i, line ->
+                            canvas.nativeCanvas.drawText(line, tl.x + pad, tl.y + pad + a.fontSizePt * ptToPx + i * lineHeight, paint)
+                        }
+                    }
+                }
             }
         }
     }

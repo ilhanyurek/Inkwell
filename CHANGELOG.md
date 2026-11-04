@@ -19,6 +19,8 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 ### Changed
 - Smaller APK
 - New package name `com.inkwell.app`. Uninstall any earlier Inkwell build (package `com.office.app`) before installing this one
+### Fixed
+- Highlights and notes are now drawn in the PDF viewer, not only in other PDF apps
 
 ## [1.0.0] - 2026-11-04
 

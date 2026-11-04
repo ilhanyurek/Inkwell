@@ -39,6 +39,10 @@ data class AnnotationInfo(
     val top: Float,
     val right: Float,
     val bottom: Float,
+    /** RGB colour (no alpha), used to draw the annotation over the page. */
+    val color: Int = 0xFFE066,
+    /** Font size in points for free-text notes. */
+    val fontSizePt: Float = 12f,
 ) {
     operator fun contains(p: PagePoint) = p.x in left..right && p.y in top..bottom
 }
@@ -211,11 +215,36 @@ object PdfTools {
                         subtype = subtype,
                         text = ann.contents.orEmpty(),
                         left = minOf(tl.x, br.x), top = minOf(tl.y, br.y), right = maxOf(tl.x, br.x), bottom = maxOf(tl.y, br.y),
+                        color = annotationColor(ann) ?: if (subtype == "FreeText") 0x000000 else 0xFFE066,
+                        fontSizePt = ann.cosObject.getString(COSName.DA)
+                            ?.let { Regex("([0-9.]+)\\s+Tf").find(it)?.groupValues?.get(1)?.toFloatOrNull() } ?: 12f,
                     )
                 }
             }
             out
         }
+    }
+
+    /** The colour of an annotation: from `/DA` for free text, else its `/C` entry. */
+    private fun annotationColor(ann: PDAnnotation): Int? {
+        if (ann.subtype == "FreeText") {
+            val da = ann.cosObject.getString(COSName.DA) ?: return null
+            val m = Regex("([0-9.]+)\\s+([0-9.]+)\\s+([0-9.]+)\\s+rg").find(da) ?: return null
+            val (r, g, b) = m.destructured
+            return rgbInt(r.toFloat(), g.toFloat(), b.toFloat())
+        }
+        val c = runCatching { ann.color?.components }.getOrNull() ?: return null
+        return when (c.size) {
+            3 -> rgbInt(c[0], c[1], c[2])
+            1 -> rgbInt(c[0], c[0], c[0])
+            4 -> rgbInt((1 - c[0]) * (1 - c[3]), (1 - c[1]) * (1 - c[3]), (1 - c[2]) * (1 - c[3]))
+            else -> null
+        }
+    }
+
+    private fun rgbInt(r: Float, g: Float, b: Float): Int {
+        fun ch(v: Float) = (v.coerceIn(0f, 1f) * 255 + 0.5f).toInt()
+        return (ch(r) shl 16) or (ch(g) shl 8) or ch(b)
     }
 
     suspend fun deleteAnnotation(file: File, pageIndex: Int, index: Int) = edit(file, null) { doc ->
