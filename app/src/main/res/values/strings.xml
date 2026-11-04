@@ -237,4 +237,11 @@
     <string name="slide_edit_text">Edit text</string>
     <string name="home_grid_view">Grid view</string>
     <string name="home_list_view">List view</string>
+    <string name="pdf_tool_redact">Redact</string>
+    <string name="pdf_redact_hint">Drag over the areas to hide. Blur pixelates them; black box covers them.</string>
+    <string name="pdf_redact_blur">Blur</string>
+    <string name="pdf_redact_black">Black box</string>
+    <string name="pdf_redact_apply">Apply</string>
+    <string name="pdf_redact_confirm_title">Redact permanently?</string>
+    <string name="pdf_redact_confirm_message">The hidden areas are removed from the file, not just covered. The %1$d affected page(s) become images, so their text can no longer be selected or searched.</string>
 </resources>

@@ -237,4 +237,11 @@
     <string name="slide_edit_text">Metni düzenle</string>
     <string name="home_grid_view">Izgara görünümü</string>
     <string name="home_list_view">Liste görünümü</string>
+    <string name="pdf_tool_redact">Karart</string>
+    <string name="pdf_redact_hint">Gizlenecek alanların üzerinde sürükleyin. Bulanık mozaik yapar, siyah kutu tamamen kapatır.</string>
+    <string name="pdf_redact_blur">Bulanık</string>
+    <string name="pdf_redact_black">Siyah kutu</string>
+    <string name="pdf_redact_apply">Uygula</string>
+    <string name="pdf_redact_confirm_title">Kalıcı olarak karartılsın mı?</string>
+    <string name="pdf_redact_confirm_message">Gizlenen alanlar yalnızca örtülmez, dosyadan silinir. Etkilenen %1$d sayfa görüntüye dönüşür; metinleri artık seçilemez ve aranamaz.</string>
 </resources>

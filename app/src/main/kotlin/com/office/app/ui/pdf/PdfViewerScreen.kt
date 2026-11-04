@@ -114,7 +114,7 @@ import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
 import kotlinx.coroutines.launch
 
-private enum class Tool { VIEW, HIGHLIGHT, TEXT, SIGN }
+private enum class Tool { VIEW, HIGHLIGHT, TEXT, SIGN, REDACT }
 
 /** Where a signature is about to be placed: page, centre and width as a fraction of the page width. */
 private data class Placement(val page: Int, val center: PagePoint, val width: Float)
@@ -152,6 +152,9 @@ fun PdfViewerScreen(
     var pickSignatureAt by remember { mutableStateOf<Pair<Int, PagePoint>?>(null) }
     var showForm by remember { mutableStateOf(false) }
     var showAnnotations by remember { mutableStateOf(false) }
+    val redactions = remember { androidx.compose.runtime.mutableStateMapOf<Int, List<Pair<PagePoint, PagePoint>>>() }
+    var redactMode by remember { mutableStateOf(RedactMode.BLUR) }
+    var confirmRedact by remember { mutableStateOf(false) }
     var deleteCandidate by remember { mutableStateOf<AnnotationInfo?>(null) }
 
     val currentPage by remember { derivedStateOf { listState.firstVisibleItemIndex } }
@@ -280,6 +283,15 @@ fun PdfViewerScreen(
                         placement = null
                     },
                 )
+            } else if (tool == Tool.REDACT) {
+                RedactBar(
+                    mode = redactMode,
+                    onMode = { redactMode = it },
+                    count = redactions.values.sumOf { it.size },
+                    onClear = { redactions.clear() },
+                    onCancel = { redactions.clear(); tool = Tool.VIEW },
+                    onApply = { confirmRedact = true },
+                )
             } else if (!searching) {
                 ToolBar(
                     vm = vm,
@@ -349,6 +361,8 @@ fun PdfViewerScreen(
                                 },
                                 onMovePlacement = { pt -> placement = placement?.copy(center = pt) },
                                 onLongPress = { pt -> deleteCandidate = vm.annotations.lastOrNull { it.page == index && pt in it } },
+                                redactions = redactions[index].orEmpty(),
+                                onRedact = { a, b -> redactions[index] = redactions[index].orEmpty() + (a to b) },
                             )
                         }
                     }
@@ -388,6 +402,22 @@ fun PdfViewerScreen(
             store = vm.signatures,
             onPick = { bmp -> signature = bmp; placement = Placement(page, point, 0.3f); pickSignatureAt = null },
             onDismiss = { pickSignatureAt = null },
+        )
+    }
+    if (confirmRedact) {
+        AlertDialog(
+            onDismissRequest = { confirmRedact = false },
+            title = { Text(stringResource(R.string.pdf_redact_confirm_title)) },
+            text = { Text(stringResource(R.string.pdf_redact_confirm_message, redactions.size)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmRedact = false
+                    vm.redact(redactions.toMap(), redactMode)
+                    redactions.clear()
+                    tool = Tool.VIEW
+                }) { Text(stringResource(R.string.pdf_tool_redact), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = { TextButton(onClick = { confirmRedact = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
     if (showAnnotations) {
@@ -439,6 +469,8 @@ private fun PdfPage(
     onSignAt: (PagePoint) -> Unit = {},
     onMovePlacement: (PagePoint) -> Unit = {},
     onLongPress: (PagePoint) -> Unit = {},
+    redactions: List<Pair<PagePoint, PagePoint>> = emptyList(),
+    onRedact: (PagePoint, PagePoint) -> Unit = { _, _ -> },
 ) {
     val (pw, ph) = vm.pageSizes.getOrNull(index) ?: (612 to 792)
     val density = LocalDensity.current
@@ -458,7 +490,7 @@ private fun PdfPage(
             .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
             .then(
                 when (tool) {
-                    Tool.HIGHLIGHT -> Modifier.pointerInput(index) {
+                    Tool.HIGHLIGHT, Tool.REDACT -> Modifier.pointerInput(index, tool) {
                         detectDragGestures(
                             onDragStart = { dragStart = it; dragEnd = it },
                             onDrag = { change, _ -> dragEnd = change.position },
@@ -466,10 +498,9 @@ private fun PdfPage(
                                 val a = dragStart
                                 val b = dragEnd
                                 if (a != null && b != null && size.width > 0) {
-                                    onHighlight(
-                                        PagePoint(a.x / size.width, a.y / size.height),
-                                        PagePoint(b.x / size.width, b.y / size.height),
-                                    )
+                                    val p1 = PagePoint(a.x / size.width, a.y / size.height)
+                                    val p2 = PagePoint(b.x / size.width, b.y / size.height)
+                                    if (tool == Tool.REDACT) onRedact(p1, p2) else onHighlight(p1, p2)
                                 }
                                 dragStart = null; dragEnd = null
                             },
@@ -521,14 +552,25 @@ private fun PdfPage(
                 )
             }
         }
+        if (redactions.isNotEmpty()) {
+            Canvas(Modifier.fillMaxSize()) {
+                redactions.forEach { (p1, p2) ->
+                    val tl = Offset(minOf(p1.x, p2.x) * size.width, minOf(p1.y, p2.y) * size.height)
+                    val sz = Size(kotlin.math.abs(p1.x - p2.x) * size.width, kotlin.math.abs(p1.y - p2.y) * size.height)
+                    drawRect(Color.Black.copy(alpha = 0.55f), tl, sz)
+                    drawRect(Color(0xFFB8432F), tl, sz, style = Stroke(2f))
+                }
+            }
+        }
         val a = dragStart
         val b = dragEnd
         if (a != null && b != null) {
             Canvas(Modifier.fillMaxSize()) {
                 val tl = Offset(minOf(a.x, b.x), minOf(a.y, b.y))
                 val sz = Size(kotlin.math.abs(a.x - b.x), kotlin.math.abs(a.y - b.y))
-                drawRect(hl.copy(alpha = 0.35f), tl, sz)
-                drawRect(hl, tl, sz, style = Stroke(1.5f))
+                val c = if (tool == Tool.REDACT) Color.Black else hl
+                drawRect(c.copy(alpha = 0.35f), tl, sz)
+                drawRect(c, tl, sz, style = Stroke(1.5f))
             }
         }
     }
@@ -549,6 +591,7 @@ private fun ToolBar(vm: PdfViewerViewModel, tool: Tool, onTool: (Tool) -> Unit, 
                 FilterChip(selected = tool == Tool.HIGHLIGHT, onClick = { onTool(Tool.HIGHLIGHT) }, label = { Text(stringResource(R.string.pdf_tool_highlight)) })
                 FilterChip(selected = tool == Tool.TEXT, onClick = { onTool(Tool.TEXT) }, label = { Text(stringResource(R.string.pdf_tool_text)) })
                 FilterChip(selected = tool == Tool.SIGN, onClick = { onTool(Tool.SIGN) }, label = { Text(stringResource(R.string.pdf_tool_sign)) })
+                FilterChip(selected = tool == Tool.REDACT, onClick = { onTool(Tool.REDACT) }, label = { Text(stringResource(R.string.pdf_tool_redact)) })
                 Spacer(Modifier.width(4.dp))
                 if (tool == Tool.HIGHLIGHT) {
                     HighlightColors.forEach { c ->
@@ -849,4 +892,22 @@ private fun AnnotationsDialog(list: List<AnnotationInfo>, onGoTo: (AnnotationInf
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_ok)) } },
     )
+}
+
+@Composable
+private fun RedactBar(mode: RedactMode, onMode: (RedactMode) -> Unit, count: Int, onClear: () -> Unit, onCancel: () -> Unit, onApply: () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+            Text(stringResource(R.string.pdf_redact_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(selected = mode == RedactMode.BLUR, onClick = { onMode(RedactMode.BLUR) }, label = { Text(stringResource(R.string.pdf_redact_blur)) })
+                FilterChip(selected = mode == RedactMode.BLACK, onClick = { onMode(RedactMode.BLACK) }, label = { Text(stringResource(R.string.pdf_redact_black)) })
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = if (count > 0) onClear else onCancel) {
+                    Text(stringResource(if (count > 0) R.string.sheet_clear else R.string.action_cancel))
+                }
+                TextButton(onClick = onApply, enabled = count > 0) { Text(stringResource(R.string.pdf_redact_apply)) }
+            }
+        }
+    }
 }

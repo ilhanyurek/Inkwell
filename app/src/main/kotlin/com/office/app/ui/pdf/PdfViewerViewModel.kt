@@ -330,6 +330,36 @@ class PdfViewerViewModel(
         }
     }
 
+    /** Renders the pages at 200 dpi, then replaces them with redacted images. */
+    fun redact(regions: Map<Int, List<Pair<PagePoint, PagePoint>>>, mode: RedactMode) {
+        if (busy || regions.isEmpty()) return
+        viewModelScope.launch {
+            busy = true
+            val bitmaps = HashMap<Int, android.graphics.Bitmap>()
+            for (page in regions.keys) {
+                val (w, _) = pageSizes.getOrNull(page) ?: continue
+                val px = (w * 200f / 72f).toInt().coerceIn(600, 2400)
+                renderUncached(page, px)?.let { bitmaps[page] = it }
+            }
+            busy = false
+            modify({ PdfTools.redact(it, bitmaps, regions, mode) })
+        }
+    }
+
+    private suspend fun renderUncached(index: Int, widthPx: Int): android.graphics.Bitmap? = renderLock.withLock {
+        withContext(Dispatchers.IO) {
+            val r = renderer ?: return@withContext null
+            runCatching {
+                r.openPage(index).use { page ->
+                    val bmp = android.graphics.Bitmap.createBitmap(widthPx, (widthPx.toFloat() * page.height / page.width).toInt().coerceAtLeast(1), android.graphics.Bitmap.Config.ARGB_8888)
+                    bmp.eraseColor(android.graphics.Color.WHITE)
+                    page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    bmp
+                }
+            }.getOrNull()
+        }
+    }
+
     fun deleteAnnotation(info: AnnotationInfo) = modify({ PdfTools.deleteAnnotation(it, info.page, info.index) })
 
     fun fillForm(values: Map<String, String>, flatten: Boolean) =

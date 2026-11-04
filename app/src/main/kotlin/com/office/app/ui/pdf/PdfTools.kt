@@ -45,6 +45,8 @@ data class AnnotationInfo(
 
 enum class FieldType { TEXT, CHECKBOX, CHOICE, RADIO }
 
+enum class RedactMode { BLUR, BLACK }
+
 /** An interactive form field and its current value ("true"/"false" for check boxes). */
 data class FormField(
     val name: String,
@@ -284,6 +286,61 @@ object PdfTools {
             }
         }
         if (flatten) runCatching { form.flatten() }
+    }
+
+    /**
+     * Irreversibly redacts regions: each affected page is replaced by an image of itself (rendered
+     * beforehand into [pages]) in which the regions are pixelated or blacked out. The page's text,
+     * fonts, images and annotations are removed, so the hidden content cannot be recovered.
+     */
+    suspend fun redact(file: File, pages: Map<Int, android.graphics.Bitmap>, regions: Map<Int, List<Pair<PagePoint, PagePoint>>>, mode: RedactMode) =
+        edit(file, null) { doc ->
+            val form = doc.documentCatalog.acroForm
+            for ((index, source) in pages) {
+                val bmp = source.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+                regions[index].orEmpty().forEach { (a, b) -> obscure(bmp, a, b, mode) }
+                val page = doc.getPage(index)
+                // Size of the page as displayed (rotation applied), in points.
+                val rotated = ((page.rotation % 360) + 360) % 360 in setOf(90, 270)
+                val w = if (rotated) page.cropBox.height else page.cropBox.width
+                val h = if (rotated) page.cropBox.width else page.cropBox.height
+                // Drop form fields whose widgets live on this page, so their values go too.
+                if (form != null) {
+                    val widgets = page.annotations.filter { it.subtype == "Widget" }.map { it.cosObject }.toSet()
+                    if (widgets.isNotEmpty()) {
+                        form.fields = form.fields.filter { f -> f.widgets.none { it.cosObject in widgets } }
+                    }
+                }
+                page.annotations = emptyList()
+                page.resources = PDResources()
+                page.rotation = 0
+                page.mediaBox = PDRectangle(0f, 0f, w, h)
+                page.cropBox = PDRectangle(0f, 0f, w, h)
+                val image = com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory.createFromImage(doc, bmp, 0.9f)
+                PDPageContentStream(doc, page, PDPageContentStream.AppendMode.OVERWRITE, true).use { cs ->
+                    cs.drawImage(image, 0f, 0f, w, h)
+                }
+            }
+        }
+
+    /** Destroys the pixels in a region: a heavy pixelation followed by a blur, or a solid black box. */
+    private fun obscure(bmp: android.graphics.Bitmap, a: PagePoint, b: PagePoint, mode: RedactMode) {
+        val left = (minOf(a.x, b.x) * bmp.width).toInt().coerceIn(0, bmp.width - 1)
+        val top = (minOf(a.y, b.y) * bmp.height).toInt().coerceIn(0, bmp.height - 1)
+        val right = (maxOf(a.x, b.x) * bmp.width).toInt().coerceIn(left + 1, bmp.width)
+        val bottom = (maxOf(a.y, b.y) * bmp.height).toInt().coerceIn(top + 1, bmp.height)
+        val canvas = android.graphics.Canvas(bmp)
+        val rect = android.graphics.Rect(left, top, right, bottom)
+        if (mode == RedactMode.BLACK) {
+            canvas.drawRect(rect, android.graphics.Paint().apply { color = android.graphics.Color.BLACK })
+            return
+        }
+        val region = android.graphics.Bitmap.createBitmap(bmp, left, top, right - left, bottom - top)
+        // Average blocks of ~24 px (at 200 dpi a line of text is ~30 px tall), then blur the blocks.
+        val tiny = android.graphics.Bitmap.createScaledBitmap(region, maxOf(1, region.width / 24), maxOf(1, region.height / 24), true)
+        val smaller = android.graphics.Bitmap.createScaledBitmap(tiny, maxOf(1, tiny.width / 2), maxOf(1, tiny.height / 2), true)
+        val blurred = android.graphics.Bitmap.createScaledBitmap(smaller, region.width, region.height, true)
+        canvas.drawBitmap(blurred, null, rect, android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG))
     }
 
     /** Text of every page, used for search. */
