@@ -114,6 +114,7 @@ fun HomeScreen(
     onSettings: () -> Unit,
     onOpenDraft: (String) -> Unit = {},
     onOpenFolder: (Uri, String) -> Unit = { _, _ -> },
+    onTool: (com.office.app.ui.tools.ToolId) -> Unit = {},
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
     var grid by rememberSaveable { mutableStateOf(false) }
@@ -227,8 +228,11 @@ fun HomeScreen(
         TabRow(selectedTabIndex = tab, containerColor = MaterialTheme.colorScheme.surface) {
             Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.home_recent)) })
             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.home_folders)) })
+            Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text(stringResource(R.string.home_tools)) }, modifier = Modifier.testTag("tab_tools"))
         }
-        if (tab == 1) {
+        if (tab == 2) {
+            com.office.app.ui.tools.ToolsTab(onTool = onTool)
+        } else if (tab == 1) {
             FoldersTab(container, onOpenFolder = onOpenFolder, onAdd = { treeLauncher.launch(null) })
         } else if (grid) {
             RecentGrid(

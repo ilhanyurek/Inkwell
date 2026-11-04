@@ -16,12 +16,14 @@ import com.office.core.FileKind
 object Routes {
     const val HOME = "home"
     const val SETTINGS = "settings"
-    const val OPEN = "open?uri={uri}"
+    const val OPEN = "open?uri={uri}&tool={tool}"
+    const val TOOL = "tool/{id}"
     const val NEW = "new/{kind}"
     const val DRAFT = "draft/{key}"
     const val FOLDER = "folder?uri={uri}&name={name}"
 
-    fun open(uri: Uri) = "open?uri=" + Uri.encode(uri.toString())
+    fun open(uri: Uri, tool: String? = null) = "open?uri=" + Uri.encode(uri.toString()) + (tool?.let { "&tool=$it" } ?: "")
+    fun tool(id: com.office.app.ui.tools.ToolId) = "tool/${id.name}"
     fun new(kind: FileKind) = "new/${kind.name}"
     fun draft(key: String) = "draft/$key"
     fun folder(uri: Uri, name: String) = "folder?uri=" + Uri.encode(uri.toString()) + "&name=" + Uri.encode(name)
@@ -47,6 +49,18 @@ fun AppNavHost(container: AppContainer, incomingUri: Uri?, onIncomingConsumed: (
                 onSettings = { nav.navigate(Routes.SETTINGS) },
                 onOpenDraft = { nav.navigate(Routes.draft(it)) },
                 onOpenFolder = { uri, name -> nav.navigate(Routes.folder(uri, name)) },
+                onTool = { nav.navigate(Routes.tool(it)) },
+            )
+        }
+        composable(Routes.TOOL, arguments = listOf(navArgument("id") { type = NavType.StringType })) { entry ->
+            val id = runCatching { com.office.app.ui.tools.ToolId.valueOf(entry.arguments?.getString("id").orEmpty()) }.getOrNull()
+            if (id == null) LaunchedEffect(Unit) { nav.popBackStack() }
+            else com.office.app.ui.tools.ToolScreen(
+                container = container,
+                tool = id,
+                onBack = { nav.popBackStack() },
+                onOpen = { nav.navigate(Routes.open(it)) },
+                onOpenInViewer = { uri, t -> nav.navigate(Routes.open(uri, t)) { popUpTo(Routes.HOME) } },
             )
         }
         composable(Routes.DRAFT, arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
@@ -77,13 +91,17 @@ fun AppNavHost(container: AppContainer, incomingUri: Uri?, onIncomingConsumed: (
         }
         composable(
             Routes.OPEN,
-            arguments = listOf(navArgument("uri") { type = NavType.StringType }),
+            arguments = listOf(
+                navArgument("uri") { type = NavType.StringType },
+                navArgument("tool") { type = NavType.StringType; nullable = true; defaultValue = null },
+            ),
         ) { entry ->
             val uri = Uri.parse(entry.arguments?.getString("uri").orEmpty())
             EditorHost(
                 container = container,
                 uri = uri,
                 newKind = null,
+                startTool = entry.arguments?.getString("tool"),
                 onClose = { nav.popBackStack() },
                 onOpenOther = { nav.navigate(Routes.open(it)) { popUpTo(Routes.HOME) } },
             )

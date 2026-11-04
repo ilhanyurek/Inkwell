@@ -28,6 +28,7 @@ fun EditorHost(
     onClose: () -> Unit,
     onOpenOther: (Uri) -> Unit,
     draftKey: String? = null,
+    startTool: String? = null,
 ) {
     var info by remember(uri) { mutableStateOf<FileInfo?>(null) }
     var failed by remember(uri) { mutableStateOf(false) }
@@ -54,7 +55,7 @@ fun EditorHost(
             else stringResource(R.string.error_unsupported_format),
             onBack = onClose,
         )
-        else -> Editor(container, uri, info, kind, onClose, onOpenOther)
+        else -> Editor(container, uri, info, kind, onClose, onOpenOther, startTool = startTool)
     }
 }
 
@@ -67,13 +68,14 @@ private fun Editor(
     onClose: () -> Unit,
     onOpenOther: (Uri) -> Unit,
     draftKey: String? = null,
+    startTool: String? = null,
 ) {
     when (kind) {
         FileKind.DOCUMENT, FileKind.TEXT, FileKind.MARKDOWN ->
             DocumentEditorScreen(container, uri, info, kind, onClose, onOpenOther, draftKey)
         FileKind.SPREADSHEET, FileKind.CSV ->
             SheetEditorScreen(container, uri, info, kind, onClose, onOpenOther, draftKey)
-        FileKind.PDF -> if (uri != null && info != null) PdfViewerScreen(container, uri, info, onClose, onOpenOther) else ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
+        FileKind.PDF -> if (uri != null && info != null) PdfViewerScreen(container, uri, info, onClose, onOpenOther, startTool) else ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
         FileKind.PRESENTATION -> if (uri != null && info != null) PresentationScreen(container, uri, info, onClose) else ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
     }
 }

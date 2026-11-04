@@ -132,6 +132,7 @@ fun PdfViewerScreen(
     info: FileInfo,
     onClose: () -> Unit,
     onOpenOther: (Uri) -> Unit,
+    startTool: String? = null,
 ) {
     val vm: PdfViewerViewModel = viewModel(key = "pdf:$uri") { PdfViewerViewModel(container, uri, info) }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.flushDraft() }
@@ -139,7 +140,15 @@ fun PdfViewerScreen(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
-    var tool by remember { mutableStateOf(Tool.VIEW) }
+    var tool by remember {
+        mutableStateOf(
+            when (startTool) {
+                "sign" -> Tool.SIGN
+                "redact" -> Tool.REDACT
+                else -> Tool.VIEW
+            },
+        )
+    }
     var highlightColor by remember { mutableStateOf(HighlightColors[0]) }
     var searching by remember { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
@@ -154,6 +163,11 @@ fun PdfViewerScreen(
     var placement by remember { mutableStateOf<Placement?>(null) }
     var pickSignatureAt by remember { mutableStateOf<Pair<Int, PagePoint>?>(null) }
     var showForm by remember { mutableStateOf(false) }
+    // Opened from the Tools tab's "Fill form": show the form as soon as its fields are read.
+    var formOffered by remember { mutableStateOf(startTool != "form") }
+    LaunchedEffect(vm.formFields) {
+        if (!formOffered && vm.formFields.isNotEmpty()) { formOffered = true; showForm = true }
+    }
     var showAnnotations by remember { mutableStateOf(false) }
     val redactions = remember { androidx.compose.runtime.mutableStateMapOf<Int, List<Pair<PagePoint, PagePoint>>>() }
     var redactMode by remember { mutableStateOf(RedactMode.BLUR) }
