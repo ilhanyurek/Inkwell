@@ -67,6 +67,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release delete "v${{ steps.version.outputs.version }}" --cleanup-tag --yes --repo "$GITHUB_REPOSITORY" || true
 
+      - name: Write release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          {
+            echo "## Install"
+            echo "1. Download **Inkwell-$VERSION.apk** below to your phone."
+            echo "2. Open the file. If asked, allow your browser or file manager to install unknown apps."
+            echo "3. If an earlier version is installed, this one updates it and keeps your data."
+            echo
+            echo "## What's new"
+            awk -v v="$VERSION" '/^## \[/ { p = index($0, "[" v "]") > 0; next } p' CHANGELOG.md | sed 's/^### /#### /'
+            echo
+            echo "Requires Android 8.0 or later."
+          } > release-notes.md
+          cat release-notes.md
+
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
@@ -74,18 +91,4 @@ jobs:
           target_commitish: ${{ github.sha }}
           name: Inkwell ${{ steps.version.outputs.version }}
           files: Inkwell-${{ steps.version.outputs.version }}.apk
-          body: |
-            ## Install
-            1. Download **Inkwell-${{ steps.version.outputs.version }}.apk** below to your phone.
-            2. Open the file. If asked, allow your browser or file manager to install unknown apps.
-            3. If an earlier version is installed, this one updates it and keeps your data.
-
-            ## What's inside
-            - DOCX editing that keeps images, tables, links and styles intact
-            - XLSX/CSV: cell formatting, number and date formats, 50+ formulas (VLOOKUP, XLOOKUP, SUMIFS, dates…)
-            - PDF: removable highlights and notes, signatures, form filling, real redaction (blur or black box), merge/split
-            - PPTX: view, present, edit slide text, export to PDF
-            - Autosaved drafts with crash recovery, undo/redo everywhere
-            - Folders tab, thumbnail grid, 22 interface languages, icon that follows your wallpaper
-
-            Requires Android 8.0 or later.
+          body_path: release-notes.md
