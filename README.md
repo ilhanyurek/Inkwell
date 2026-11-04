@@ -1,56 +1,56 @@
 # Ofis
 
-Android için sade, hızlı bir ofis uygulaması. Kotlin + Jetpack Compose ile yazıldı; belge biçimleri için
-harici bir “office” kütüphanesi kullanmaz, format motoru kendi `core` modülündedir.
+A clean, fast office app for Android. Built with Kotlin and Jetpack Compose. It does not depend on a
+third-party "office" library: the file-format engine lives in its own `core` module.
 
-## Neler yapabilir?
+## Features
 
-| Biçim | Aç | Düzenle | Kaydet |
+| Format | Open | Edit | Save as |
 |---|---|---|---|
-| **DOCX** | ✓ | Kalın, italik, altı/üstü çizili, yazı boyutu, başlıklar, listeler, alıntı, hizalama, bul-değiştir | DOCX, PDF'e aktar, yazdır |
-| **TXT / MD** | ✓ | Metin; Markdown'da başlık, liste, kalın/italik | TXT / MD, PDF'e aktar |
-| **XLSX** | ✓ (çok sayfalı, paylaşılan metinler, tarih biçimleri) | Hücre düzenleme, 30+ formül (TOPLA/SUM, EĞER/IF, ETOPLA/SUMIF…), satır/sütun ekle-sil, sıralama, kopyala/yapıştır, aşağı doldur, sayfa ekle/yeniden adlandır | XLSX, CSV, PDF |
-| **CSV / TSV** | ✓ (ayraç ve kodlama otomatik algılanır: `,` `;` sekme, UTF-8 / Windows-1254) | Tablo düzenleyici | CSV, XLSX, PDF |
-| **PDF** | ✓ (parola korumalı dahil) | Vurgulama, metin ekleme, sayfa döndürme/silme, sayfa ayırma, birleştirme, metin arama | PDF |
-| **PPTX** | ✓ (metin kutuları, görseller, düzen yer tutucuları, notlar) | — (yalnız görüntüleme, sunum modu) | — |
+| **DOCX** | ✓ | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace | DOCX, export to PDF, print |
+| **TXT / MD** | ✓ | Plain text; headings, lists and bold/italic in Markdown | TXT / MD, export to PDF |
+| **XLSX** | ✓ (multiple sheets, shared strings, date formats) | Cell editing, 30+ formulas (SUM, IF, SUMIF… also under their Turkish names such as TOPLA, EĞER, ETOPLA), insert/delete rows and columns, sort, copy/paste, fill down, add/rename sheets | XLSX, CSV, PDF |
+| **CSV / TSV** | ✓ (delimiter and encoding detected automatically: `,` `;` tab, UTF-8 / Windows-1254) | Spreadsheet editor | CSV, XLSX, PDF |
+| **PDF** | ✓ (including password-protected files) | Highlight, add text, rotate/delete pages, extract pages, merge, text search | PDF |
+| **PPTX** | ✓ (text boxes, images, layout placeholders, speaker notes) | — (view only, presentation mode) | — |
 
-Tüm düzenleyicilerde (belge, tablo, PDF) geri al / yinele tuşları alt araç çubuğundadır.
+Every editor (document, spreadsheet, PDF) has undo / redo buttons in its bottom toolbar.
 
-Diğer: son dosyalar ve sabitleme, tür filtresi, dosya arama, “Birlikte aç” ve “Paylaş” ile gelen dosyaları açma,
-açık/koyu tema, Material You renkleri (Android 12+), Türkçe/İngilizce arayüz.
+Also: recent and pinned files, type filters, file search, opening files from "Open with" and "Share",
+light/dark theme, Material You colours (Android 12+), Turkish and English interface.
 
-## İndirme
+## Download
 
-En son sürümün APK dosyası **[Releases](../../releases/latest)** sayfasındadır. `Ofis-x.y.z.apk` dosyasını
-telefonunuza indirip açın (bilinmeyen kaynaklardan yüklemeye izin vermeniz gerekir). Yeni sürümler eskisinin
-üzerine kurulur.
+The latest APK is on the **[Releases](../../releases/latest)** page. Download `Ofis-x.y.z.apk` to your
+phone and open it (you may need to allow installs from unknown sources). New versions install over the
+old one.
 
-Geliştirme sürümleri her push'ta derlenir: **Actions → Android → Artifacts → `ofis-debug-apk`**.
+Development builds are produced on every push: **Actions → Android → Artifacts → `ofis-debug-apk`**.
 
-## Yeni sürüm yayınlama
+## Publishing a release
 
-`v1.2.3` biçiminde bir etiket push edin ya da **Actions → Release → Run workflow** ile sürüm numarası girin.
-İmzalama için depo ayarlarında şu secret'lar tanımlı olmalı: `SIGNING_KEYSTORE_BASE64`,
-`SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`.
+Push a tag like `v1.2.3`, or run **Actions → Release → Run workflow** and enter a version number.
+Signing requires these repository secrets: `SIGNING_KEYSTORE_BASE64`, `SIGNING_STORE_PASSWORD`,
+`SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`.
 
-## Derleme
+## Building
 
 ```bash
-./gradlew :app:assembleDebug        # Android SDK gerekir
-./gradlew :core:test -PcoreOnly     # Android SDK olmadan çekirdek testleri
+./gradlew :app:assembleDebug        # requires the Android SDK
+./gradlew :core:test -PcoreOnly     # core tests, no Android SDK needed
 ```
 
-## Proje yapısı
+## Project layout
 
 ```
-core/   Saf Kotlin (Android bağımlılığı yok): XML ayrıştırıcı, DOCX/XLSX/PPTX okuyucu-yazıcı,
-        CSV, Markdown, formül motoru, zengin metin düzenleme modeli + birim testleri
-app/    Android uygulaması: Compose arayüzü, dosya erişimi (SAF), PDF (PdfRenderer + PdfBox-Android)
+core/   Pure Kotlin (no Android dependency): XML parser, DOCX/XLSX/PPTX readers and writers,
+        CSV, Markdown, formula engine, rich-text editing model, unit tests
+app/    Android app: Compose UI, file access (SAF), PDF (PdfRenderer + PdfBox-Android)
 ```
 
-## Bilinen sınırlar
+## Known limitations
 
-- Eski ikili biçimler (.doc, .xls, .ppt) desteklenmez.
-- DOCX içindeki görsel, tablo ve denklemler düz metin olarak gösterilir; bu dosyalar kaydedilirken uyarı verilir ve kopya kaydetme önerilir.
-- XLSX hücre biçimleri (renk, kenarlık, yazı tipi) ve grafikler korunmaz; desteklenmeyen formüllerde Excel'in kaydettiği son değer gösterilir.
-- PPTX yalnızca görüntülenir.
+- Legacy binary formats (.doc, .xls, .ppt) are not supported.
+- Images, tables and equations inside DOCX files are shown as plain text; the app warns before saving such files and offers to save a copy.
+- XLSX cell formatting (colours, borders, fonts) and charts are not preserved; for unsupported formulas the last value saved by Excel is shown.
+- PPTX files are view-only.
