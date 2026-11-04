@@ -10,3 +10,4 @@ build/
 *.apk
 *.aab
 !gradle/wrapper/gradle-wrapper.jar
+.env
