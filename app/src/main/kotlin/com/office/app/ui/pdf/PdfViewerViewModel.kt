@@ -223,6 +223,7 @@ class PdfViewerViewModel(
         canRedo = redoStack.isNotEmpty()
         dirty = stateId != savedStateId
         if (dirty) autosaver.changed() else autosaver.discard()
+        loadFormFields()
     }
 
     /** Replaces the working copy with the saved draft (all PDF edits are kept in the file itself). */
@@ -317,13 +318,22 @@ class PdfViewerViewModel(
     var formFields by mutableStateOf<List<FormField>>(emptyList())
         private set
 
+    /** Removable annotations (highlights, notes…) across the document. */
+    var annotations by mutableStateOf<List<AnnotationInfo>>(emptyList())
+        private set
+
     fun loadFormFields() {
         val file = working ?: return
-        viewModelScope.launch { formFields = runCatching { PdfTools.formFields(file) }.getOrDefault(emptyList()) }
+        viewModelScope.launch {
+            formFields = runCatching { PdfTools.formFields(file) }.getOrDefault(emptyList())
+            annotations = runCatching { PdfTools.annotations(file) }.getOrDefault(emptyList())
+        }
     }
 
+    fun deleteAnnotation(info: AnnotationInfo) = modify({ PdfTools.deleteAnnotation(it, info.page, info.index) })
+
     fun fillForm(values: Map<String, String>, flatten: Boolean) =
-        modify({ PdfTools.fillForm(it, values, flatten) }).also { viewModelScope.launch { kotlinx.coroutines.delay(800); loadFormFields() } }
+        modify({ PdfTools.fillForm(it, values, flatten) })
 
     fun stampSignature(page: Int, a: PagePoint, b: PagePoint, image: android.graphics.Bitmap) =
         modify({ PdfTools.stampImage(it, page, a, b, image) })

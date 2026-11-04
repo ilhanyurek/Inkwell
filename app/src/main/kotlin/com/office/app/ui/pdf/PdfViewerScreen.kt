@@ -151,6 +151,8 @@ fun PdfViewerScreen(
     var placement by remember { mutableStateOf<Placement?>(null) }
     var pickSignatureAt by remember { mutableStateOf<Pair<Int, PagePoint>?>(null) }
     var showForm by remember { mutableStateOf(false) }
+    var showAnnotations by remember { mutableStateOf(false) }
+    var deleteCandidate by remember { mutableStateOf<AnnotationInfo?>(null) }
 
     val currentPage by remember { derivedStateOf { listState.firstVisibleItemIndex } }
     val savedMsg = stringResource(R.string.saved)
@@ -229,6 +231,12 @@ fun PdfViewerScreen(
                                     DropdownMenuItem(text = { Text(stringResource(R.string.pdf_delete_page)) }, onClick = { menuOpen = false; vm.deletePage(currentPage) })
                                 }
                                 DropdownMenuItem(text = { Text(stringResource(R.string.pdf_extract_pages)) }, onClick = { menuOpen = false; showExtract = true })
+                                if (vm.annotations.isNotEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.pdf_annotations_count, vm.annotations.size)) },
+                                        onClick = { menuOpen = false; showAnnotations = true },
+                                    )
+                                }
                                 if (vm.formFields.isNotEmpty()) {
                                     DropdownMenuItem(text = { Text(stringResource(R.string.pdf_fill_form)) }, onClick = { menuOpen = false; showForm = true })
                                 }
@@ -340,6 +348,7 @@ fun PdfViewerScreen(
                                     else placement = Placement(index, pt, placement?.width ?: 0.3f)
                                 },
                                 onMovePlacement = { pt -> placement = placement?.copy(center = pt) },
+                                onLongPress = { pt -> deleteCandidate = vm.annotations.lastOrNull { it.page == index && pt in it } },
                             )
                         }
                     }
@@ -381,6 +390,27 @@ fun PdfViewerScreen(
             onDismiss = { pickSignatureAt = null },
         )
     }
+    if (showAnnotations) {
+        AnnotationsDialog(
+            vm.annotations,
+            onGoTo = { a -> showAnnotations = false; scope.launch { listState.animateScrollToItem(a.page) } },
+            onDelete = { a -> vm.deleteAnnotation(a) },
+            onDismiss = { showAnnotations = false },
+        )
+    }
+    deleteCandidate?.let { a ->
+        AlertDialog(
+            onDismissRequest = { deleteCandidate = null },
+            title = { Text(stringResource(R.string.pdf_annotation_delete_title)) },
+            text = { Text(annotationLabel(a)) },
+            confirmButton = {
+                TextButton(onClick = { deleteCandidate = null; vm.deleteAnnotation(a) }) {
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { deleteCandidate = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
     if (showForm) {
         FormDialog(vm.formFields, onDismiss = { showForm = false }, onApply = { values, flatten -> showForm = false; vm.fillForm(values, flatten) })
     }
@@ -408,6 +438,7 @@ private fun PdfPage(
     signature: Bitmap? = null,
     onSignAt: (PagePoint) -> Unit = {},
     onMovePlacement: (PagePoint) -> Unit = {},
+    onLongPress: (PagePoint) -> Unit = {},
 ) {
     val (pw, ph) = vm.pageSizes.getOrNull(index) ?: (612 to 792)
     val density = LocalDensity.current
@@ -451,7 +482,9 @@ private fun PdfPage(
                     Tool.SIGN -> Modifier.pointerInput(index) {
                         detectTapGestures { p -> onSignAt(PagePoint(p.x / size.width, p.y / size.height)) }
                     }
-                    Tool.VIEW -> Modifier
+                    Tool.VIEW -> Modifier.pointerInput(index) {
+                        detectTapGestures(onLongPress = { p -> onLongPress(PagePoint(p.x / size.width, p.y / size.height)) })
+                    }
                 },
             ),
     ) {
@@ -779,5 +812,41 @@ private fun FormDialog(fields: List<FormField>, onDismiss: () -> Unit, onApply: 
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+@Composable
+private fun annotationLabel(a: AnnotationInfo): String {
+    val kind = when (a.subtype) {
+        "Highlight" -> stringResource(R.string.pdf_tool_highlight)
+        "FreeText" -> stringResource(R.string.pdf_tool_text)
+        "Text" -> stringResource(R.string.pdf_annotation_note)
+        else -> a.subtype
+    }
+    return listOf(kind, a.text.take(60)).filter { it.isNotBlank() }.joinToString(": ")
+}
+
+@Composable
+private fun AnnotationsDialog(list: List<AnnotationInfo>, onGoTo: (AnnotationInfo) -> Unit, onDelete: (AnnotationInfo) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.pdf_annotations)) },
+        text = {
+            LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                items(list, key = { "${it.page}:${it.index}:${it.subtype}" }) { a ->
+                    Row(Modifier.fillMaxWidth().clickable { onGoTo(a) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(R.string.pdf_page_short, a.page + 1),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(52.dp),
+                        )
+                        Text(annotationLabel(a), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        TextButton(onClick = { onDelete(a) }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_ok)) } },
     )
 }

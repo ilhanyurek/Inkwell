@@ -7,6 +7,15 @@ import com.tom_roush.pdfbox.multipdf.PDFMergerUtility
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
+import com.tom_roush.pdfbox.pdmodel.PDResources
+import com.tom_roush.pdfbox.cos.COSName
+import com.tom_roush.pdfbox.pdmodel.graphics.color.PDColor
+import com.tom_roush.pdfbox.pdmodel.graphics.color.PDDeviceRGB
+import com.tom_roush.pdfbox.pdmodel.interactive.annotation.PDAnnotation
+import com.tom_roush.pdfbox.pdmodel.interactive.annotation.PDAnnotationMarkup
+import com.tom_roush.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup
+import com.tom_roush.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary
+import com.tom_roush.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.font.PDFont
 import com.tom_roush.pdfbox.pdmodel.font.PDType0Font
@@ -19,6 +28,20 @@ import java.io.File
 
 /** A point on a rendered page, normalised to 0..1 from the top-left of what the user sees. */
 data class PagePoint(val x: Float, val y: Float)
+
+/** An annotation on a page; the rectangle is normalised like [PagePoint]. */
+data class AnnotationInfo(
+    val page: Int,
+    val index: Int,
+    val subtype: String,
+    val text: String,
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+) {
+    operator fun contains(p: PagePoint) = p.x in left..right && p.y in top..bottom
+}
 
 enum class FieldType { TEXT, CHECKBOX, CHOICE, RADIO }
 
@@ -98,36 +121,109 @@ object PdfTools {
         }
     }
 
-    /** Paints a translucent highlight rectangle between two corners into the page content. */
+    /** Builds an appearance stream of the given size so every viewer (and PdfRenderer) draws the annotation. */
+    private fun appearance(doc: PDDocument, w: Float, h: Float, draw: (PDPageContentStream) -> Unit): PDAppearanceDictionary {
+        val stream = PDAppearanceStream(doc)
+        stream.bBox = PDRectangle(0f, 0f, w, h)
+        stream.resources = PDResources()
+        PDPageContentStream(doc, stream).use(draw)
+        return PDAppearanceDictionary().apply { setNormalAppearance(stream) }
+    }
+
+    private fun addAnnotation(page: PDPage, annotation: PDAnnotation) {
+        page.annotations = page.annotations.toMutableList().also { it.add(annotation) }
+    }
+
+    private fun rgbFloats(rgb: Int) = floatArrayOf(((rgb shr 16) and 0xFF) / 255f, ((rgb shr 8) and 0xFF) / 255f, (rgb and 0xFF) / 255f)
+
+    /** Adds a highlight annotation between two corners; it can be removed again later. */
     suspend fun highlight(file: File, pageIndex: Int, a: PagePoint, b: PagePoint, rgb: Int) = edit(file, null) { doc ->
         val page = doc.getPage(pageIndex)
         val p1 = toUserSpace(page, a)
         val p2 = toUserSpace(page, b)
-        val gs = PDExtendedGraphicsState().apply { nonStrokingAlphaConstant = 0.35f }
-        PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true).use { cs ->
-            cs.setGraphicsStateParameters(gs)
-            cs.setNonStrokingColor(((rgb shr 16) and 0xFF) / 255f, ((rgb shr 8) and 0xFF) / 255f, (rgb and 0xFF) / 255f)
-            cs.addRect(minOf(p1.first, p2.first), minOf(p1.second, p2.second), kotlin.math.abs(p1.first - p2.first), kotlin.math.abs(p1.second - p2.second))
+        val x = minOf(p1.first, p2.first)
+        val y = minOf(p1.second, p2.second)
+        val w = kotlin.math.abs(p1.first - p2.first).coerceAtLeast(1f)
+        val h = kotlin.math.abs(p1.second - p2.second).coerceAtLeast(1f)
+        val color = rgbFloats(rgb)
+        val ann = PDAnnotationTextMarkup(PDAnnotationTextMarkup.SUB_TYPE_HIGHLIGHT)
+        ann.rectangle = PDRectangle(x, y, w, h)
+        ann.quadPoints = floatArrayOf(x, y + h, x + w, y + h, x, y, x + w, y)
+        ann.color = PDColor(color, PDDeviceRGB.INSTANCE)
+        ann.constantOpacity = 0.4f
+        ann.titlePopup = "Inkwell"
+        ann.appearance = appearance(doc, w, h) { cs ->
+            cs.setGraphicsStateParameters(PDExtendedGraphicsState().apply { nonStrokingAlphaConstant = 0.4f })
+            cs.setNonStrokingColor(color[0], color[1], color[2])
+            cs.addRect(0f, 0f, w, h)
             cs.fill()
         }
+        addAnnotation(page, ann)
     }
 
-    /** Writes [text] onto the page with its top-left at [at]. */
+    /** Adds a free-text annotation with its top-left at [at]. */
     suspend fun addText(file: File, pageIndex: Int, at: PagePoint, text: String, sizePt: Float, rgb: Int) = edit(file, null) { doc ->
         val page = doc.getPage(pageIndex)
         val font = loadFont(doc)
-        val (x, y) = toUserSpace(page, at)
-        PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true).use { cs ->
+        val lines = text.split('\n').map { if (font is PDType1Font) asciiFallback(it) else it }
+        val pad = 2f
+        val w = (lines.maxOf { runCatching { font.getStringWidth(it) }.getOrDefault(it.length * 500f) } / 1000f * sizePt + pad * 2).coerceAtLeast(10f)
+        val h = lines.size * sizePt * 1.25f + pad * 2
+        val (x, top) = toUserSpace(page, at)
+        val color = rgbFloats(rgb)
+        val ann = PDAnnotationMarkup()
+        ann.cosObject.setName(COSName.SUBTYPE, "FreeText")
+        ann.cosObject.setString(COSName.DA, "/Helv ${sizePt} Tf ${color[0]} ${color[1]} ${color[2]} rg")
+        ann.contents = text
+        ann.titlePopup = "Inkwell"
+        ann.rectangle = PDRectangle(x, top - h, w, h)
+        ann.appearance = appearance(doc, w, h) { cs ->
             cs.beginText()
             cs.setFont(font, sizePt)
-            cs.setNonStrokingColor(((rgb shr 16) and 0xFF) / 255f, ((rgb shr 8) and 0xFF) / 255f, (rgb and 0xFF) / 255f)
+            cs.setNonStrokingColor(color[0], color[1], color[2])
             cs.setLeading(sizePt * 1.25f)
-            cs.newLineAtOffset(x, y - sizePt)
-            text.split('\n').forEachIndexed { i, line ->
+            cs.newLineAtOffset(pad, h - pad - sizePt)
+            lines.forEachIndexed { i, line ->
                 if (i > 0) cs.newLine()
-                cs.showText(if (font is PDType1Font) asciiFallback(line) else line)
+                cs.showText(line)
             }
             cs.endText()
+        }
+        addAnnotation(page, ann)
+    }
+
+    /** Annotations a user may want to remove (not form fields, links or popups). */
+    suspend fun annotations(file: File): List<AnnotationInfo> = withContext(Dispatchers.IO) {
+        PDDocument.load(file).use { doc ->
+            val out = ArrayList<AnnotationInfo>()
+            doc.pages.forEachIndexed { pageIndex, page ->
+                page.annotations.forEachIndexed { i, ann ->
+                    val subtype = ann.subtype ?: return@forEachIndexed
+                    if (subtype in setOf("Widget", "Link", "Popup")) return@forEachIndexed
+                    val r = ann.rectangle ?: return@forEachIndexed
+                    val tl = fromUserSpace(page, r.lowerLeftX, r.upperRightY)
+                    val br = fromUserSpace(page, r.upperRightX, r.lowerLeftY)
+                    out += AnnotationInfo(
+                        page = pageIndex,
+                        index = i,
+                        subtype = subtype,
+                        text = ann.contents.orEmpty(),
+                        left = minOf(tl.x, br.x), top = minOf(tl.y, br.y), right = maxOf(tl.x, br.x), bottom = maxOf(tl.y, br.y),
+                    )
+                }
+            }
+            out
+        }
+    }
+
+    suspend fun deleteAnnotation(file: File, pageIndex: Int, index: Int) = edit(file, null) { doc ->
+        val page = doc.getPage(pageIndex)
+        val list = page.annotations.toMutableList()
+        if (index in list.indices) {
+            val removed = list.removeAt(index)
+            // Drop the popup that belongs to a markup annotation, if any.
+            (removed as? PDAnnotationMarkup)?.popup?.let { popup -> list.removeAll { it.cosObject == popup.cosObject } }
+            page.annotations = list
         }
     }
 
@@ -223,6 +319,19 @@ object PdfTools {
                 else -> if (c.code < 256) c else '?'
             },
         )
+    }
+
+    /** Converts a PDF user-space point to a normalised point on the displayed page. */
+    private fun fromUserSpace(page: PDPage, x: Float, y: Float): PagePoint {
+        val box: PDRectangle = page.cropBox
+        val u = (x - box.lowerLeftX) / box.width
+        val v = (box.upperRightY - y) / box.height
+        return when (((page.rotation % 360) + 360) % 360) {
+            90 -> PagePoint(1f - v, u)
+            180 -> PagePoint(1f - u, 1f - v)
+            270 -> PagePoint(v, 1f - u)
+            else -> PagePoint(u, v)
+        }
     }
 
     /** Converts a point on the displayed (rotated) page to PDF user space. */

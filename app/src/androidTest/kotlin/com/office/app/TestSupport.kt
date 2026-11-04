@@ -132,3 +132,6 @@ fun SemanticsNodeInteractionsProvider.explainFailure(block: () -> Unit) {
         throw AssertionError("${e.message}\n--- UI tree ---\n$tree", e)
     }
 }
+
+/** Closes a menu or dialog like the system back button. */
+fun pressBack() = InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)

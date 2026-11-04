@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
@@ -114,6 +115,23 @@ class OpenFilesTest {
             rule.onNodeWithContentDescription(str(R.string.action_undo)).performClick()
             rule.waitUntil(15_000) {
                 runCatching { rule.onNodeWithContentDescription(str(R.string.action_redo)).assertIsEnabled() }.isSuccess
+            }
+            // Redo brings the highlight back; it is a real annotation that can be deleted.
+            rule.onNodeWithContentDescription(str(R.string.action_redo)).performClick()
+            rule.waitUntil(15_000) {
+                rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+                val listed = rule.onAllNodesWithText(str(R.string.pdf_annotations_count, 1)).fetchSemanticsNodes().isNotEmpty()
+                if (!listed) pressBack()
+                listed
+            }
+            rule.onNodeWithText(str(R.string.pdf_annotations_count, 1)).performClick()
+            rule.onNodeWithText(str(R.string.action_delete)).performClick()
+            rule.onNodeWithText(str(R.string.action_ok)).performClick()
+            rule.waitUntil(15_000) {
+                rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+                val gone = rule.onAllNodesWithText(str(R.string.pdf_annotations_count, 1)).fetchSemanticsNodes().isEmpty()
+                pressBack()
+                gone
             }
         }
     }

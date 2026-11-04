@@ -227,4 +227,8 @@
     <string name="action_delete">Delete</string>
     <string name="delete_confirm_title">Delete file?</string>
     <string name="delete_confirm_message">\"%1$s\" will be deleted permanently.</string>
+    <string name="pdf_annotations">Annotations</string>
+    <string name="pdf_annotations_count">Annotations (%1$d)</string>
+    <string name="pdf_annotation_delete_title">Delete this annotation?</string>
+    <string name="pdf_annotation_note">Note</string>
 </resources>

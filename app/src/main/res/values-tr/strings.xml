@@ -227,4 +227,8 @@
     <string name="action_delete">Sil</string>
     <string name="delete_confirm_title">Dosya silinsin mi?</string>
     <string name="delete_confirm_message">\"%1$s\" kalıcı olarak silinecek.</string>
+    <string name="pdf_annotations">Notlar ve işaretlemeler</string>
+    <string name="pdf_annotations_count">İşaretlemeler (%1$d)</string>
+    <string name="pdf_annotation_delete_title">Bu işaretleme silinsin mi?</string>
+    <string name="pdf_annotation_note">Not</string>
 </resources>
