@@ -1,4 +1,5 @@
 repository: https://github.com/ilhanyurek/Inkwell
+pubkey: npub1azss0dhxaudwee6qaf8kwnaewnrpye0x9q9senxgtr9lu3wh9paswl7jde
 release_source: https://github.com/ilhanyurek/Inkwell
 release_filter: '^v[0-9]+\.[0-9]+\.[0-9]+$'
 match: '^Inkwell-.*\.apk$'
