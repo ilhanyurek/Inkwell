@@ -75,17 +75,17 @@ jobs:
           name: Inkwell ${{ steps.version.outputs.version }}
           files: Inkwell-${{ steps.version.outputs.version }}.apk
           body: |
-            ## Kurulum
-            1. Aşağıdaki **Inkwell-${{ steps.version.outputs.version }}.apk** dosyasını telefonunuza indirin.
-            2. Dosyayı açın; istenirse tarayıcıya veya dosya yöneticisine "bilinmeyen uygulamaları yükleme" izni verin.
-            3. Önceki bir sürüm kuruluysa üzerine güncellenir, verileriniz silinmez.
+            ## Install
+            1. Download **Inkwell-${{ steps.version.outputs.version }}.apk** below to your phone.
+            2. Open the file. If asked, allow your browser or file manager to install unknown apps.
+            3. If an earlier version is installed, this one updates it and keeps your data.
 
-            ## Neler var
-            - DOCX, TXT ve Markdown belgelerini açma, düzenleme, PDF'e aktarma ve yazdırma
-            - XLSX ve CSV tabloları: formüller (Türkçe adlarla da), sıralama, satır/sütun işlemleri
-            - PDF: arama, vurgulama, metin ekleme, sayfa döndürme/silme/ayırma, birleştirme, parolalı dosyalar
-            - PPTX görüntüleme ve sunum modu
-            - Tüm düzenleyicilerde geri al / yinele
-            - Açık/koyu tema, Türkçe ve İngilizce arayüz
+            ## What's inside
+            - Open, edit, export to PDF and print DOCX, TXT and Markdown documents
+            - XLSX and CSV spreadsheets: formulas (also under Turkish names), sorting, row/column tools
+            - PDF: search, highlight, add text, rotate/delete/extract pages, merge, password-protected files
+            - PPTX viewer with presentation mode
+            - Undo / redo in every editor
+            - Light/dark theme, an icon that follows your wallpaper and themed icons, English and Turkish interface
 
-            Android 8.0 ve üzeri gerekir.
+            Requires Android 8.0 or later.
