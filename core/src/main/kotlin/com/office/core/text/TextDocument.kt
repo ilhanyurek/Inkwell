@@ -9,11 +9,35 @@ data class TextRun(
     val strike: Boolean = false,
     /** Font size in points, or null for the paragraph default. */
     val sizePt: Float? = null,
+    /** When set, this run is a single [EMBED_CHAR] standing for [TextDocument.embeds]`[embedId]`. */
+    val embedId: Int? = null,
+    /** Run properties we do not model (colour, font, highlight…), kept verbatim for round-tripping. */
+    val extraXml: String? = null,
 ) {
     fun sameStyle(other: TextRun) =
         bold == other.bold && italic == other.italic && underline == other.underline &&
-            strike == other.strike && sizePt == other.sizePt
+            strike == other.strike && sizePt == other.sizePt && extraXml == other.extraXml &&
+            embedId == null && other.embedId == null
 }
+
+/** Object replacement character used in text for embedded content. */
+const val EMBED_CHAR = '\uFFFC'
+
+enum class EmbedKind { IMAGE, TABLE, EQUATION, LINK, FIELD, OBJECT, BLOCK }
+
+/**
+ * Content we keep but do not edit: images, tables, equations, links, fields… [xml] is the
+ * original markup, written back unchanged. [block] embeds stand for whole body blocks (tables).
+ */
+data class Embed(
+    val kind: EmbedKind,
+    val xml: String,
+    val block: Boolean = false,
+    /** Display text, e.g. the link text; for tables "rows×cols". */
+    val label: String = "",
+    /** Plain-text rows of a table, for previews. */
+    val tableRows: List<List<String>> = emptyList(),
+)
 
 enum class ParagraphStyle { NORMAL, TITLE, HEADING1, HEADING2, HEADING3, QUOTE }
 
@@ -26,6 +50,13 @@ data class Paragraph(
     val style: ParagraphStyle = ParagraphStyle.NORMAL,
     val list: ListType = ListType.NONE,
     val alignment: Alignment = Alignment.START,
+    /** Paragraph properties we do not model (spacing, indents…), kept verbatim. */
+    val extraXml: String? = null,
+    /** A source style id that is not one of our styles, kept when the paragraph stays NORMAL. */
+    val customStyleId: String? = null,
+    /** Original list numbering markup and the list type it represents, reused while the type is unchanged. */
+    val numXml: String? = null,
+    val numType: ListType = ListType.NONE,
 ) {
     val text: String get() = runs.joinToString("") { it.text }
 
@@ -49,10 +80,16 @@ data class Paragraph(
 
 data class TextDocument(
     val paragraphs: List<Paragraph>,
-    /** Set when the source contained content we could not represent (images, complex tables…). */
+    /** Set when the source contained content we could not represent. */
     val lossyImport: Boolean = false,
+    val embeds: Map<Int, Embed> = emptyMap(),
 ) {
     val plainText: String get() = paragraphs.joinToString("\n") { it.text }
+
+    /** Text with embeds replaced by readable placeholders, for plain-text and PDF output. */
+    fun readableText(p: Paragraph): String = p.runs.joinToString("") { r ->
+        r.embedId?.let { id -> embeds[id]?.let { e -> if (e.label.isNotEmpty() && e.kind == EmbedKind.LINK) e.label else "" } ?: "" } ?: r.text
+    }
 
     val wordCount: Int
         get() = paragraphs.sumOf { p -> p.text.split(Regex("\\s+")).count { it.isNotBlank() } }

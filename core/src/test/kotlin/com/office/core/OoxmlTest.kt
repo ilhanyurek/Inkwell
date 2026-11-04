@@ -38,7 +38,8 @@ class OoxmlTest {
         val out = ByteArrayOutputStream()
         DocxWriter.write(sample, out)
         val read = DocxReader.read(ByteArrayInputStream(out.toByteArray()))
-        assertEquals(sample.paragraphs.map { it.normalized() }, read.paragraphs)
+        assertEquals(sample.paragraphs.map { it.normalized().runs }, read.paragraphs.map { it.runs })
+        assertEquals(sample.paragraphs.map { it.style to it.list }, read.paragraphs.map { it.style to it.list })
     }
 
     @Test fun markdownRoundTrip() {

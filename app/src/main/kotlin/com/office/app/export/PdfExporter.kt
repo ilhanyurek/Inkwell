@@ -29,6 +29,7 @@ import com.office.core.formula.FormulaEngine
 import com.office.core.sheet.CellRef
 import com.office.core.sheet.Sheet
 import com.office.core.text.Alignment
+import com.office.core.text.EmbedKind
 import com.office.core.text.ListType
 import com.office.core.text.ParagraphStyle
 import com.office.core.text.TextDocument
@@ -59,7 +60,15 @@ object PdfExporter {
             }
             for (r in p.runs) {
                 val rs = sb.length
-                sb.append(r.text.replace('￼', ' '))
+                val embed = r.embedId?.let { doc.embeds[it] }
+                sb.append(
+                    when {
+                        embed == null -> r.text
+                        embed.kind == EmbedKind.LINK -> embed.label
+                        embed.kind == EmbedKind.TABLE -> embed.tableRows.joinToString("\n", prefix = "\n") { it.joinToString("   ") }
+                        else -> ""
+                    },
+                )
                 val re = sb.length
                 if (re == rs) continue
                 if (r.bold && r.italic) sb.setSpan(StyleSpan(Typeface.BOLD_ITALIC), rs, re, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

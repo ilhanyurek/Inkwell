@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -94,6 +95,9 @@ import com.office.app.ui.common.UnsavedChangesDialog
 import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
 import com.office.core.FileKind
+import com.office.core.docx.DocxReader
+import com.office.core.text.Embed
+import com.office.core.text.EmbedKind
 import com.office.core.text.InlineAttr
 import com.office.core.text.ListType
 import com.office.core.text.ParagraphStyle
@@ -226,8 +230,10 @@ fun DocumentEditorScreen(
             val baseSize = (16f * settings.editorTextScale).sp
             val muted = MaterialTheme.colorScheme.onSurfaceVariant
             val accent = MaterialTheme.colorScheme.primary
-            val transformation = remember(vm.model, baseSize, muted, accent) {
-                RichTextTransformation(vm.model, baseSize, muted, accent)
+            val chipBg = MaterialTheme.colorScheme.primaryContainer
+            val labeler = embedLabeler()
+            val transformation = remember(vm.model, baseSize, muted, accent, vm.embeds, chipBg) {
+                RichTextTransformation(vm.model, baseSize, muted, accent, vm.embeds, labeler, chipBg)
             }
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
                 BasicTextField(
@@ -255,6 +261,7 @@ fun DocumentEditorScreen(
                     },
                 )
             }
+            EmbedBar(vm)
             FormattingToolbar(vm, showFormatting = vm.supportsRichFormatting || vm.supportsMarkdownFormatting)
         }
     }
@@ -539,5 +546,79 @@ private fun FontSizeMenu(current: Float?, onPick: (Float?) -> Unit) {
                 )
             }
         }
+    }
+}
+
+/** Builds the visible text for an embed chip. */
+@Composable
+private fun embedLabeler(): (Embed) -> String {
+    val image = stringResource(R.string.embed_image)
+    val table = stringResource(R.string.embed_table)
+    val equation = stringResource(R.string.embed_equation)
+    val obj = stringResource(R.string.embed_object)
+    return remember(image, table, equation, obj) {
+        { e ->
+            when {
+                e.label == DocxReader.MARKER_LABEL -> ""
+                e.kind == EmbedKind.LINK -> e.label.ifEmpty { "\u2197" }
+                e.kind == EmbedKind.IMAGE -> "\u2009\u25A3 $image\u2009"
+                e.kind == EmbedKind.TABLE -> "\u2009\u25A6 $table ${e.label}\u2009"
+                e.kind == EmbedKind.EQUATION -> "\u2009\u2211 ${e.label.take(24).ifEmpty { equation }}\u2009"
+                e.kind == EmbedKind.FIELD -> e.label.ifEmpty { "\u22EF" }
+                else -> "\u2009\u25C7 ${e.label.take(24).ifEmpty { obj }}\u2009"
+            }
+        }
+    }
+}
+
+/** When the caret sits next to a table, offers a read-only preview of it. */
+@Composable
+private fun EmbedBar(vm: DocumentEditorViewModel) {
+    val sel = vm.value.selection
+    val table = listOf(sel.start - 1, sel.start)
+        .mapNotNull { vm.model.styles.getOrNull(it)?.embedId }
+        .mapNotNull { vm.embeds[it] }
+        .firstOrNull { it.kind == EmbedKind.TABLE } ?: return
+    var preview by remember { mutableStateOf(false) }
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "${stringResource(R.string.embed_table)} ${table.label}",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { preview = true }) { Text(stringResource(R.string.embed_preview)) }
+        }
+    }
+    if (preview) {
+        AlertDialog(
+            onDismissRequest = { preview = false },
+            title = { Text("${stringResource(R.string.embed_table)} ${table.label}") },
+            text = {
+                Column(Modifier.horizontalScroll(rememberScrollState())) {
+                    table.tableRows.forEach { row ->
+                        Row {
+                            row.forEach { cell ->
+                                Text(
+                                    cell,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier
+                                        .width(110.dp)
+                                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                        .padding(6.dp),
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.embed_table_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
+            },
+            confirmButton = { TextButton(onClick = { preview = false }) { Text(stringResource(R.string.action_ok)) } },
+        )
     }
 }

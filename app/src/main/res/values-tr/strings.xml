@@ -178,4 +178,10 @@
         <item quantity="one">%d yer değiştirildi</item>
         <item quantity="other">%d yer değiştirildi</item>
     </plurals>
+    <string name="embed_image">Görsel</string>
+    <string name="embed_table">Tablo</string>
+    <string name="embed_equation">Denklem</string>
+    <string name="embed_object">Nesne</string>
+    <string name="embed_preview">Önizle</string>
+    <string name="embed_table_note">Tablolar, görseller ve diğer nesneler kaydederken olduğu gibi korunur. Gerekirse Word\'de düzenleyebilirsiniz.</string>
 </resources>

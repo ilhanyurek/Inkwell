@@ -178,4 +178,10 @@
         <item quantity="one">Replaced %d occurrence</item>
         <item quantity="other">Replaced %d occurrences</item>
     </plurals>
+    <string name="embed_image">Image</string>
+    <string name="embed_table">Table</string>
+    <string name="embed_equation">Equation</string>
+    <string name="embed_object">Object</string>
+    <string name="embed_preview">Preview</string>
+    <string name="embed_table_note">Tables, images and other objects are kept unchanged when you save. Edit them in Word if needed.</string>
 </resources>

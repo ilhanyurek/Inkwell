@@ -41,8 +41,8 @@ object PlainTextCodec {
     fun write(doc: TextDocument): ByteArray =
         doc.paragraphs.joinToString("\n") { p ->
             when (p.list) {
-                ListType.BULLET -> "• " + p.text
-                else -> p.text
+                ListType.BULLET -> "• " + doc.readableText(p)
+                else -> doc.readableText(p)
             }
         }.toByteArray(Charsets.UTF_8)
 }
@@ -118,8 +118,8 @@ object MarkdownCodec {
                 p.list == ListType.NUMBERED -> "$number. "
                 else -> ""
             }
-            prefix + p.runs.joinToString("") { r ->
-                var t = r.text.replace("*", "\\*").replace("_", "\\_").replace("~", "\\~")
+            prefix + p.runs.filter { it.embedId == null || doc.embeds[it.embedId]?.kind == com.office.core.text.EmbedKind.LINK }.joinToString("") { r ->
+                var t = r.embedId?.let { doc.embeds[it]?.label } ?: r.text.replace("*", "\\*").replace("_", "\\_").replace("~", "\\~")
                 if (t.isBlank()) return@joinToString t
                 if (r.strike) t = "~~$t~~"
                 if (r.italic) t = "*$t*"

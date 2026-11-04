@@ -13,6 +13,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.printToString
 import androidx.core.content.FileProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.services.storage.TestStorage
@@ -78,6 +79,19 @@ object Fixtures {
         pdf.close()
     }
 
+    /** A DOCX with a table and an image, like files made in Word. */
+    fun richDocx(): File = File(dir, "rich.docx").also { f ->
+        val w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        val parts = mapOf(
+            "[Content_Types].xml" to """<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>""",
+            "_rels/.rels" to """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="r1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>""",
+            "word/_rels/document.xml.rels" to """<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdImg" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image1.png"/></Relationships>""",
+            "word/media/image1.png" to "PNGDATA",
+            "word/document.xml" to """<w:document xmlns:w="$w" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><w:body><w:p><w:r><w:t>Intro line</w:t></w:r></w:p><w:p><w:r><w:drawing><a:blip r:embed="rIdImg"/></w:drawing></w:r></w:p><w:tbl><w:tr><w:tc><w:p><w:r><w:t>A1</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>B1</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:p><w:r><w:t>A2</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>B2</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p><w:r><w:t>Closing line</w:t></w:r></w:p><w:sectPr/></w:body></w:document>""",
+        )
+        f.outputStream().use { ZipPackage.write(it, parts.map { (k, v) -> k to v.toByteArray() }) }
+    }
+
     fun pptx(): File = File(dir, "deck.pptx").also { f ->
         val parts = mapOf(
             "[Content_Types].xml" to """<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/></Types>""",
@@ -99,5 +113,15 @@ fun SemanticsNodeInteractionsProvider.screenshot(name: String) {
     runCatching {
         val bitmap = onAllNodes(isRoot())[0].captureToImage().asAndroidBitmap()
         TestStorage().openOutputFile("screenshots/$name.png").use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+}
+
+/** Runs [block]; on failure, rethrows with the whole UI tree so CI logs show what was on screen. */
+fun SemanticsNodeInteractionsProvider.explainFailure(block: () -> Unit) {
+    try {
+        block()
+    } catch (e: Throwable) {
+        val tree = runCatching { onAllNodes(isRoot()).fetchSemanticsNodes().indices.joinToString("\n") { onAllNodes(isRoot())[it].printToString(maxDepth = 40) } }.getOrDefault("")
+        throw AssertionError("${e.message}\n--- UI tree ---\n$tree", e)
     }
 }

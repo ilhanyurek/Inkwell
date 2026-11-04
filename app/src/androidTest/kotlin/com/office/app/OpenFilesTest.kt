@@ -10,6 +10,10 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.geometry.Offset
 import androidx.test.core.app.ActivityScenario
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performTextInput
+import com.office.core.zip.ZipPackage
+import org.junit.Assert.assertEquals
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -32,6 +36,27 @@ class OpenFilesTest {
             rule.waitForText("Quarterly report")
             rule.waitForText("Inkwell test document.")
             rule.screenshot("10_docx")
+        }
+    }
+
+    @Test
+    fun docxKeepsTableAndImageAfterEditing() = rule.explainFailure {
+        val file = Fixtures.richDocx()
+        open(file, "application/vnd.openxmlformats-officedocument.wordprocessingml.document").use {
+            rule.waitForText("Intro line")
+            rule.waitForText("${str(R.string.embed_table)} 2×2")
+            rule.waitForText(str(R.string.embed_image))
+            rule.screenshot("17_docx_embeds")
+            rule.onNode(hasSetTextAction()).performTextInput("Edited ")
+            rule.onNodeWithContentDescription(str(R.string.action_save)).performClick()
+            rule.waitUntil(15_000) {
+                runCatching {
+                    val xml = String(ZipPackage.read(file.inputStream()).bytes("word/document.xml")!!)
+                    xml.contains("Edited") && xml.contains("<w:tbl>") && xml.contains("rIdImg")
+                }.getOrDefault(false)
+            }
+            val pkg = ZipPackage.read(file.inputStream())
+            assertEquals("PNGDATA", String(pkg.bytes("word/media/image1.png")!!))
         }
     }
 

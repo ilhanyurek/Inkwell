@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.office.core.text.Alignment
 import com.office.core.text.CharStyle
+import com.office.core.text.Embed
+import com.office.core.text.EmbedKind
 import com.office.core.text.ListType
 import com.office.core.text.RichText
 import com.office.core.text.ParagraphStyle as DocParagraphStyle
@@ -31,6 +33,10 @@ class RichTextTransformation(
     private val baseSize: TextUnit,
     private val mutedColor: Color,
     private val accentColor: Color,
+    private val embeds: Map<Int, Embed> = emptyMap(),
+    /** Text shown in place of an embed; an empty string hides it (bookmarks and similar markers). */
+    private val embedLabel: (Embed) -> String = { "" },
+    private val chipBackground: Color = Color.Transparent,
 ) : VisualTransformation {
 
     override fun filter(text: AnnotatedString): TransformedText {
@@ -66,6 +72,17 @@ class RichTextTransformation(
             var i = start
             while (i < end) {
                 val st = model.styles[i]
+                if (st.embedId != null) {
+                    val embed = embeds[st.embedId]
+                    val label = embed?.let(embedLabel).orEmpty().ifEmpty { "\u200B" }
+                    val chipStart = out.length
+                    origToTrans[i] = chipStart
+                    out.append(label)
+                    repeat(label.length) { transToOrig += i }
+                    if (embed != null && label != "\u200B") out.addStyle(embedSpan(embed), chipStart, out.length)
+                    i++
+                    continue
+                }
                 var j = i + 1
                 while (j < end && model.styles[j] == st) j++
                 val spanStart = out.length
@@ -102,6 +119,12 @@ class RichTextTransformation(
                 transToOrig[offset.coerceIn(0, transToOrig.size - 1)].coerceIn(0, src.length)
         }
         return TransformedText(transformed, mapping)
+    }
+
+    private fun embedSpan(e: Embed): SpanStyle = if (e.kind == EmbedKind.LINK) {
+        SpanStyle(color = accentColor, textDecoration = TextDecoration.Underline)
+    } else {
+        SpanStyle(color = accentColor, background = chipBackground, fontSize = (baseSize.value * 0.85f).sp)
     }
 
     private fun charSpan(st: CharStyle): SpanStyle? {

@@ -14,6 +14,9 @@ import com.office.app.export.PdfExporter
 import com.office.core.FileKind
 import com.office.core.docx.DocxReader
 import com.office.core.docx.DocxWriter
+import com.office.core.text.Embed
+import com.office.core.text.TextDocument
+import com.office.core.zip.ZipPackage
 import com.office.core.text.Alignment
 import com.office.core.text.CharStyle
 import com.office.core.text.InlineAttr
@@ -63,6 +66,15 @@ class DocumentEditorViewModel(
     var saving by mutableStateOf(false)
         private set
 
+    /** Images, tables, links… from the source file; kept as-is and written back on save. */
+    var embeds by mutableStateOf<Map<Int, Embed>>(emptyMap())
+        private set
+
+    /** The DOCX package the document came from, so saving keeps everything we do not edit. */
+    private var originalPackage: ZipPackage? = null
+
+    fun currentDocument(): TextDocument = model.toDocument(embeds = embeds)
+
     private data class Snapshot(val model: RichText, val selection: TextRange)
 
     private val undoStack = ArrayDeque<Snapshot>()
@@ -87,7 +99,10 @@ class DocumentEditorViewModel(
                 val bytes = container.files.readBytes(uri)
                 withContext(Dispatchers.Default) {
                     when (kind) {
-                        FileKind.DOCUMENT -> DocxReader.read(ByteArrayInputStream(bytes))
+                        FileKind.DOCUMENT -> ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
+                            originalPackage = pkg
+                            DocxReader.read(pkg)
+                        }
                         FileKind.MARKDOWN -> MarkdownCodec.read(bytes)
                         else -> PlainTextCodec.read(bytes)
                     }
@@ -95,6 +110,7 @@ class DocumentEditorViewModel(
             }.onSuccess { doc ->
                 model = RichText.fromDocument(doc)
                 lossyImport = doc.lossyImport
+                embeds = doc.embeds
                 value = TextFieldValue(model.text, TextRange(0))
                 loadState = LoadState.Ready
             }.onFailure {
@@ -113,7 +129,7 @@ class DocumentEditorViewModel(
             return
         }
         val typing = pendingStyle ?: if (old.selection.collapsed) model.typingStyleAt(old.selection.start)
-        else model.styleAt(old.selection.min)
+        else model.styleAt(old.selection.min).forTyping
         val next = model.applyEdit(new.text, typing)
         val now = System.currentTimeMillis()
         if (now - lastTypingAt > 900) pushUndo()
@@ -245,9 +261,9 @@ class DocumentEditorViewModel(
     }
 
     private fun serialize(targetKind: FileKind = kind): ByteArray {
-        val doc = model.toDocument()
+        val doc = currentDocument()
         return when (targetKind) {
-            FileKind.DOCUMENT -> ByteArrayOutputStream().also { DocxWriter.write(doc, it) }.toByteArray()
+            FileKind.DOCUMENT -> ByteArrayOutputStream().also { DocxWriter.write(doc, it, originalPackage) }.toByteArray()
             FileKind.MARKDOWN -> MarkdownCodec.write(doc)
             else -> PlainTextCodec.write(doc)
         }
@@ -286,7 +302,7 @@ class DocumentEditorViewModel(
         viewModelScope.launch {
             val result = runCatching {
                 val bytes = withContext(Dispatchers.Default) {
-                    ByteArrayOutputStream().also { PdfExporter.document(model.toDocument(), title, it) }.toByteArray()
+                    ByteArrayOutputStream().also { PdfExporter.document(currentDocument(), title, it) }.toByteArray()
                 }
                 container.files.writeBytes(target, bytes)
             }
@@ -296,13 +312,13 @@ class DocumentEditorViewModel(
 
     suspend fun exportPdfToCache(title: String): java.io.File = withContext(Dispatchers.Default) {
         val file = java.io.File(container.files.exportsDir(), "${title.substringBeforeLast('.')}.pdf")
-        file.outputStream().use { PdfExporter.document(model.toDocument(), title, it) }
+        file.outputStream().use { PdfExporter.document(currentDocument(), title, it) }
         file
     }
 
     val stats: Triple<Int, Int, Int>
         get() {
-            val doc = model.toDocument()
+            val doc = currentDocument()
             return Triple(doc.wordCount, doc.characterCount, doc.paragraphs.count { it.text.isNotBlank() })
         }
 }

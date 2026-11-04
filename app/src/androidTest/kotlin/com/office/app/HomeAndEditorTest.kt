@@ -4,6 +4,8 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -21,15 +23,16 @@ class HomeAndEditorTest {
     val rule = createAndroidComposeRule<MainActivity>()
 
     @Test
-    fun homeShowsTitleAndNewButton() {
+    fun homeShowsTitleAndNewButton() = rule.explainFailure {
         rule.waitForText(str(R.string.home_title))
-        rule.onNodeWithText(str(R.string.action_new)).assertExists()
+        rule.onNodeWithTag("new_button").assertExists()
         rule.screenshot("01_home")
     }
 
     @Test
-    fun newDocumentTypeUndoRedo() {
-        rule.onNodeWithText(str(R.string.action_new)).performClick()
+    fun newDocumentTypeUndoRedo() = rule.explainFailure {
+        rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("new_button")).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithTag("new_button").performClick()
         rule.waitForText(str(R.string.new_document))
         rule.screenshot("02_new_sheet")
         rule.onNodeWithText(str(R.string.new_document)).performClick()

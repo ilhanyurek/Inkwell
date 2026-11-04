@@ -6,10 +6,16 @@ data class CharStyle(
     val underline: Boolean = false,
     val strike: Boolean = false,
     val sizePt: Float? = null,
+    /** Set on the single [EMBED_CHAR] that stands for an embedded object. */
+    val embedId: Int? = null,
+    val extraXml: String? = null,
 ) {
+    /** The style text typed next to this character should get (never an embed). */
+    val forTyping: CharStyle get() = if (embedId == null) this else copy(embedId = null)
+
     companion object {
         val PLAIN = CharStyle()
-        fun of(run: TextRun) = CharStyle(run.bold, run.italic, run.underline, run.strike, run.sizePt)
+        fun of(run: TextRun) = CharStyle(run.bold, run.italic, run.underline, run.strike, run.sizePt, run.embedId, run.extraXml)
     }
 }
 
@@ -19,6 +25,10 @@ data class ParaAttrs(
     val style: ParagraphStyle = ParagraphStyle.NORMAL,
     val list: ListType = ListType.NONE,
     val alignment: Alignment = Alignment.START,
+    val extraXml: String? = null,
+    val customStyleId: String? = null,
+    val numXml: String? = null,
+    val numType: ListType = ListType.NONE,
 )
 
 /**
@@ -66,8 +76,8 @@ class RichText private constructor(
 
     /** Style a character typed at [cursor] would get: that of the preceding character on the same line. */
     fun typingStyleAt(cursor: Int): CharStyle {
-        if (cursor > 0 && cursor <= text.length && text[cursor - 1] != '\n') return styles[cursor - 1]
-        if (cursor < text.length && text[cursor] != '\n') return styles[cursor]
+        if (cursor > 0 && cursor <= text.length && text[cursor - 1] != '\n') return styles[cursor - 1].forTyping
+        if (cursor < text.length && text[cursor] != '\n') return styles[cursor].forTyping
         return CharStyle.PLAIN
     }
 
@@ -82,7 +92,8 @@ class RichText private constructor(
         val newText = text.substring(0, s) + insert + text.substring(e)
         val newStyles = ArrayList<CharStyle>(newText.length)
         newStyles.addAll(styles.subList(0, s))
-        repeat(insert.length) { i -> newStyles.add(if (insert[i] == '\n') CharStyle.PLAIN else insertStyle) }
+        val typed = insertStyle.forTyping
+        repeat(insert.length) { i -> newStyles.add(if (insert[i] == '\n') CharStyle.PLAIN else typed) }
         newStyles.addAll(styles.subList(e, styles.size))
 
         val newParas = ArrayList<ParaAttrs>(paras.size - removedBreaks + addedBreaks)
@@ -141,7 +152,7 @@ class RichText private constructor(
         if (start >= end) this else mapStyles(start until end) { it.copy(sizePt = sizePt) }
 
     fun clearFormatting(start: Int, end: Int): RichText =
-        if (start >= end) this else mapStyles(start until end) { CharStyle.PLAIN }
+        if (start >= end) this else mapStyles(start until end) { CharStyle(embedId = it.embedId) }
 
     private fun mapStyles(range: IntRange, f: (CharStyle) -> CharStyle): RichText {
         val newStyles = styles.toMutableList()
@@ -194,7 +205,7 @@ class RichText private constructor(
         return model to hits.size
     }
 
-    fun toDocument(lossy: Boolean = false): TextDocument {
+    fun toDocument(lossy: Boolean = false, embeds: Map<Int, Embed> = emptyMap()): TextDocument {
         val starts = lineStarts()
         val paragraphs = paras.indices.map { i ->
             val start = starts[i]
@@ -205,14 +216,15 @@ class RichText private constructor(
                 if (k == end || styles[k] != styles[runStart]) {
                     if (k > runStart) {
                         val st = styles[runStart]
-                        runs += TextRun(text.substring(runStart, k), st.bold, st.italic, st.underline, st.strike, st.sizePt)
+                        runs += TextRun(text.substring(runStart, k), st.bold, st.italic, st.underline, st.strike, st.sizePt, st.embedId, st.extraXml)
                     }
                     runStart = k
                 }
             }
-            Paragraph(runs, paras[i].style, paras[i].list, paras[i].alignment).normalized()
+            val a = paras[i]
+            Paragraph(runs, a.style, a.list, a.alignment, a.extraXml, a.customStyleId, a.numXml, a.numType).normalized()
         }
-        return TextDocument(paragraphs, lossy)
+        return TextDocument(paragraphs, lossy, embeds)
     }
 
     override fun equals(other: Any?) =
@@ -240,18 +252,20 @@ class RichText private constructor(
                     for (ch in r.text) {
                         if (ch == '\n') {
                             sb.append('\n'); styles.add(CharStyle.PLAIN)
-                            paras.add(ParaAttrs(p.style, p.list, p.alignment))
+                            paras.add(p.attrs())
                         } else {
                             sb.append(ch); styles.add(st)
                         }
                     }
                 }
-                paras.add(ParaAttrs(p.style, p.list, p.alignment))
+                paras.add(p.attrs())
             }
             return RichText(sb.toString(), styles, paras)
         }
     }
 }
+
+private fun Paragraph.attrs() = ParaAttrs(style, list, alignment, extraXml, customStyleId, numXml, numType)
 
 fun CharStyle.has(attr: InlineAttr) = when (attr) {
     InlineAttr.BOLD -> bold
