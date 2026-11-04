@@ -52,7 +52,21 @@ class Sheet(
     val cachedValues: MutableMap<CellRef, String> = HashMap(),
     /** Column widths in characters (Excel units). */
     val columnWidths: MutableMap<Int, Float> = HashMap(),
+    val styles: MutableMap<CellRef, CellStyle> = HashMap(),
+    /**
+     * Worksheet elements we do not model (merged cells, charts, conditional formatting…) as
+     * (local name, raw XML), written back unchanged.
+     */
+    val extraXml: MutableList<Pair<String, String>> = ArrayList(),
+    /** Part path and relationship id of the worksheet this sheet was read from. */
+    var sourcePath: String? = null,
+    var sourceRelId: String? = null,
 ) {
+    fun style(ref: CellRef): CellStyle = styles[ref] ?: CellStyle.DEFAULT
+
+    fun setStyle(ref: CellRef, style: CellStyle) {
+        if (style.isDefault) styles.remove(ref) else styles[ref] = style
+    }
     operator fun get(ref: CellRef): String = cells[ref].orEmpty()
 
     operator fun set(ref: CellRef, value: String) {
@@ -63,7 +77,11 @@ class Sheet(
     val maxRow: Int get() = cells.keys.maxOfOrNull { it.row } ?: -1
     val maxCol: Int get() = cells.keys.maxOfOrNull { it.col } ?: -1
 
-    fun copy(): Sheet = Sheet(name, HashMap(cells), HashMap(cachedValues), HashMap(columnWidths))
+    fun copy(): Sheet = Sheet(name, HashMap(cells), HashMap(cachedValues), HashMap(columnWidths), HashMap(styles), ArrayList(extraXml), sourcePath, sourceRelId)
+
+    /** Largest row/column that has content or formatting. */
+    val usedMaxRow: Int get() = maxOf(maxRow, styles.keys.maxOfOrNull { it.row } ?: -1)
+    val usedMaxCol: Int get() = maxOf(maxCol, styles.keys.maxOfOrNull { it.col } ?: -1)
 
     /** Inserts an empty row before [index], shifting cells down. Formulas are not rewritten. */
     fun insertRow(index: Int) = shift { r -> if (r.row >= index) r.copy(row = r.row + 1) else r }
@@ -105,8 +123,11 @@ class Sheet(
         for ((k, v) in cells) transform(k)?.let { newCells[it] = v }
         val newCached = HashMap<CellRef, String>()
         for ((k, v) in cachedValues) transform(k)?.let { newCached[it] = v }
+        val newStyles = HashMap<CellRef, CellStyle>()
+        for ((k, v) in styles) transform(k)?.let { newStyles[it] = v }
         cells.clear(); cells.putAll(newCells)
         cachedValues.clear(); cachedValues.putAll(newCached)
+        styles.clear(); styles.putAll(newStyles)
     }
 
     /** Sorts rows [fromRow]..maxRow by the evaluated values of column [col]. */
@@ -125,12 +146,15 @@ class Sheet(
         }.map { it.first }
         val snapshot = HashMap(cells)
         val cachedSnapshot = HashMap(cachedValues)
-        cells.keys.removeAll { it.row >= fromRow }
-        cachedValues.keys.removeAll { it.row >= fromRow }
+        val styleSnapshot = HashMap(styles)
+        cells.keys.removeAll { it.row >= fromRow && it.row <= last }
+        cachedValues.keys.removeAll { it.row >= fromRow && it.row <= last }
+        styles.keys.removeAll { it.row >= fromRow && it.row <= last }
         sorted.forEachIndexed { i, oldRow ->
             val newRow = fromRow + i
             snapshot.filterKeys { it.row == oldRow }.forEach { (k, v) -> cells[CellRef(newRow, k.col)] = v }
             cachedSnapshot.filterKeys { it.row == oldRow }.forEach { (k, v) -> cachedValues[CellRef(newRow, k.col)] = v }
+            styleSnapshot.filterKeys { it.row == oldRow }.forEach { (k, v) -> styles[CellRef(newRow, k.col)] = v }
         }
     }
 

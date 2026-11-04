@@ -6,6 +6,9 @@ import com.office.core.formula.FormulaEngine
 import com.office.core.pptx.PptxReader
 import com.office.core.pptx.SlideShape
 import com.office.core.sheet.CellRef
+import com.office.core.sheet.CellStyle
+import com.office.core.sheet.HAlign
+import com.office.core.sheet.Sheet
 import com.office.core.text.EmbedKind
 import com.office.core.text.InlineAttr
 import com.office.core.text.ListType
@@ -80,11 +83,35 @@ class FixtureTest {
         assertEquals("=not a formula", engine.display(wb.sheets[1], CellRef(1, 1)).removePrefix("'"))
         assertEquals(18f, sales.columnWidths[0])
 
+        // Formatting read from openpyxl's stylesheet.
+        val header = sales.style(CellRef(0, 0))
+        assertTrue(header.bold && header.fill == 0xFF2B59C3 && header.hAlign == HAlign.CENTER && header.border)
+        assertEquals("dd.mm.yyyy", sales.style(CellRef.parse("E2")!!).numFmt)
+        assertEquals("0.0%", sales.style(CellRef.parse("F2")!!).numFmt)
+        assertTrue(sales.extraXml.any { it.first == "mergeCells" } && sales.extraXml.any { it.first == "drawing" })
+
+        // Edit values and formatting, then save into the original package.
+        sales[CellRef.parse("B2")!!] = "130"
+        sales.setStyle(CellRef.parse("A2")!!, sales.style(CellRef.parse("A2")!!).copy(italic = true, fontColor = 0xFFC00000).edited())
+        sales.setStyle(CellRef.parse("D7")!!, CellStyle(numFmt = "#,##0.000", bold = true))
+        sales[CellRef.parse("D7")!!] = "=D6/3"
+        wb.sheets += Sheet("Added").also { it[CellRef(0, 0)] = "new sheet" }
+        val pkg = ZipPackage.read(ByteArrayInputStream(fixture("budget.xlsx")))
         val out = ByteArrayOutputStream()
-        XlsxWriter.write(wb, out)
+        XlsxWriter.write(wb, out, pkg)
         File(outDir, "budget-resaved.xlsx").writeBytes(out.toByteArray())
-        val again = XlsxReader.read(ByteArrayInputStream(out.toByteArray()))
-        assertEquals("1750", FormulaEngine(again).display(again.sheets[0], CellRef.parse("D6")!!))
+
+        val outPkg = ZipPackage.read(ByteArrayInputStream(out.toByteArray()))
+        assertTrue(outPkg.entries.keys.any { it.startsWith("xl/charts/") })
+        assertTrue(outPkg.entries.keys.none { it.contains("calcChain") })
+        val again = XlsxReader.read(outPkg)
+        assertEquals(listOf("Sales", "Notes", "Added"), again.sheets.map { it.name })
+        val s2 = again.sheets[0]
+        assertEquals("1785", FormulaEngine(again).display(s2, CellRef.parse("D6")!!))
+        assertTrue(s2.style(CellRef(0, 0)).bold)
+        assertEquals(0xFFC00000, s2.style(CellRef.parse("A2")!!).fontColor)
+        assertEquals("#,##0.000", s2.style(CellRef.parse("D7")!!).numFmt)
+        assertEquals("new sheet", again.sheets[2][CellRef(0, 0)])
     }
 
     @Test fun pptxFromPythonPptx() {

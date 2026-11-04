@@ -108,6 +108,11 @@ import com.office.app.ui.theme.MonoStyle
 import com.office.core.FileKind
 import com.office.core.sheet.CellRef
 import com.office.core.sheet.Value
+import com.office.core.sheet.HAlign
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import kotlinx.coroutines.launch
 
 private val ROW_HEIGHT = 34.dp
@@ -138,6 +143,7 @@ fun SheetEditorScreen(
     var closeAfterSave by remember { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
     var showSort by remember { mutableStateOf(false) }
+    var showFormat by remember { mutableStateOf(false) }
     var exportFormat by remember { mutableStateOf(kind) }
 
     fun afterSave(e: Throwable?) {
@@ -244,7 +250,7 @@ fun SheetEditorScreen(
             }
             SelectionStats(vm)
             if (!vm.editing) {
-                ActionBar(vm, onSort = { showSort = true })
+                ActionBar(vm, onSort = { showSort = true }, onFormat = { showFormat = true })
                 SheetTabs(vm)
             }
         }
@@ -258,6 +264,7 @@ fun SheetEditorScreen(
         )
     }
     if (showSort) SortDialog(vm, onDismiss = { showSort = false })
+    if (showFormat) FormatSheet(vm, onDismiss = { showFormat = false })
 }
 
 @Composable
@@ -351,6 +358,7 @@ private fun Grid(vm: SheetEditorViewModel) {
     val focusColor = MaterialTheme.colorScheme.primary
     val errorColor = MaterialTheme.colorScheme.error
     val textColor = MaterialTheme.colorScheme.onSurface
+    val cellBorder = MaterialTheme.colorScheme.onSurfaceVariant
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val sel = vm.selection
 
@@ -428,30 +436,57 @@ private fun Grid(vm: SheetEditorViewModel) {
                                 val inSel = ref in sel
                                 val isFocus = ref == sel.focus
                                 val value = if (c <= sheet.maxCol && r <= sheet.maxRow) vm.display(ref) else Value.Empty
+                                val st = sheet.styles[ref]
+                                val fill = st?.fill?.let { Color(it) }
+                                val align = when (st?.hAlign) {
+                                    HAlign.LEFT -> TextAlign.Start
+                                    HAlign.CENTER -> TextAlign.Center
+                                    HAlign.RIGHT -> TextAlign.End
+                                    null -> if (value is Value.Num) TextAlign.End else TextAlign.Start
+                                }
                                 Box(
                                     Modifier
                                         .width(widths[c])
                                         .fillMaxHeight()
+                                        .then(if (fill != null) Modifier.background(fill) else Modifier)
                                         .background(if (inSel && !sel.isSingle) selectionBg else Color.Transparent)
                                         .drawBehind {
                                             drawLine(gridLine, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
                                             drawLine(gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
+                                            if (st?.border == true) {
+                                                drawRect(cellBorder, style = Stroke(1.5f))
+                                            }
                                         }
                                         .then(if (isFocus) Modifier.border(2.dp, focusColor) else Modifier)
                                         .padding(horizontal = 6.dp),
-                                    contentAlignment = if (value is Value.Num) Alignment.CenterEnd else Alignment.CenterStart,
+                                    contentAlignment = when (align) {
+                                        TextAlign.End -> Alignment.CenterEnd
+                                        TextAlign.Center -> Alignment.Center
+                                        else -> Alignment.CenterStart
+                                    },
                                 ) {
                                     if (value != Value.Empty) {
+                                        val decorations = buildList {
+                                            if (st?.underline == true) add(TextDecoration.Underline)
+                                            if (st?.strike == true) add(TextDecoration.LineThrough)
+                                        }
                                         Text(
-                                            value.display(),
-                                            fontSize = 14.sp,
-                                            maxLines = 1,
+                                            vm.displayText(ref, value),
+                                            fontSize = (st?.fontSizePt?.let { it * 14f / 11f } ?: 14f).coerceIn(8f, 28f).sp,
+                                            fontWeight = if (st?.bold == true) FontWeight.Bold else null,
+                                            fontStyle = if (st?.italic == true) FontStyle.Italic else null,
+                                            textDecoration = if (decorations.isEmpty()) null else TextDecoration.combine(decorations),
+                                            maxLines = if (st?.wrap == true) 2 else 1,
+                                            lineHeight = 15.sp,
                                             overflow = TextOverflow.Clip,
-                                            softWrap = false,
-                                            textAlign = if (value is Value.Num) TextAlign.End else TextAlign.Start,
-                                            color = when (value) {
-                                                is Value.Err -> errorColor
-                                                is Value.Bool -> focusColor
+                                            softWrap = st?.wrap == true,
+                                            textAlign = align,
+                                            color = when {
+                                                value is Value.Err -> errorColor
+                                                st?.fontColor != null -> Color(st.fontColor!!)
+                                                // Keep text readable on light fills in dark mode.
+                                                fill != null -> if (fill.luminance() > 0.5f) Color(0xFF1B1C1E) else Color(0xFFF5F5F5)
+                                                value is Value.Bool -> focusColor
                                                 else -> textColor
                                             },
                                         )
@@ -493,7 +528,7 @@ private fun StatText(label: String, value: String) {
 }
 
 @Composable
-private fun ActionBar(vm: SheetEditorViewModel, onSort: () -> Unit) {
+private fun ActionBar(vm: SheetEditorViewModel, onSort: () -> Unit, onFormat: () -> Unit) {
     val context = LocalContext.current
     val clipboard = remember { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
     Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
@@ -506,6 +541,10 @@ private fun ActionBar(vm: SheetEditorViewModel, onSort: () -> Unit) {
                 Modifier.weight(1f).horizontalScroll(rememberScrollState()).padding(end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                if (!vm.isCsv) {
+                    Action(R.string.sheet_format) { onFormat() }
+                    Sep()
+                }
                 Action(R.string.sheet_copy) {
                     clipboard.setPrimaryClip(ClipData.newPlainText("cells", vm.copyText()))
                     toast(context, context.getString(R.string.copied))

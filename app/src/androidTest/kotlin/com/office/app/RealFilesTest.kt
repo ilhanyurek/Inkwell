@@ -29,7 +29,7 @@ class RealFilesTest {
 
     @Test fun excelBudget() = open(
         "budget.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Kalem", "Defter", "Sales", "Notes",
+        "Kalem", "Defter", "Sales", "Notes", "3.50 ₺", "12.01.2025",
         shot = "21_real_xlsx",
     )
 

@@ -191,4 +191,17 @@
     <string name="home_drafts">Kurtarılan taslaklar</string>
     <string name="settings_autosave">Dosyaya da otomatik kaydet</string>
     <string name="settings_autosave_desc">Değişiklikler yazdıktan birkaç saniye sonra her zaman taslak olarak saklanır. Bu açıkken dosyanın kendisine de yazılır.</string>
+    <string name="sheet_format">Biçim</string>
+    <string name="format_title">%1$s biçimi</string>
+    <string name="format_border">Kenarlık</string>
+    <string name="format_wrap">Metni kaydır</string>
+    <string name="format_text_color">Yazı rengi</string>
+    <string name="format_fill">Dolgu</string>
+    <string name="format_auto">Otomatik</string>
+    <string name="format_number">Sayı biçimi</string>
+    <string name="numfmt_general">Genel</string>
+    <string name="numfmt_date">Tarih</string>
+    <string name="numfmt_iso_date">ISO tarih</string>
+    <string name="numfmt_time">Saat</string>
+    <string name="numfmt_text">Metin</string>
 </resources>

@@ -19,6 +19,9 @@ import com.office.core.FileKind
 import com.office.core.csv.Csv
 import com.office.core.formula.FormulaEngine
 import com.office.core.sheet.CellRef
+import com.office.core.sheet.CellStyle
+import com.office.core.sheet.NumberFormat
+import com.office.core.zip.ZipPackage
 import com.office.core.sheet.Sheet
 import com.office.core.sheet.Value
 import com.office.core.sheet.Workbook
@@ -132,7 +135,7 @@ class SheetEditorViewModel(
             csvDelimiter = parsed.delimiter
             Csv.toWorkbook(parsed, fileName?.substringBeforeLast('.')?.take(31) ?: "Sheet1")
         } else {
-            XlsxReader.read(ByteArrayInputStream(bytes))
+            ZipPackage.read(ByteArrayInputStream(bytes)).also { originalPackage = it }.let { XlsxReader.read(it) }
         }
 
     private fun apply(wb: Workbook) {
@@ -194,6 +197,44 @@ class SheetEditorViewModel(
     // --- reading ------------------------------------------------------------------------
 
     fun display(ref: CellRef): Value = engine.value(sheet, ref)
+
+    /** The text shown in a cell: numbers go through the cell's number format. */
+    fun displayText(ref: CellRef, value: Value = display(ref)): String {
+        val fmt = sheet.styles[ref]?.numFmt
+        return if (value is Value.Num && fmt != null) NumberFormat.format(value.v, fmt) else value.display()
+    }
+
+    /** What the formula bar shows: dates and percentages as typed rather than as raw numbers. */
+    private fun editableRaw(ref: CellRef): String {
+        val raw = sheet[ref]
+        val fmt = sheet.styles[ref]?.numFmt ?: return raw
+        val v = raw.toDoubleOrNull() ?: return raw
+        return when {
+            NumberFormat.isDate(fmt) && v == Math.floor(v) -> NumberFormat.format(v, "dd.mm.yyyy")
+            NumberFormat.isDate(fmt) && v < 1 -> NumberFormat.format(v, "hh:mm")
+            fmt.contains('%') -> Value.formatNumber(v * 100) + "%"
+            else -> raw
+        }
+    }
+
+    /** The package an XLSX was read from; saving writes into it so charts and other parts survive. */
+    private var originalPackage: ZipPackage? = null
+
+    /** Style shared by the selection's focused cell, for the format panel. */
+    val focusStyle: CellStyle get() = sheet.style(selection.focus)
+
+    /** Applies [transform] to the style of every cell in the selection. */
+    fun applyStyle(transform: (CellStyle) -> CellStyle) {
+        val s = selection
+        val lastRow = if (s.bottom - s.top > 2000) minOf(s.bottom, maxOf(sheet.usedMaxRow, s.top)) else s.bottom
+        val lastCol = if (s.right - s.left > 200) minOf(s.right, maxOf(sheet.usedMaxCol, s.left)) else s.right
+        mutate {
+            for (r in s.top..lastRow) for (c in s.left..lastCol) {
+                val ref = CellRef(r, c)
+                sheet.setStyle(ref, transform(sheet.style(ref)).edited())
+            }
+        }
+    }
 
     fun raw(ref: CellRef): String = sheet[ref]
 
@@ -270,7 +311,7 @@ class SheetEditorViewModel(
     }
 
     private fun loadEditTextForSelection() {
-        val raw = sheet[selection.focus]
+        val raw = editableRaw(selection.focus)
         editText = TextFieldValue(raw, TextRange(raw.length))
     }
 
@@ -292,8 +333,18 @@ class SheetEditorViewModel(
     fun commitEdit(move: Boolean = true) {
         val ref = selection.focus
         val newRaw = editText.text
-        if (newRaw != sheet[ref]) {
-            mutate { sheet[ref] = newRaw.trimEnd('\n') }
+        if (newRaw != editableRaw(ref)) {
+            val text = newRaw.trimEnd('\n')
+            // Typed dates, percentages and amounts become numbers with a matching format.
+            val parsed = if (text.startsWith("=") || text.startsWith("'")) null else NumberFormat.parseInput(text)
+            mutate {
+                if (parsed != null) {
+                    sheet[ref] = Value.formatNumber(parsed.first)
+                    if (sheet.style(ref).numFmt == null) sheet.setStyle(ref, sheet.style(ref).copy(numFmt = parsed.second).edited())
+                } else {
+                    sheet[ref] = text
+                }
+            }
         }
         editing = false
         if (move) {
@@ -379,7 +430,7 @@ class SheetEditorViewModel(
         return (s.top..s.bottom).joinToString("\n") { r ->
             (s.left..s.right).joinToString("\t") { c ->
                 val ref = CellRef(r, c)
-                if (asValues) display(ref).display() else sheet[ref]
+                if (asValues) displayText(ref) else sheet[ref]
             }
         }
     }
@@ -488,7 +539,7 @@ class SheetEditorViewModel(
 
     private fun serialize(target: FileKind): ByteArray = when (target) {
         FileKind.CSV -> Csv.write(Csv.fromSheet(sheet), csvDelimiter).toByteArray(Charsets.UTF_8)
-        else -> ByteArrayOutputStream().also { XlsxWriter.write(workbook, it) }.toByteArray()
+        else -> ByteArrayOutputStream().also { XlsxWriter.write(workbook, it, originalPackage) }.toByteArray()
     }
 
     fun save(onDone: (Throwable?) -> Unit) {

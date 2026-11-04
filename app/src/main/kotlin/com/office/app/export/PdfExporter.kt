@@ -169,7 +169,14 @@ object PdfExporter {
             pdf.finishPage(page)
             pdf.writeTo(out); pdf.close(); return
         }
-        val values = Array(maxRow + 1) { r -> Array(maxCol + 1) { c -> engine.display(sheet, CellRef(r, c)) } }
+        val values = Array(maxRow + 1) { r ->
+            Array(maxCol + 1) { c ->
+                val ref = CellRef(r, c)
+                val v = engine.value(sheet, ref)
+                val fmt = sheet.styles[ref]?.numFmt
+                if (v is com.office.core.sheet.Value.Num && fmt != null) com.office.core.sheet.NumberFormat.format(v.v, fmt) else v.display()
+            }
+        }
         val colW = FloatArray(maxCol + 1) { c ->
             val widest = (0..maxRow).maxOf { r -> text.measureText(values[r][c]) }
             (widest + 8f).coerceIn(36f, 180f)

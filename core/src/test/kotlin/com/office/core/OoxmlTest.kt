@@ -93,7 +93,8 @@ class OoxmlTest {
         val s = XlsxReader.read(pkg).sheets[0]
         assertEquals("Merhaba", s[CellRef(0, 0)])
         assertEquals("Zengin metin", s[CellRef(0, 1)])
-        assertEquals("2025-01-01", s[CellRef(0, 2)])
+        assertEquals("45658", s[CellRef(0, 2)])
+        assertEquals("01.01.2025", com.office.core.sheet.NumberFormat.format(45658.0, s.style(CellRef(0, 2)).numFmt, java.util.Locale.ROOT))
         assertEquals("TRUE", s[CellRef(0, 3)])
     }
 
