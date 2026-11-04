@@ -30,5 +30,6 @@ images:
   - ./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png
   - ./fastlane/metadata/android/en-US/images/phoneScreenshots/5.png
   - ./fastlane/metadata/android/en-US/images/phoneScreenshots/6.png
+  - ./fastlane/metadata/android/en-US/images/phoneScreenshots/7.png
 release_notes: ./CHANGELOG.md
 metadata_sources: [fastlane, github]

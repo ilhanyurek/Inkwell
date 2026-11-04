@@ -216,7 +216,7 @@ object PdfOps {
                 }
                 val page = PDPage(box)
                 doc.addPage(page)
-                val xo = if (img.hasAlpha()) LosslessFactory.createFromImage(doc, img) else JPEGFactory.createFromImage(doc, img, 0.85f)
+                val xo = if (usesAlpha(img)) LosslessFactory.createFromImage(doc, img) else JPEGFactory.createFromImage(doc, img, 0.85f)
                 val availW = box.width - marginPt * 2
                 val availH = box.height - marginPt * 2
                 val s = minOf(availW / img.width, availH / img.height)
@@ -229,6 +229,17 @@ object PdfOps {
             require(doc.numberOfPages > 0) { "No readable images" }
             doc.save(output)
         }
+    }
+
+    /** True when some pixel is actually transparent (PNG screenshots usually are fully opaque). */
+    private fun usesAlpha(b: Bitmap): Boolean {
+        if (!b.hasAlpha()) return false
+        val row = IntArray(b.width)
+        for (y in 0 until b.height) {
+            b.getPixels(row, 0, b.width, 0, y, b.width, 1)
+            if (row.any { (it ushr 24) != 0xFF }) return true
+        }
+        return false
     }
 
     /** Decodes an image no larger than [maxSide], turned upright according to its EXIF orientation. */

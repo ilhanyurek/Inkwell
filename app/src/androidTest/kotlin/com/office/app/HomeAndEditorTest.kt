@@ -84,4 +84,16 @@ class HomeAndEditorTest {
         rule.waitForText(str(R.string.settings_appearance))
         rule.screenshot("04_settings")
     }
+
+    @Test
+    fun toolsTabOpensATool() = rule.explainFailure {
+        rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("tab_tools")).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithTag("tab_tools").performClick()
+        rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("tool_SPLIT")).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithTag("tool_SPLIT").performClick()
+        rule.waitForText(str(R.string.tool_split_desc))
+        rule.onNodeWithTag("tool_pick").assertExists()
+        rule.onNodeWithTag("tool_run").assertIsNotEnabled()
+        rule.screenshot("05_tool_split")
+    }
 }

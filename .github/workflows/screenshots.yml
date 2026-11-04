@@ -45,7 +45,7 @@ jobs:
           out=fastlane/metadata/android/en-US/images/phoneScreenshots
           mkdir -p "$out"
           rm -f "$out"/*.png
-          for n in 1 2 3 4 5 6; do
+          for n in 1 2 3 4 5 6 7; do
             f=$(find app/build/outputs/connected_android_test_additional_output -name "store_${n}_*.png" | head -n1)
             test -n "$f"
             cp "$f" "$out/$n.png"

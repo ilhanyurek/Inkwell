@@ -80,6 +80,10 @@ class StoreScreenshotsTest {
             rule.waitForIdle()
             rule.screenshot("store_1_home")
 
+            rule.onNodeWithTag("tab_tools").performClick()
+            rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("tool_MERGE")).fetchSemanticsNodes().isNotEmpty() }
+            rule.screenshot("store_7_tools")
+
             // File cards have their own "more" buttons; the app bar's comes first.
             rule.onAllNodesWithContentDescription(str(R.string.action_more))[0].performClick()
             rule.onNodeWithText(str(R.string.settings_title)).performClick()
