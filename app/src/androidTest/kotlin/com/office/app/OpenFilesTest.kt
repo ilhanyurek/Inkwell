@@ -119,7 +119,12 @@ class OpenFilesTest {
             // Redo brings the highlight back; it is a real annotation that can be deleted.
             rule.onNodeWithContentDescription(str(R.string.action_redo)).performClick()
             rule.waitUntil(15_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_annotations_1")).fetchSemanticsNodes().isNotEmpty() }
-            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+            // Open the menu (again, if a re-render closed it) until it lists the annotation.
+            rule.waitUntil(15_000) {
+                val menuOpen = rule.onAllNodesWithText(str(R.string.pdf_go_to_page)).fetchSemanticsNodes().isNotEmpty()
+                if (!menuOpen) rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+                rule.onAllNodesWithText(str(R.string.pdf_annotations_count, 1)).fetchSemanticsNodes().isNotEmpty()
+            }
             rule.onNodeWithText(str(R.string.pdf_annotations_count, 1)).performClick()
             rule.onNodeWithText(str(R.string.action_delete)).performClick()
             rule.onNodeWithText(str(R.string.action_ok)).performClick()
