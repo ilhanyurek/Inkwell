@@ -14,6 +14,10 @@ third-party "office" library: the file-format engine lives in its own `core` mod
 | **PDF** | ✓ — including password-protected files | Highlights and notes you can delete later, signatures, form filling, **real redaction** (blur or black box — the hidden content is removed from the file), rotate/delete/extract pages, merge, search | PDF |
 | **PPTX** | ✓ — text boxes, images, layouts, speaker notes, presentation mode | Slide text | PPTX, PDF |
 
+- **Tools tab** with 29 offline tools: merge, split, organize, rotate and delete pages; compress and repair;
+  images, camera scans, Word, Excel, PowerPoint and text to PDF; PDF to images, Word, PowerPoint and text;
+  sign, watermark, page numbers, password protect/unlock, redact, crop, fill form, flatten, properties,
+  extract images and compare.
 - Undo / redo in every editor.
 - **Never lose work:** changes are kept as a draft a few seconds after you type and can be restored after a crash; optionally also saved straight to the file.
 - Home: recent and pinned files, list or thumbnail grid, search, type filters, recovered drafts, and a **Folders** tab to browse, rename and delete files.

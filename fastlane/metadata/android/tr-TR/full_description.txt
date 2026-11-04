@@ -22,6 +22,13 @@ Inkwell temiz ve hızlı bir ofis uygulaması. Dosyayı açın, değişikliğini
 • Konuşmacı notlarıyla görüntüleme ve sunma
 • Slayt metnini düzenleme ve PDF olarak dışa aktarma
 
+<b>Araçlar</b>
+• İnternetsiz çalışan 29 araç: birleştirme, ayırma, sayfa düzenleme, döndürme ve silme
+• PDF sıkıştırma ve onarma
+• Resim, kamera taraması, Word, Excel, PowerPoint ve metinden PDF'e
+• PDF'ten resme, Word'e, PowerPoint'e ve metne
+• Filigran, sayfa numarası, parola koyma ve kaldırma, kırpma, düzleştirme, özellikler, resim çıkarma, iki PDF'i karşılaştırma
+
 <b>Ayrıca</b>
 • Her yerde geri al ve yinele
 • Taslaklar otomatik kaydedilir, çökme sonrası geri yüklenir

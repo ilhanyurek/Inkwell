@@ -22,6 +22,13 @@ Inkwell is a clean, fast office app. Open a file, make your change, save it — 
 • View and present slides with speaker notes
 • Edit slide text and export to PDF
 
+<b>Tools</b>
+• 29 tools that work offline: merge, split, organize, rotate and delete pages
+• Compress and repair PDFs
+• Images, camera scans, Word, Excel, PowerPoint and text to PDF
+• PDF to images, Word, PowerPoint and text
+• Watermark, page numbers, password protect and unlock, crop, flatten, properties, extract images, compare two PDFs
+
 <b>And</b>
 • Undo and redo everywhere
 • Drafts are saved automatically and restored after a crash

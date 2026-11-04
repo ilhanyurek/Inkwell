@@ -2,6 +2,16 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] - 2026-11-05
+
+### Added
+- Tools tab with 29 tools that work offline:
+  - Organize: merge, split, organize pages (reorder, rotate, duplicate, delete, insert blank), rotate, delete pages
+  - Optimize: compress, repair
+  - Convert to PDF: images, camera scan with a document filter, Word, Excel/CSV, PowerPoint, text/Markdown
+  - Convert from PDF: images (JPG/PNG), Word (text only), PowerPoint, text
+  - Edit and secure: sign, watermark, page numbers, password protect (AES-256), unlock, redact, crop, fill form, flatten, properties, extract images, compare two PDFs
+
 ## [1.1.0] - 2026-11-04
 
 ### Added
