@@ -108,11 +108,17 @@ fun SettingsScreen(container: AppContainer, onBack: () -> Unit) {
             Divider()
             Section(stringResource(R.string.settings_language))
             val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-            listOf("" to R.string.language_system, "tr" to R.string.language_turkish, "en" to R.string.language_english).forEach { (tag, label) ->
+            RadioRow(
+                label = stringResource(R.string.language_system),
+                selected = current.isEmpty(),
+                onClick = { AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList()) },
+            )
+            // Each language is listed by its own name so people can find theirs whatever the current language is.
+            LANGUAGES.forEach { (tags, name) ->
                 RadioRow(
-                    label = stringResource(label),
-                    selected = if (tag.isEmpty()) current.isEmpty() else current.startsWith(tag),
-                    onClick = { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag)) },
+                    label = name,
+                    selected = tags.any { current.startsWith(it) },
+                    onClick = { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags.first())) },
                 )
             }
 
@@ -141,6 +147,32 @@ fun SettingsScreen(container: AppContainer, onBack: () -> Unit) {
         }
     }
 }
+
+/** Interface languages: language tags (first one is applied) and the language's own name. */
+private val LANGUAGES = listOf(
+    listOf("tr") to "Türkçe",
+    listOf("en") to "English",
+    listOf("zh") to "中文（简体）",
+    listOf("hi") to "हिन्दी",
+    listOf("es") to "Español",
+    listOf("fr") to "Français",
+    listOf("ar") to "العربية",
+    listOf("bn") to "বাংলা",
+    listOf("pt") to "Português",
+    listOf("ru") to "Русский",
+    listOf("ur") to "اردو",
+    listOf("id", "in") to "Bahasa Indonesia",
+    listOf("de") to "Deutsch",
+    listOf("ja") to "日本語",
+    listOf("mr") to "मराठी",
+    listOf("te") to "తెలుగు",
+    listOf("ta") to "தமிழ்",
+    listOf("vi") to "Tiếng Việt",
+    listOf("tl", "fil") to "Filipino",
+    listOf("ko") to "한국어",
+    listOf("fa") to "فارسی",
+    listOf("sw") to "Kiswahili",
+)
 
 @Composable
 private fun Section(title: String) {
