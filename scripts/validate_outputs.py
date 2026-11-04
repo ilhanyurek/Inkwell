@@ -38,3 +38,8 @@ assert "Giriş\nRakamlar\nSonraki adımlar\nSorular" in texts, texts
 assert prs.slides[1].notes_slide.notes_text_frame.text == "Speaker note for agenda"
 assert len(prs.slides) == 3
 print("deck-edited.pptx OK: edited text, notes and slides kept")
+
+prs = Presentation(out / "pictures.pptx")
+assert len(prs.slides) == 2, len(prs.slides)
+assert all(len(s.shapes) == 1 and s.shapes[0].shape_type == 13 for s in prs.slides), "picture slides"
+print("pictures.pptx OK: 2 picture slides")
