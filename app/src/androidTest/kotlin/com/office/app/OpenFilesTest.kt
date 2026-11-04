@@ -118,21 +118,12 @@ class OpenFilesTest {
             }
             // Redo brings the highlight back; it is a real annotation that can be deleted.
             rule.onNodeWithContentDescription(str(R.string.action_redo)).performClick()
-            rule.waitUntil(15_000) {
-                rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
-                val listed = rule.onAllNodesWithText(str(R.string.pdf_annotations_count, 1)).fetchSemanticsNodes().isNotEmpty()
-                if (!listed) pressBack()
-                listed
-            }
+            rule.waitUntil(15_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_annotations_1")).fetchSemanticsNodes().isNotEmpty() }
+            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
             rule.onNodeWithText(str(R.string.pdf_annotations_count, 1)).performClick()
             rule.onNodeWithText(str(R.string.action_delete)).performClick()
             rule.onNodeWithText(str(R.string.action_ok)).performClick()
-            rule.waitUntil(15_000) {
-                rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
-                val gone = rule.onAllNodesWithText(str(R.string.pdf_annotations_count, 1)).fetchSemanticsNodes().isEmpty()
-                pressBack()
-                gone
-            }
+            rule.waitUntil(15_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_annotations_0")).fetchSemanticsNodes().isNotEmpty() }
         }
     }
 }

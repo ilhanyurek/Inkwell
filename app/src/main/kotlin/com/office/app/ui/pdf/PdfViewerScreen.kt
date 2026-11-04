@@ -225,6 +225,8 @@ fun PdfViewerScreen(
                         if (vm.dirty) {
                             IconButton(onClick = ::requestSave, enabled = !vm.busy) { Icon(Icons.Outlined.Save, stringResource(R.string.action_save)) }
                         }
+                        // Invisible markers that let UI tests wait for background work.
+                        Box(Modifier.testTag("pdf_annotations_${vm.annotations.size}"))
                         Box(if (vm.formFields.isNotEmpty()) Modifier.testTag("pdf_form_ready") else Modifier) {
                             IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.action_more)) }
                             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
