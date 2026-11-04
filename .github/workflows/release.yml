@@ -81,11 +81,11 @@ jobs:
             3. If an earlier version is installed, this one updates it and keeps your data.
 
             ## What's inside
-            - Open, edit, export to PDF and print DOCX, TXT and Markdown documents
-            - XLSX and CSV spreadsheets: formulas (also under Turkish names), sorting, row/column tools
-            - PDF: search, highlight, add text, rotate/delete/extract pages, merge, password-protected files
-            - PPTX viewer with presentation mode
-            - Undo / redo in every editor
-            - Light/dark theme, an icon that follows your wallpaper and themed icons, English and Turkish interface
+            - DOCX editing that keeps images, tables, links and styles intact
+            - XLSX/CSV: cell formatting, number and date formats, 50+ formulas (VLOOKUP, XLOOKUP, SUMIFS, dates…)
+            - PDF: removable highlights and notes, signatures, form filling, real redaction (blur or black box), merge/split
+            - PPTX: view, present, edit slide text, export to PDF
+            - Autosaved drafts with crash recovery, undo/redo everywhere
+            - Folders tab, thumbnail grid, 22 interface languages, icon that follows your wallpaper
 
             Requires Android 8.0 or later.
