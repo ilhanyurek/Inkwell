@@ -29,6 +29,16 @@ jobs:
       - name: Core unit tests
         run: ./gradlew :core:test --stacktrace
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Our saved DOCX/XLSX must open in independent libraries with nothing lost.
+      - name: Validate saved files with python-docx and openpyxl
+        run: |
+          pip install --quiet python-docx openpyxl
+          python scripts/validate_outputs.py core/build/fixture-out
+
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 

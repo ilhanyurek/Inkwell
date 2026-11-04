@@ -60,6 +60,9 @@ android {
         generateLocaleConfig = true
     }
 
+    // UI tests reuse the realistic fixtures from the core tests (scripts/make_fixtures.py).
+    sourceSets["androidTest"].assets.srcDir("../core/src/test/resources")
+
     packaging {
         resources {
             excludes += setOf("META-INF/DEPENDENCIES", "META-INF/LICENSE*", "META-INF/NOTICE*")

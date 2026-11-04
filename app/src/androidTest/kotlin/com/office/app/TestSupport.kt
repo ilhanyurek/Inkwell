@@ -45,6 +45,13 @@ object Fixtures {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
+    /** Copies a realistic fixture (made by python-docx/openpyxl/python-pptx/reportlab) out of the test assets. */
+    fun asset(name: String): File = File(dir, name).also { f ->
+        InstrumentationRegistry.getInstrumentation().context.assets.open("fixtures/$name").use { input ->
+            f.outputStream().use { input.copyTo(it) }
+        }
+    }
+
     fun docx(): File = File(dir, "report.docx").also { f ->
         val doc = TextDocument(
             listOf(
