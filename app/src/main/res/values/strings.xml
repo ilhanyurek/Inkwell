@@ -235,4 +235,6 @@
     <string name="slide_edit_done">Done editing</string>
     <string name="slide_edit_hint">Tap a text box to change its text.</string>
     <string name="slide_edit_text">Edit text</string>
+    <string name="home_grid_view">Grid view</string>
+    <string name="home_list_view">List view</string>
 </resources>

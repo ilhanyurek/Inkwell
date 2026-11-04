@@ -235,4 +235,6 @@
     <string name="slide_edit_done">Düzenlemeyi bitir</string>
     <string name="slide_edit_hint">Metnini değiştirmek için bir metin kutusuna dokunun.</string>
     <string name="slide_edit_text">Metni düzenle</string>
+    <string name="home_grid_view">Izgara görünümü</string>
+    <string name="home_list_view">Liste görünümü</string>
 </resources>

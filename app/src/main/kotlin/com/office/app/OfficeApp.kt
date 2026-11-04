@@ -26,6 +26,7 @@ class AppContainer(app: Application) {
     val settings = SettingsStore(app)
     val drafts = com.office.app.data.DraftStore(app)
     val folders = com.office.app.data.FolderStore(app)
+    val thumbnails = com.office.app.data.ThumbnailStore(app)
 
     /** Outlives screens, so drafts can still be written while an editor is closing. */
     val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)

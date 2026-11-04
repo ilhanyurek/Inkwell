@@ -20,6 +20,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material.icons.automirrored.filled.ViewList
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
@@ -102,6 +116,7 @@ fun HomeScreen(
     onOpenFolder: (Uri, String) -> Unit = { _, _ -> },
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
+    var grid by rememberSaveable { mutableStateOf(false) }
     val treeLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { tree ->
         if (tree != null) kotlinx.coroutines.MainScope().launch { container.folders.add(tree) }
     }
@@ -150,6 +165,12 @@ fun HomeScreen(
                     title = { Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineSmall) },
                     scrollBehavior = scrollBehavior,
                     actions = {
+                        IconButton(onClick = { grid = !grid }) {
+                            Icon(
+                                if (grid) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                                contentDescription = stringResource(if (grid) R.string.home_list_view else R.string.home_grid_view),
+                            )
+                        }
                         IconButton(onClick = { searching = true }) {
                             Icon(Icons.Default.Search, contentDescription = stringResource(R.string.action_search))
                         }
@@ -209,6 +230,13 @@ fun HomeScreen(
         }
         if (tab == 1) {
             FoldersTab(container, onOpenFolder = onOpenFolder, onAdd = { treeLauncher.launch(null) })
+        } else if (grid) {
+            RecentGrid(
+                container = container,
+                files = pinned + others,
+                header = { FilterRow(filter) { filter = it } },
+                onOpen = onOpen,
+            )
         } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -528,5 +556,62 @@ private fun FoldersTab(container: AppContainer, onOpenFolder: (Uri, String) -> U
         item {
             OutlinedButton(onClick = onAdd, modifier = Modifier.padding(16.dp)) { Text(stringResource(R.string.folders_add)) }
         }
+    }
+}
+
+@Composable
+private fun FilterRow(filter: Filter, onFilter: (Filter) -> Unit) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(Filter.entries.toList()) { f ->
+            FilterChip(selected = filter == f, onClick = { onFilter(f) }, label = { Text(stringResource(f.label)) })
+        }
+    }
+}
+
+@Composable
+private fun RecentGrid(container: AppContainer, files: List<RecentFile>, header: @Composable () -> Unit, onOpen: (Uri) -> Unit) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(150.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 96.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item(span = { GridItemSpan(maxLineSpan) }) { header() }
+        gridItems(files, key = { "g" + it.uri }) { f -> ThumbCard(container, f, onOpen) }
+    }
+}
+
+@Composable
+private fun ThumbCard(container: AppContainer, file: RecentFile, onOpen: (Uri) -> Unit) {
+    val thumb by produceState<android.graphics.Bitmap?>(null, file.uri, file.lastOpened) { value = container.thumbnails.get(file) }
+    Column(Modifier.clickable { onOpen(file.uri) }) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.78f)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium),
+            contentAlignment = Alignment.Center,
+        ) {
+            val t = thumb
+            if (t != null) {
+                Image(t.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, alignment = Alignment.TopCenter, modifier = Modifier.fillMaxSize())
+            } else {
+                KindBadge(file.kind, size = 44.dp)
+            }
+            if (t != null) {
+                Box(Modifier.align(Alignment.BottomStart).padding(6.dp)) { KindBadge(file.kind, size = 26.dp) }
+            }
+            if (file.pinned) {
+                Icon(Icons.Default.PushPin, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(16.dp))
+            }
+        }
+        Text(file.name, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
+        Text(formatRelative(file.lastOpened), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
