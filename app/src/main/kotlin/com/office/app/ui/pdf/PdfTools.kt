@@ -384,7 +384,7 @@ object PdfTools {
         }
     }
 
-    private fun loadFont(doc: PDDocument): PDFont {
+    internal fun loadFont(doc: PDDocument): PDFont {
         val candidates = listOf(
             "/system/fonts/Roboto-Regular.ttf",
             "/system/fonts/NotoSans-Regular.ttf",
@@ -398,7 +398,7 @@ object PdfTools {
     }
 
     /** Helvetica only covers WinAnsi; map Turkish letters to their closest ASCII forms. */
-    private fun asciiFallback(s: String): String = buildString {
+    internal fun asciiFallback(s: String): String = buildString {
         for (c in s) append(
             when (c) {
                 'ı' -> 'i'; 'İ' -> 'I'; 'ş' -> 's'; 'Ş' -> 'S'; 'ğ' -> 'g'; 'Ğ' -> 'G'
