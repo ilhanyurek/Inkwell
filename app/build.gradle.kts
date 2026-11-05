@@ -12,16 +12,16 @@ android {
         applicationId = "com.inkwell.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = (findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
-        versionName = (findProperty("versionName") as String?) ?: "1.0.0"
+        // Set by the release workflow; versionCode = major * 10000 + minor * 100 + patch.
+        versionCode = 10201
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Lets UI tests write screenshots that end up in build/outputs/connected_android_test_additional_output.
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
 
-    // Release signing comes from the environment (set by the release workflow from
-    // repository secrets). Without it, release builds fall back to the debug key.
+    // Release signing comes from the environment (set by the release workflow from repository secrets).
     val keystorePath = System.getenv("SIGNING_KEYSTORE_PATH")
     signingConfigs {
         if (!keystorePath.isNullOrBlank()) {
@@ -39,7 +39,10 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+            // Our key in the release workflow; the debug key only when asked (CI smoke test);
+            // otherwise unsigned, so store builds such as F-Droid can sign it themselves.
+            signingConfig = signingConfigs.findByName("release")
+                ?: if (project.hasProperty("debugSignedRelease")) signingConfigs.getByName("debug") else null
         }
     }
 

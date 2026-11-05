@@ -2,6 +2,12 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.1] - 2026-11-05
+
+### Changed
+- The version number is now stored in the source code, so app stores such as F-Droid can build Inkwell from a release tag
+- Per-version release notes for app stores (Fastlane changelogs)
+
 ## [1.2.0] - 2026-11-05
 
 ### Added

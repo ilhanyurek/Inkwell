@@ -1,0 +1,2 @@
+- The version number is now stored in the source code, so app stores such as F-Droid can build Inkwell from a release tag
+- Per-version release notes for app stores (Fastlane changelogs)

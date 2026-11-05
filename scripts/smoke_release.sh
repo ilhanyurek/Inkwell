@@ -2,7 +2,7 @@
 # Installs the minified release APK on the running emulator, opens the app and a PDF,
 # and fails if the app crashes (catches missing R8 keep rules).
 set -u
-./gradlew -q :app:assembleRelease
+./gradlew -q :app:assembleRelease -PdebugSignedRelease
 apk=app/build/outputs/apk/release/app-release.apk
 adb install -r "$apk" || exit 1
 adb logcat -c
