@@ -52,6 +52,13 @@ object Fixtures {
         }
     }
 
+    /** A polished English sample for the store screenshots (made by scripts/make_showcase.py). */
+    fun showcase(name: String): File = File(dir, name).also { f ->
+        InstrumentationRegistry.getInstrumentation().context.assets.open("showcase/$name").use { input ->
+            f.outputStream().use { input.copyTo(it) }
+        }
+    }
+
     fun docx(): File = File(dir, "report.docx").also { f ->
         val doc = TextDocument(
             listOf(

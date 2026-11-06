@@ -18,7 +18,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Produces the store screenshots (store_1 … store_6) from the realistic fixtures. */
+/** Produces the store screenshots (store_1 … store_7) from the English showcase files. */
 @RunWith(AndroidJUnit4::class)
 class StoreScreenshotsTest {
 
@@ -30,7 +30,7 @@ class StoreScreenshotsTest {
     private fun clearDrafts() = container.drafts.drafts.value.forEach { container.drafts.delete(it.key) }
 
     private fun open(name: String, mime: String, block: () -> Unit) {
-        ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(Fixtures.asset(name), mime)).use { block() }
+        ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(Fixtures.showcase(name), mime)).use { block() }
     }
 
     @Test
@@ -38,22 +38,23 @@ class StoreScreenshotsTest {
         runBlocking { container.recents.clear() }
         clearDrafts()
 
-        open("report.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-            rule.waitForText("Quarterly Report")
-            rule.waitForText("${str(R.string.embed_table)} 3×3")
+        open("Quarterly Report.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            rule.waitForText("Q3 2026 Business Review")
+            rule.waitForText("${str(R.string.embed_table)} 4×3")
             rule.screenshot("store_2_document")
         }
-        open("budget.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
-            rule.waitForText("Defter")
-            rule.waitForText("3.50 ₺")
+        open("Budget 2026.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+            rule.waitForText("Salaries")
+            rule.waitForText("Equipment")
             rule.screenshot("store_3_spreadsheet")
         }
-        open("form.pdf", "application/pdf") {
+        open("Service Agreement.pdf", "application/pdf") {
             rule.waitForText(str(R.string.pdf_page_of, 1, 2))
             rule.onNodeWithText(str(R.string.pdf_tool_highlight)).performClick()
             rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("pdf_page_0")).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("pdf_page_0").performTouchInput {
-                swipe(Offset(width * 0.08f, height * 0.06f), Offset(width * 0.75f, height * 0.09f), durationMillis = 400)
+                // The payment clause ("Contoso will pay a fixed fee…") under section 2.
+                swipe(Offset(width * 0.11f, height * 0.222f), Offset(width * 0.86f, height * 0.245f), durationMillis = 400)
             }
             rule.waitUntil(15_000) {
                 runCatching { rule.onNodeWithContentDescription(str(R.string.action_undo)).assertIsEnabled() }.isSuccess
@@ -63,8 +64,8 @@ class StoreScreenshotsTest {
             rule.waitForIdle()
             rule.screenshot("store_4_pdf")
         }
-        open("deck.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
-            rule.waitForText("Inkwell Deck")
+        open("Product Launch.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+            rule.waitForText("Inkwell 2.0 Launch")
             rule.waitForText(str(R.string.slide_of, 1, 3))
             rule.screenshot("store_5_presentation")
         }
@@ -74,7 +75,7 @@ class StoreScreenshotsTest {
             rule.waitForText(str(R.string.home_title))
             clearDrafts()
             rule.onNodeWithContentDescription(str(R.string.home_grid_view)).performClick()
-            rule.waitForText("report.docx")
+            rule.waitForText("Quarterly Report.docx")
             // Thumbnails are rendered in the background.
             Thread.sleep(4_000)
             rule.waitForIdle()
