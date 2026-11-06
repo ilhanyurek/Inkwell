@@ -2,6 +2,12 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.1] - 2026-11-06
+
+### Changed
+- New English store screenshots with sample documents
+- Simpler wording in the store descriptions
+
 ## [1.2.0] - 2026-11-05
 
 ### Added
