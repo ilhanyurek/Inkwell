@@ -35,8 +35,8 @@ this link on your phone. Obtainium adds Inkwell, installs it from the latest rel
 
 <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.inkwell.app%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Filhanyurek%2FInkwell%22%2C%22author%22%3A%22ilhanyurek%22%2C%22name%22%3A%22Inkwell%22%7D"><img src="docs/badge_obtainium.png" alt="Get it on Obtainium" height="48"></a>
 
-Inkwell is also being listed on **Zapstore**, which picks up each GitHub release automatically
-(`zapstore.yaml`; owner steps in [docs/ZAPSTORE.md](docs/ZAPSTORE.md)).
+**Zapstore:** install the [Zapstore](https://zapstore.dev) app and search for *Inkwell*. Every GitHub release
+reaches Zapstore automatically, signed by the developer's key (owner steps in [docs/ZAPSTORE.md](docs/ZAPSTORE.md)).
 
 Development builds are produced on every push: **Actions → Android → Artifacts → `inkwell-debug-apk`**.
 
