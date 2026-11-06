@@ -36,27 +36,6 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # A manual run stores the version in the source first, so tags build the same app (F-Droid builds from tags).
-      - name: Store version in source
-        if: github.event_name == 'workflow_dispatch'
-        id: bump
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          IFS=. read -r MA MI PA <<< "$VERSION"
-          CODE=$((MA * 10000 + MI * 100 + PA))
-          sed -i -E "s/^( *versionCode = )[0-9]+/\1$CODE/; s/^( *versionName = )\"[^\"]*\"/\1\"$VERSION\"/" app/build.gradle.kts
-          dir=fastlane/metadata/android/en-US/changelogs
-          mkdir -p "$dir"
-          awk -v v="$VERSION" '/^## \[/ { p = index($0, "[" v "]") > 0; next } p' CHANGELOG.md | sed '/^$/d; /^#/d' \
-            | awk '{ if (n + length($0) + 1 > 500) exit; print; n += length($0) + 1 }' > "$dir/$CODE.txt"
-          git config user.name "ilhanyurek_"
-          git config user.email "67053474+ilhanyurek@users.noreply.github.com"
-          git add app/build.gradle.kts "$dir/$CODE.txt"
-          git diff --cached --quiet || git commit -m "Release $VERSION"
-          git push origin HEAD:${{ github.ref_name }}
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
       - name: Decode signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
@@ -77,7 +56,9 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
-          ./gradlew :app:assembleRelease
+          ./gradlew :app:assembleRelease \
+            -PversionName=${{ steps.version.outputs.version }} \
+            -PversionCode=${{ github.run_number }}
           cp app/build/outputs/apk/release/app-release.apk "Inkwell-${{ steps.version.outputs.version }}.apk"
 
       # Re-running the same version replaces that release (and moves its tag to this commit).
@@ -107,7 +88,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          target_commitish: ${{ steps.bump.outputs.sha || github.sha }}
+          target_commitish: ${{ github.sha }}
           name: Inkwell ${{ steps.version.outputs.version }}
           files: Inkwell-${{ steps.version.outputs.version }}.apk
           body_path: release-notes.md
