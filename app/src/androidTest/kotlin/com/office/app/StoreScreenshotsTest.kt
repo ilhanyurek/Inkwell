@@ -54,7 +54,7 @@ class StoreScreenshotsTest {
             rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("pdf_page_0")).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("pdf_page_0").performTouchInput {
                 // The payment clause ("Contoso will pay a fixed fee…") under section 2.
-                swipe(Offset(width * 0.11f, height * 0.222f), Offset(width * 0.86f, height * 0.245f), durationMillis = 400)
+                swipe(Offset(width * 0.11f, height * 0.243f), Offset(width * 0.82f, height * 0.262f), durationMillis = 400)
             }
             rule.waitUntil(15_000) {
                 runCatching { rule.onNodeWithContentDescription(str(R.string.action_undo)).assertIsEnabled() }.isSuccess
