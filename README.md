@@ -1,25 +1,25 @@
 # Inkwell
 
-A clean, fast office app for Android. Built with Kotlin and Jetpack Compose. It does not depend on a
-third-party "office" library: the file-format engine lives in its own `core` module.
+Inkwell is an Android app that opens and edits DOCX, XLSX, CSV, PDF and PPTX files. It is written in Kotlin
+with Jetpack Compose, and its own `core` module reads and writes the file formats without a third-party office library.
 
 ## Features
 
 | Format | Open | Edit | Save as |
 |---|---|---|---|
-| **DOCX** | ✓ — images, tables, links, equations, headers and styles are kept | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace | DOCX (only the text you changed is rewritten), PDF, print |
+| **DOCX** | ✓ Keeps images, tables, links, equations, headers and styles | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace | DOCX (only the text you changed is rewritten), PDF, print |
 | **TXT / MD** | ✓ | Plain text; headings, lists and bold/italic in Markdown | TXT / MD, PDF |
-| **XLSX** | ✓ — multiple sheets, styles, number and date formats; charts, merged cells and conditional formatting are kept | Cell editing; bold/italic/colours/fill/borders/alignment/number formats; 50+ formulas incl. VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates and TEXT (also under Turkish names such as DÜŞEYARA, ETOPLA, BUGÜN); rows/columns, sort, fill down, sheets | XLSX, CSV, PDF |
-| **CSV / TSV** | ✓ — delimiter and encoding detected automatically | Spreadsheet editor; typed dates, percentages and amounts become numbers | CSV, XLSX, PDF |
-| **PDF** | ✓ — including password-protected files | Highlights and notes you can delete later, signatures, form filling, **real redaction** (blur or black box — the hidden content is removed from the file), rotate/delete/extract pages, merge, search | PDF |
-| **PPTX** | ✓ — text boxes, images, layouts, speaker notes, presentation mode | Slide text | PPTX, PDF |
+| **XLSX** | ✓ Multiple sheets, styles, number and date formats; keeps charts, merged cells and conditional formatting | Cell editing; bold/italic/colours/fill/borders/alignment/number formats; 50+ formulas incl. VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates and TEXT (also under Turkish names such as DÜŞEYARA, ETOPLA, BUGÜN); rows/columns, sort, fill down, sheets | XLSX, CSV, PDF |
+| **CSV / TSV** | ✓ Detects the delimiter and encoding | Spreadsheet editor; typed dates, percentages and amounts become numbers | CSV, XLSX, PDF |
+| **PDF** | ✓ Including password-protected files | Highlights and notes you can delete later, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), rotate/delete/extract pages, merge, search | PDF |
+| **PPTX** | ✓ Text boxes, images, layouts, speaker notes, presentation mode | Slide text | PPTX, PDF |
 
 - **Tools tab** with 29 offline tools: merge, split, organize, rotate and delete pages; compress and repair;
   images, camera scans, Word, Excel, PowerPoint and text to PDF; PDF to images, Word, PowerPoint and text;
   sign, watermark, page numbers, password protect/unlock, redact, crop, fill form, flatten, properties,
   extract images and compare.
 - Undo / redo in every editor.
-- **Never lose work:** changes are kept as a draft a few seconds after you type and can be restored after a crash; optionally also saved straight to the file.
+- Drafts: Inkwell saves your changes as a draft a few seconds after you type and offers them back after a crash. You can also turn on saving straight to the file.
 - Home: recent and pinned files, list or thumbnail grid, search, type filters, recovered drafts, and a **Folders** tab to browse, rename and delete files.
 - 22 interface languages: Turkish, English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, Indonesian, German, Japanese, Marathi, Telugu, Tamil, Vietnamese, Filipino, Korean, Persian and Swahili.
 - Light/dark theme, Material You colours; the app icon follows the wallpaper palette and themed icons.

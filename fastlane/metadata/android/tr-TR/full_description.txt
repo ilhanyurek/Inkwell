@@ -1,4 +1,4 @@
-Inkwell temiz ve hızlı bir ofis uygulaması. Dosyayı açın, değişikliğinizi yapın, kaydedin. Uygulamanın düzenlemediği kısımlar da olduğu gibi kalır.
+Inkwell ofis dosyalarını telefonunuzda açar ve düzenler. Kaydederken düzenleyemediği kısımlara, örneğin grafiklere ve denklemlere dokunmaz.
 
 <b>Belgeler (DOCX, TXT, Markdown)</b>
 • Kalın, italik, altı çizili, başlıklar, listeler, alıntılar, hizalama, bul ve değiştir
@@ -15,7 +15,7 @@ Inkwell temiz ve hızlı bir ofis uygulaması. Dosyayı açın, değişikliğini
 • Sonradan silinebilen vurgular ve notlar
 • İmzanızı çizip sayfaya yerleştirme
 • Form doldurma
-• Gerçek karartma: sayfanın bir kısmını bulanıklaştırın veya siyahla kapatın; gizlenen içerik sadece örtülmez, dosyadan silinir
+• Karartma: sayfanın bir kısmını bulanıklaştırın veya siyahla kapatın, Inkwell gizlenen içeriği dosyadan siler
 • Sayfa döndürme, silme ve ayırma, dosya birleştirme, arama, parolalı dosyalar
 
 <b>Sunumlar (PPTX)</b>
@@ -34,4 +34,4 @@ Inkwell temiz ve hızlı bir ofis uygulaması. Dosyayı açın, değişikliğini
 • Taslaklar otomatik kaydedilir, çökme sonrası geri yüklenir
 • Klasörler sekmesi, küçük resim ızgarası, sabitlenmiş ve son dosyalar
 • 22 dil, açık ve koyu tema, duvar kâğıdına uyan simge
-• Reklam yok, takip yok, hesap yok. Ücretsiz ve açık kaynak (GPL-3.0).
+• Ücretsiz ve açık kaynak (GPL-3.0), reklam ve takip içermez

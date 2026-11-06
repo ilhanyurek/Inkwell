@@ -18,7 +18,7 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 - DOCX editing keeps images, tables, links, equations and styles intact
 - XLSX cell formatting: bold, italic, colours, fill, borders, alignment, number and date formats
 - 20+ new formulas, including VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, COUNTIFS, dates and TEXT
-- PDF signatures, form filling and real redaction (blur or black box; hidden content is removed from the file)
+- PDF signatures, form filling and redaction (blur or black box; Inkwell deletes the hidden content from the file)
 - PDF highlights and notes can be removed later
 - PPTX: edit slide text and export slides to PDF
 - Autosaved drafts with crash recovery; optional autosave straight to the file

@@ -1,1 +1,1 @@
-DOCX, XLSX, CSV, PDF ve PPTX açın ve düzenleyin. Temiz, hızlı, reklamsız.
+Android'de DOCX, XLSX, CSV, PDF ve PPTX dosyalarını internetsiz açıp düzenleyin.
