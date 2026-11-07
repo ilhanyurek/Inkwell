@@ -167,8 +167,6 @@
     <string name="embed_table">Таблица</string>
     <string name="embed_equation">Формула</string>
     <string name="embed_object">Объект</string>
-    <string name="embed_preview">Просмотр</string>
-    <string name="embed_table_note">Таблицы, изображения и другие объекты сохраняются без изменений. При необходимости отредактируйте их в Word.</string>
     <string name="draft_found">Найдены несохранённые изменения от %1$s.</string>
     <string name="draft_restore">Восстановить</string>
     <string name="draft_discard">Удалить</string>

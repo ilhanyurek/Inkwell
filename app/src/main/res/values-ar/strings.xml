@@ -167,8 +167,6 @@
     <string name="embed_table">جدول</string>
     <string name="embed_equation">معادلة</string>
     <string name="embed_object">كائن</string>
-    <string name="embed_preview">معاينة</string>
-    <string name="embed_table_note">تبقى الجداول والصور والكائنات الأخرى دون تغيير عند الحفظ. عدّلها في Word إذا لزم الأمر.</string>
     <string name="draft_found">عُثر على تغييرات غير محفوظة من %1$s.</string>
     <string name="draft_restore">استعادة</string>
     <string name="draft_discard">تجاهل</string>

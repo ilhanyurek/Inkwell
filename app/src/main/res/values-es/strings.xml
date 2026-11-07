@@ -167,8 +167,6 @@
     <string name="embed_table">Tabla</string>
     <string name="embed_equation">Ecuación</string>
     <string name="embed_object">Objeto</string>
-    <string name="embed_preview">Vista previa</string>
-    <string name="embed_table_note">Las tablas, imágenes y otros objetos se conservan sin cambios al guardar. Si lo necesitas, edítalos en Word.</string>
     <string name="draft_found">Se encontraron cambios sin guardar de %1$s.</string>
     <string name="draft_restore">Restaurar</string>
     <string name="draft_discard">Descartar</string>

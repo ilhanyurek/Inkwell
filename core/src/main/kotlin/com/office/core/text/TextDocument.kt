@@ -37,7 +37,12 @@ data class Embed(
     val label: String = "",
     /** Plain-text rows of a table, for previews. */
     val tableRows: List<List<String>> = emptyList(),
+    /** Picture data for an image inserted in this session, written as a new package part on save. */
+    val media: EmbedMedia? = null,
 )
+
+/** A picture part to add to the package: [relId] is referenced from the embed's XML. */
+class EmbedMedia(val relId: String, val fileName: String, val bytes: ByteArray, val contentType: String)
 
 enum class ParagraphStyle { NORMAL, TITLE, HEADING1, HEADING2, HEADING3, QUOTE }
 

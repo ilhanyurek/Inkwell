@@ -167,8 +167,6 @@
     <string name="embed_table">表格</string>
     <string name="embed_equation">公式</string>
     <string name="embed_object">对象</string>
-    <string name="embed_preview">预览</string>
-    <string name="embed_table_note">保存时，表格、图片和其他对象会保持不变。如需修改，请在 Word 中编辑。</string>
     <string name="draft_found">发现 %1$s 的未保存更改。</string>
     <string name="draft_restore">恢复</string>
     <string name="draft_discard">丢弃</string>

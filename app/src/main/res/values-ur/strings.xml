@@ -167,8 +167,6 @@
     <string name="embed_table">جدول</string>
     <string name="embed_equation">مساوات</string>
     <string name="embed_object">آبجیکٹ</string>
-    <string name="embed_preview">پیش منظر</string>
-    <string name="embed_table_note">محفوظ کرتے وقت جدول، تصاویر اور دیگر آبجیکٹس جوں کے توں رہتے ہیں۔ ضرورت ہو تو انہیں Word میں ترمیم کریں۔</string>
     <string name="draft_found">%1$s کی غیر محفوظ تبدیلیاں ملی ہیں۔</string>
     <string name="draft_restore">بحال کریں</string>
     <string name="draft_discard">رد کریں</string>

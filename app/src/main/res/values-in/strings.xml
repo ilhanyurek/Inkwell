@@ -167,8 +167,6 @@
     <string name="embed_table">Tabel</string>
     <string name="embed_equation">Persamaan</string>
     <string name="embed_object">Objek</string>
-    <string name="embed_preview">Pratinjau</string>
-    <string name="embed_table_note">Tabel, gambar, dan objek lain tetap tidak berubah saat disimpan. Edit di Word jika perlu.</string>
     <string name="draft_found">Ditemukan perubahan yang belum disimpan dari %1$s.</string>
     <string name="draft_restore">Pulihkan</string>
     <string name="draft_discard">Buang</string>

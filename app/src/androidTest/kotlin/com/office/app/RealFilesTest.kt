@@ -29,7 +29,7 @@ class RealFilesTest {
 
     @Test fun wordReport() = open(
         "report.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "Quarterly Report", "İzmir sales doubled", "${str(R.string.embed_table)} 3×3", "our site",
+        "Quarterly Report", "İzmir sales doubled", "City", "our site",
         shot = "20_real_docx",
     )
 

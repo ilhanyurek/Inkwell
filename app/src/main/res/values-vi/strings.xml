@@ -167,8 +167,6 @@
     <string name="embed_table">Bảng</string>
     <string name="embed_equation">Công thức</string>
     <string name="embed_object">Đối tượng</string>
-    <string name="embed_preview">Xem trước</string>
-    <string name="embed_table_note">Bảng, hình ảnh và các đối tượng khác được giữ nguyên khi lưu. Hãy chỉnh sửa chúng trong Word nếu cần.</string>
     <string name="draft_found">Đã tìm thấy thay đổi chưa lưu từ %1$s.</string>
     <string name="draft_restore">Khôi phục</string>
     <string name="draft_discard">Bỏ</string>

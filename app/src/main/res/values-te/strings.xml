@@ -167,8 +167,6 @@
     <string name="embed_table">టేబుల్</string>
     <string name="embed_equation">సమీకరణం</string>
     <string name="embed_object">ఆబ్జెక్ట్</string>
-    <string name="embed_preview">ప్రివ్యూ</string>
-    <string name="embed_table_note">సేవ్ చేసినప్పుడు టేబుల్‌లు, ఇమేజ్‌లు, ఇతర ఆబ్జెక్ట్‌లు మారకుండా ఉంటాయి. అవసరమైతే వాటిని Wordలో ఎడిట్ చేయండి.</string>
     <string name="draft_found">%1$s నాటి సేవ్ చేయని మార్పులు కనుగొనబడ్డాయి.</string>
     <string name="draft_restore">రీస్టోర్ చేయండి</string>
     <string name="draft_discard">విస్మరించండి</string>

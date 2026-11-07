@@ -167,8 +167,6 @@
     <string name="embed_table">Jedwali</string>
     <string name="embed_equation">Mlinganyo</string>
     <string name="embed_object">Kipengee</string>
-    <string name="embed_preview">Onyesho la kukagua</string>
-    <string name="embed_table_note">Majedwali, picha na vipengee vingine hubaki bila kubadilika unapohifadhi. Vihariri kwenye Word ikihitajika.</string>
     <string name="draft_found">Mabadiliko ambayo hayajahifadhiwa ya %1$s yamepatikana.</string>
     <string name="draft_restore">Rejesha</string>
     <string name="draft_discard">Tupa</string>

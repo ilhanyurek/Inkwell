@@ -167,8 +167,6 @@
     <string name="embed_table">Tabelle</string>
     <string name="embed_equation">Formel</string>
     <string name="embed_object">Objekt</string>
-    <string name="embed_preview">Vorschau</string>
-    <string name="embed_table_note">Tabellen, Bilder und andere Objekte bleiben beim Speichern unverändert. Bearbeiten Sie sie bei Bedarf in Word.</string>
     <string name="draft_found">Ungespeicherte Änderungen von %1$s gefunden.</string>
     <string name="draft_restore">Wiederherstellen</string>
     <string name="draft_discard">Verwerfen</string>

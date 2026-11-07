@@ -108,6 +108,38 @@ class RichText private constructor(
     }
 
     /**
+     * Inserts the embed [embedId] as a paragraph of its own at [offset], splitting the current
+     * paragraph when needed. Returns the new model and the offset of the embed character.
+     */
+    fun insertEmbedParagraph(offset: Int, embedId: Int): Pair<RichText, Int> {
+        val s = offset.coerceIn(0, text.length)
+        val pre = if (s > 0 && text[s - 1] != '\n') "\n" else ""
+        val post = if (s == text.length || text[s] != '\n') "\n" else ""
+        val inserted = replace(s, s, pre + EMBED_CHAR + post, CharStyle.PLAIN)
+        val at = s + pre.length
+        val styled = inserted.mapStyles(at..at) { CharStyle(embedId = embedId) }
+        val line = styled.lineIndexAt(at)
+        return styled.withParas(line..line) { ParaAttrs() } to at
+    }
+
+    /** Points the embed character at [offset] to another embed (after its content was edited). */
+    fun withEmbedId(offset: Int, embedId: Int): RichText =
+        if (styles.getOrNull(offset)?.embedId == null) this else mapStyles(offset..offset) { it.copy(embedId = embedId) }
+
+    /** Removes the embed character at [offset] together with the paragraph break it leaves behind. */
+    fun removeEmbedParagraph(offset: Int): RichText {
+        if (styles.getOrNull(offset)?.embedId == null) return this
+        val line = lineRange(lineIndexAt(offset))
+        val alone = line.first == offset && line.last == offset
+        return when {
+            !alone -> replace(offset, offset + 1, "", CharStyle.PLAIN)
+            offset > 0 -> replace(offset - 1, offset + 1, "", CharStyle.PLAIN)
+            offset + 1 < text.length -> replace(offset, offset + 2, "", CharStyle.PLAIN)
+            else -> replace(offset, offset + 1, "", CharStyle.PLAIN)
+        }
+    }
+
+    /**
      * Applies a whole-text change coming from a text field. Returns the new model, or
      * this model unchanged when the edit was interpreted as a command (e.g. Enter on an
      * empty list item ends the list instead of adding a line).

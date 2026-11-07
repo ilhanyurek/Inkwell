@@ -182,8 +182,6 @@
     <string name="embed_table">Table</string>
     <string name="embed_equation">Equation</string>
     <string name="embed_object">Object</string>
-    <string name="embed_preview">Preview</string>
-    <string name="embed_table_note">Tables, images and other objects are kept unchanged when you save. Edit them in Word if needed.</string>
     <string name="draft_found">Unsaved changes from %1$s were found.</string>
     <string name="draft_restore">Restore</string>
     <string name="draft_discard">Discard</string>
@@ -407,4 +405,15 @@
         <item quantity="one">%d word selected</item>
         <item quantity="other">%d words selected</item>
     </plurals>
+    <string name="insert_table">Insert table</string>
+    <string name="insert_image">Insert image</string>
+    <string name="table_edit">Edit table</string>
+    <string name="table_delete">Delete table</string>
+    <string name="table_add_row">Row</string>
+    <string name="table_add_column">Column</string>
+    <string name="table_remove_row">Remove row</string>
+    <string name="table_remove_column">Remove column</string>
+    <string name="table_rows">Rows</string>
+    <string name="table_columns">Columns</string>
+    <string name="image_unsupported">This image cannot be shown</string>
 </resources>

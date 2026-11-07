@@ -4,6 +4,7 @@ import com.office.core.text.Alignment
 import com.office.core.text.EMBED_CHAR
 import com.office.core.text.Embed
 import com.office.core.text.EmbedKind
+import com.office.core.text.EmbedMedia
 import com.office.core.text.ListType
 import com.office.core.text.Paragraph
 import com.office.core.text.ParagraphStyle
@@ -65,11 +66,7 @@ object DocxReader {
 
     private fun blockParagraph(ctx: Ctx, e: Embed) = Paragraph(listOf(embedRun(ctx, e)))
 
-    private fun tableEmbed(tbl: XmlElement): Embed {
-        val rows = tbl.children("tr").map { tr -> tr.children("tc").map { tc -> tc.descendants("t").joinToString("") { it.text() }.trim() } }
-        val cols = rows.maxOfOrNull { it.size } ?: 0
-        return Embed(EmbedKind.TABLE, XmlWriter.write(tbl), block = true, label = "${rows.size}×$cols", tableRows = rows)
-    }
+    private fun tableEmbed(tbl: XmlElement): Embed = DocxTable.embed(tbl)
 
     private fun readParagraph(p: XmlElement, ctx: Ctx): Paragraph {
         val pPr = p.child("pPr")
@@ -248,15 +245,16 @@ object DocxWriter {
         body.append("""<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>""")
         body.append("""<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>""")
         val document = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="$W" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>$body</w:body></w:document>"""
+        val media = usedMedia(doc)
         val entries = listOf(
-            "[Content_Types].xml" to CONTENT_TYPES,
+            "[Content_Types].xml" to withMediaTypes(CONTENT_TYPES, media),
             "_rels/.rels" to ROOT_RELS,
             "word/document.xml" to document,
             "word/styles.xml" to stylesXml(),
             "word/numbering.xml" to numberingXml(1, 2),
-            "word/_rels/document.xml.rels" to DOCUMENT_RELS,
+            "word/_rels/document.xml.rels" to withMediaRels(DOCUMENT_RELS, media),
             "docProps/app.xml" to APP_PROPS,
-        ).map { (k, v) -> k to v.toByteArray(Charsets.UTF_8) }
+        ).map { (k, v) -> k to v.toByteArray(Charsets.UTF_8) } + media.map { "word/media/${it.fileName}" to it.bytes }
         ZipPackage.write(output, entries)
     }
 
@@ -270,6 +268,7 @@ object DocxWriter {
         val needsOurLists = doc.paragraphs.any { it.list != ListType.NONE && !(it.list == it.numType && it.numXml != null) }
         if (needsOurLists) addOurNumbering(pkg, mainPath, replaced)
         ensureStyles(pkg, doc, replaced)
+        addMedia(pkg, mainPath, usedMedia(doc), replaced)
 
         val sb = StringBuilder()
         sb.append("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""").append('\n')
@@ -322,6 +321,45 @@ object DocxWriter {
                 val override = """<Override PartName="/$path" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>"""
                 replaced["[Content_Types].xml"] = ct.replace("</Types>", "$override</Types>").toByteArray(Charsets.UTF_8)
             }
+        }
+    }
+
+    /** Pictures inserted in this session that are still in the document. */
+    private fun usedMedia(doc: TextDocument): List<EmbedMedia> =
+        doc.paragraphs.flatMap { p -> p.runs.mapNotNull { r -> r.embedId?.let { doc.embeds[it]?.media } } }.distinctBy { it.relId }
+
+    private fun withMediaRels(rels: String, media: List<EmbedMedia>): String {
+        if (media.isEmpty()) return rels
+        val add = media.joinToString("") {
+            """<Relationship Id="${it.relId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${it.fileName}"/>"""
+        }
+        return rels.replace("</Relationships>", "$add</Relationships>")
+    }
+
+    private fun withMediaTypes(ct: String, media: List<EmbedMedia>): String {
+        var out = ct
+        for (m in media) {
+            val ext = m.fileName.substringAfterLast('.').lowercase()
+            if (Regex("Extension=\"$ext\"", RegexOption.IGNORE_CASE).containsMatchIn(out)) continue
+            out = out.replace("</Types>", """<Default Extension="$ext" ContentType="${m.contentType}"/></Types>""")
+        }
+        return out
+    }
+
+    private fun addMedia(pkg: ZipPackage, mainPath: String, media: List<EmbedMedia>, replaced: MutableMap<String, ByteArray>) {
+        if (media.isEmpty()) return
+        val dir = mainPath.substringBeforeLast('/', "")
+        val file = mainPath.substringAfterLast('/')
+        val relsPath = if (dir.isEmpty()) "_rels/$file.rels" else "$dir/_rels/$file.rels"
+        val relsText = (replaced[relsPath] ?: pkg.bytes(relsPath))?.let { String(it, Charsets.UTF_8) }
+            ?: """<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>"""
+        val existing = pkg.relationships(mainPath).keys
+        replaced[relsPath] = withMediaRels(relsText, media.filter { it.relId !in existing }).toByteArray(Charsets.UTF_8)
+        val ct = String(replaced["[Content_Types].xml"] ?: pkg.bytes("[Content_Types].xml") ?: CONTENT_TYPES.toByteArray(), Charsets.UTF_8)
+        replaced["[Content_Types].xml"] = withMediaTypes(ct, media).toByteArray(Charsets.UTF_8)
+        for (m in media) {
+            val path = if (dir.isEmpty()) "media/${m.fileName}" else "$dir/media/${m.fileName}"
+            replaced[path] = m.bytes
         }
     }
 

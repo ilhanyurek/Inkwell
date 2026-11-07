@@ -167,8 +167,6 @@
     <string name="embed_table">Talahanayan</string>
     <string name="embed_equation">Equation</string>
     <string name="embed_object">Object</string>
-    <string name="embed_preview">I-preview</string>
-    <string name="embed_table_note">Nananatiling hindi nagbabago ang mga talahanayan, larawan at iba pang object kapag nag-save. I-edit ang mga ito sa Word kung kailangan.</string>
     <string name="draft_found">May nakitang hindi na-save na pagbabago mula %1$s.</string>
     <string name="draft_restore">I-restore</string>
     <string name="draft_discard">Itapon</string>

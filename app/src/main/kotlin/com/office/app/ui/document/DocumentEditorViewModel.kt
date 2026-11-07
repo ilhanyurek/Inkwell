@@ -1,6 +1,10 @@
 package com.office.app.ui.document
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,7 +19,9 @@ import com.office.app.data.DraftStore
 import com.office.app.data.FileInfo
 import com.office.app.export.PdfExporter
 import com.office.core.FileKind
+import com.office.core.docx.DocxImages
 import com.office.core.docx.DocxReader
+import com.office.core.docx.DocxTable
 import com.office.core.docx.DocxWriter
 import com.office.core.text.Embed
 import com.office.core.text.TextDocument
@@ -77,6 +83,8 @@ class DocumentEditorViewModel(
     /** The DOCX package the document came from, so saving keeps everything we do not edit. */
     private var originalPackage: ZipPackage? = null
 
+    private val bitmaps = HashMap<Int, ImageBitmap?>()
+
     fun currentDocument(): TextDocument = model.toDocument(embeds = embeds)
 
     private data class Snapshot(val model: RichText, val selection: TextRange)
@@ -134,6 +142,7 @@ class DocumentEditorViewModel(
     private fun apply(doc: TextDocument) {
         model = RichText.fromDocument(doc)
         lossyImport = doc.lossyImport
+        bitmaps.clear()
         embeds = doc.embeds
         value = TextFieldValue(model.text, TextRange(0))
     }
@@ -250,6 +259,79 @@ class DocumentEditorViewModel(
         canUndo = true
         canRedo = redoStack.isNotEmpty()
         lastTypingAt = 0
+    }
+
+    // --- tables and images -------------------------------------------------------------
+
+    /** The picture behind image embed [id], decoded at most [maxPx] wide; null when it cannot be shown. */
+    suspend fun imageBitmap(id: Int, maxPx: Int = 1600): ImageBitmap? {
+        if (bitmaps.containsKey(id)) return bitmaps[id]
+        val embed = embeds[id] ?: return null
+        val bmp = withContext(Dispatchers.Default) {
+            runCatching {
+                val bytes = DocxImages.bytes(embed, originalPackage) ?: return@runCatching null
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                var sample = 1
+                while (bounds.outWidth / (sample * 2) >= maxPx) sample *= 2
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
+            }.getOrNull()
+        }
+        bitmaps[id] = bmp
+        return bmp
+    }
+
+    private fun addEmbed(e: Embed): Int {
+        val id = (embeds.keys.maxOrNull() ?: 0) + 1
+        embeds = embeds + (id to e)
+        return id
+    }
+
+    /** Swaps the embed at [offset] for [updated], keeping the old one so undo can bring it back. */
+    fun replaceEmbed(offset: Int, updated: Embed) {
+        commit(model.withEmbedId(offset, addEmbed(updated)))
+    }
+
+    fun removeEmbed(offset: Int) {
+        val next = model.removeEmbedParagraph(offset)
+        commit(next, TextRange(offset.coerceAtMost(next.text.length)))
+    }
+
+    fun insertBlock(embed: Embed) {
+        val id = addEmbed(embed)
+        val (next, at) = model.insertEmbedParagraph(value.selection.max, id)
+        commit(next, TextRange((at + 2).coerceAtMost(next.text.length)))
+    }
+
+    fun insertTable(rows: Int, cols: Int) = insertBlock(DocxTable.embed(DocxTable.create(rows, cols)))
+
+    fun insertImage(source: Uri, onDone: (Throwable?) -> Unit) {
+        viewModelScope.launch {
+            val result = runCatching {
+                val bytes = container.files.readBytes(source)
+                withContext(Dispatchers.Default) { pictureEmbed(bytes) }
+            }
+            result.onSuccess { insertBlock(it) }
+            onDone(result.exceptionOrNull())
+        }
+    }
+
+    /** Keeps PNG/JPEG/GIF as they are unless very large; anything else is re-encoded. */
+    private fun pictureEmbed(bytes: ByteArray): Embed {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "Not an image" }
+        val type = bounds.outMimeType.orEmpty()
+        val keep = type in setOf("image/png", "image/jpeg", "image/gif") && maxOf(bounds.outWidth, bounds.outHeight) <= 2400
+        if (keep) return DocxImages.newImage(bytes, type.substringAfter('/'), bounds.outWidth, bounds.outHeight)
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 2400) sample *= 2
+        val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
+            ?: error("Cannot decode image")
+        val png = type == "image/png" || bmp.hasAlpha()
+        val out = ByteArrayOutputStream()
+        bmp.compress(if (png) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG, 88, out)
+        return DocxImages.newImage(out.toByteArray(), if (png) "png" else "jpeg", bmp.width, bmp.height)
     }
 
     // --- formatting -------------------------------------------------------------------

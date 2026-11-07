@@ -167,8 +167,6 @@
     <string name="embed_table">표</string>
     <string name="embed_equation">수식</string>
     <string name="embed_object">개체</string>
-    <string name="embed_preview">미리보기</string>
-    <string name="embed_table_note">표, 이미지 등의 개체는 저장 시 그대로 유지됩니다. 필요하면 Word에서 편집하세요.</string>
     <string name="draft_found">%1$s의 저장되지 않은 변경사항을 찾았습니다.</string>
     <string name="draft_restore">복원</string>
     <string name="draft_discard">삭제</string>

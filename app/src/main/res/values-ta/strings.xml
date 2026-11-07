@@ -167,8 +167,6 @@
     <string name="embed_table">அட்டவணை</string>
     <string name="embed_equation">சமன்பாடு</string>
     <string name="embed_object">பொருள்</string>
-    <string name="embed_preview">முன்னோட்டம்</string>
-    <string name="embed_table_note">சேமிக்கும்போது அட்டவணைகள், படங்கள், பிற பொருள்கள் மாறாமல் இருக்கும். தேவைப்பட்டால் Word இல் திருத்துங்கள்.</string>
     <string name="draft_found">%1$s இன் சேமிக்காத மாற்றங்கள் கண்டறியப்பட்டன.</string>
     <string name="draft_restore">மீட்டெடு</string>
     <string name="draft_discard">நிராகரி</string>

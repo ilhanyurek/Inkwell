@@ -13,6 +13,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.test.core.app.ActivityScenario
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.onAllNodesWithTag
+import com.office.core.docx.DocxReader
+import com.office.core.text.EmbedKind
 import com.office.core.zip.ZipPackage
 import org.junit.Assert.assertEquals
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -45,8 +49,9 @@ class OpenFilesTest {
         val file = Fixtures.richDocx()
         open(file, "application/vnd.openxmlformats-officedocument.wordprocessingml.document").use {
             rule.waitForText("Intro line")
-            rule.waitForText("${str(R.string.embed_table)} 2×2")
-            rule.waitForText(str(R.string.embed_image))
+            rule.waitUntil(15_000) { rule.onAllNodesWithTag("doc_table_0").fetchSemanticsNodes().isNotEmpty() }
+            rule.waitForText("B2")
+            rule.onNodeWithTag("doc_image_0").assertExists()
             rule.screenshot("17_docx_embeds")
             rule.onNode(hasSetTextAction()).performTextInput("Edited ")
             rule.onNodeWithContentDescription(str(R.string.action_save)).performClick()
@@ -58,6 +63,40 @@ class OpenFilesTest {
             }
             val pkg = ZipPackage.read(file.inputStream())
             assertEquals("PNGDATA", String(pkg.bytes("word/media/image1.png")!!))
+        }
+    }
+
+    @Test
+    fun editsAndInsertsDocxTables() = rule.explainFailure {
+        val file = Fixtures.richDocx()
+        open(file, "application/vnd.openxmlformats-officedocument.wordprocessingml.document").use {
+            rule.waitUntil(15_000) { rule.onAllNodesWithTag("doc_table_0").fetchSemanticsNodes().isNotEmpty() }
+            rule.onNodeWithTag("doc_table_0").performClick()
+            rule.onNodeWithTag("table_cell_1_1").performTextReplacement("Z9")
+            rule.onNodeWithTag("table_add_row").performClick()
+            rule.onNodeWithTag("table_cell_2_0").performTextInput("A3")
+            rule.onNodeWithTag("table_save").performClick()
+            rule.waitForText("Z9")
+            rule.waitForText("A3")
+
+            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+            rule.onNodeWithTag("menu_insert_table").performClick()
+            rule.onNodeWithTag("insert_table_confirm").performClick()
+            rule.waitUntil(10_000) { rule.onAllNodesWithTag("doc_table_1").fetchSemanticsNodes().isNotEmpty() }
+            rule.screenshot("18_docx_tables")
+
+            rule.onNodeWithContentDescription(str(R.string.action_save)).performClick()
+            rule.waitUntil(15_000) {
+                runCatching {
+                    val xml = String(ZipPackage.read(file.inputStream()).bytes("word/document.xml")!!)
+                    xml.contains("Z9") && xml.contains("A3") && Regex("<w:tbl[ >]").findAll(xml).count() == 2
+                }.getOrDefault(false)
+            }
+            val doc = DocxReader.read(ZipPackage.read(file.inputStream()))
+            val tables = doc.embeds.values.filter { it.kind == EmbedKind.TABLE }.map { it.tableRows }
+            assertEquals(2, tables.size)
+            assertEquals(listOf(listOf("A1", "B1"), listOf("A2", "Z9"), listOf("A3", "")), tables.first { it[0][0] == "A1" })
+            assertEquals(List(3) { List(3) { "" } }, tables.first { it[0][0] != "A1" })
         }
     }
 

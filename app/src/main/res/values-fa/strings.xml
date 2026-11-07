@@ -167,8 +167,6 @@
     <string name="embed_table">جدول</string>
     <string name="embed_equation">معادله</string>
     <string name="embed_object">شیء</string>
-    <string name="embed_preview">پیش‌نمایش</string>
-    <string name="embed_table_note">جدول‌ها، تصاویر و دیگر اشیا هنگام ذخیره بدون تغییر می‌مانند. در صورت نیاز آن‌ها را در Word ویرایش کنید.</string>
     <string name="draft_found">تغییرات ذخیره‌نشده‌ای از %1$s پیدا شد.</string>
     <string name="draft_restore">بازیابی</string>
     <string name="draft_discard">صرف‌نظر</string>

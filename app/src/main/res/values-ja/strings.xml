@@ -167,8 +167,6 @@
     <string name="embed_table">表</string>
     <string name="embed_equation">数式</string>
     <string name="embed_object">オブジェクト</string>
-    <string name="embed_preview">プレビュー</string>
-    <string name="embed_table_note">表、画像などのオブジェクトは保存時にそのまま保持されます。編集が必要な場合は Word で編集してください。</string>
     <string name="draft_found">%1$s の未保存の変更が見つかりました。</string>
     <string name="draft_restore">復元</string>
     <string name="draft_discard">破棄</string>

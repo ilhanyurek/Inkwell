@@ -167,8 +167,6 @@
     <string name="embed_table">Tableau</string>
     <string name="embed_equation">Équation</string>
     <string name="embed_object">Objet</string>
-    <string name="embed_preview">Aperçu</string>
-    <string name="embed_table_note">Les tableaux, images et autres objets sont conservés tels quels à l\'enregistrement. Modifiez-les dans Word si besoin.</string>
     <string name="draft_found">Des modifications non enregistrées du %1$s ont été trouvées.</string>
     <string name="draft_restore">Restaurer</string>
     <string name="draft_discard">Abandonner</string>

@@ -10,6 +10,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.unit.TextUnit
@@ -37,7 +38,19 @@ class RichTextTransformation(
     /** Text shown in place of an embed; an empty string hides it (bookmarks and similar markers). */
     private val embedLabel: (Embed) -> String = { "" },
     private val chipBackground: Color = Color.Transparent,
+    /**
+     * Embeds drawn over the text (tables, pictures) with the space to leave for them. A paragraph
+     * holding only such an embed becomes one empty line of that height.
+     */
+    private val blockHeights: Map<Int, TextUnit> = emptyMap(),
 ) : VisualTransformation {
+
+    /** Where a block embed sits: its offset in the model and in the transformed text. */
+    data class BlockAnchor(val offset: Int, val transformedOffset: Int, val embedId: Int)
+
+    /** Filled by [filter]; read after layout to place the block views. */
+    var blockAnchors: List<BlockAnchor> = emptyList()
+        private set
 
     override fun filter(text: AnnotatedString): TransformedText {
         if (text.text != model.text) return TransformedText(text, OffsetMapping.Identity)
@@ -48,12 +61,35 @@ class RichTextTransformation(
         val transToOrig = ArrayList<Int>(src.length + 16)
 
         val starts = model.lineStarts()
+        val anchors = ArrayList<BlockAnchor>()
         var number = 0
         for (p in model.paras.indices) {
             val attrs = model.paras[p]
             val start = starts[p]
             val end = if (p + 1 < starts.size) starts[p + 1] - 1 else src.length
             val paraStartTrans = out.length
+
+            val blockId = model.styles.getOrNull(start)?.embedId?.takeIf { end == start + 1 && it in blockHeights }
+            if (blockId != null) {
+                number = 0
+                anchors += BlockAnchor(start, out.length, blockId)
+                origToTrans[start] = out.length
+                transToOrig += start
+                out.append("\u200B")
+                origToTrans[end] = out.length
+                if (end < src.length) {
+                    transToOrig += end
+                    out.append('\n')
+                }
+                out.addStyle(
+                    ParagraphStyle(
+                        lineHeight = blockHeights.getValue(blockId),
+                        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Top, LineHeightStyle.Trim.None),
+                    ),
+                    paraStartTrans, out.length,
+                )
+                continue
+            }
 
             number = if (attrs.list == ListType.NUMBERED) number + 1 else 0
             val marker = when (attrs.list) {
@@ -109,6 +145,7 @@ class RichTextTransformation(
             }
         }
         transToOrig += src.length
+        blockAnchors = anchors
 
         val transformed = out.toAnnotatedString()
         val mapping = object : OffsetMapping {

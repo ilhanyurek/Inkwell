@@ -4,8 +4,15 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.key
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -130,6 +137,8 @@ fun DocumentEditorScreen(
     var showStats by remember { mutableStateOf(false) }
     var showLossyWarning by remember { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
+    var editingBlock by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var showInsertTable by remember { mutableStateOf(false) }
 
     val untitled = stringResource(R.string.untitled)
     val savedMsg = stringResource(R.string.saved)
@@ -160,6 +169,10 @@ fun DocumentEditorScreen(
             vm.lossyImport -> showLossyWarning = true
             else -> vm.save(::afterSave)
         }
+    }
+
+    val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { picked ->
+        if (picked != null) vm.insertImage(picked) { e -> if (e != null) toast(context, context.getString(R.string.image_unsupported)) }
     }
 
     BackHandler(enabled = vm.dirty) { showUnsaved = true }
@@ -202,6 +215,17 @@ fun DocumentEditorScreen(
                         }
                         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_find_replace)) }, onClick = { menuOpen = false; showFind = true })
+                            if (vm.supportsRichFormatting) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.insert_table)) },
+                                    onClick = { menuOpen = false; showInsertTable = true },
+                                    modifier = Modifier.testTag("menu_insert_table"),
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.insert_image)) },
+                                    onClick = { menuOpen = false; pickImage.launch("image/*") },
+                                )
+                            }
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_save_as)) }, onClick = { menuOpen = false; saveAs.launch(vm.suggestedName(untitled)) })
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_export_pdf)) }, onClick = {
                                 menuOpen = false
@@ -238,40 +262,101 @@ fun DocumentEditorScreen(
             val accent = MaterialTheme.colorScheme.primary
             val chipBg = MaterialTheme.colorScheme.primaryContainer
             val labeler = embedLabeler()
-            val transformation = remember(vm.model, baseSize, muted, accent, vm.embeds, chipBg) {
-                RichTextTransformation(vm.model, baseSize, muted, accent, vm.embeds, labeler, chipBg)
-            }
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-                BasicTextField(
-                    value = vm.value,
-                    onValueChange = vm::onValueChange,
-                    visualTransformation = transformation,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = baseSize,
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    modifier = Modifier.fillMaxSize().widthIn(max = 760.dp),
-                    decorationBox = { inner ->
-                        Box(Modifier.padding(horizontal = 22.dp, vertical = 18.dp)) {
-                            if (vm.value.text.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.document_placeholder),
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = baseSize),
-                                    color = MaterialTheme.colorScheme.outline,
-                                )
-                            }
-                            inner()
+            val density = LocalDensity.current
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val viewport = maxHeight
+                Column(
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    BoxWithConstraints(Modifier.widthIn(max = 760.dp).fillMaxWidth()) {
+                        val contentWidth = maxWidth - 44.dp
+                        val sizes = remember(vm.embeds, contentWidth, vm.supportsRichFormatting) {
+                            if (vm.supportsRichFormatting) blockSizes(vm.embeds, contentWidth) else emptyMap()
                         }
-                    },
-                )
+                        val heights = remember(sizes, density) { with(density) { sizes.mapValues { it.value.toSp() } } }
+                        val transformation = remember(vm.model, baseSize, muted, accent, vm.embeds, chipBg, heights) {
+                            RichTextTransformation(vm.model, baseSize, muted, accent, vm.embeds, labeler, chipBg, heights)
+                        }
+                        var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+                        BasicTextField(
+                            value = vm.value,
+                            onValueChange = vm::onValueChange,
+                            visualTransformation = transformation,
+                            onTextLayout = { layout = it },
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = baseSize,
+                            ),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = viewport).testTag("document_text"),
+                            decorationBox = { inner ->
+                                Box(Modifier.padding(horizontal = 22.dp, vertical = 18.dp)) {
+                                    if (vm.value.text.isEmpty()) {
+                                        Text(
+                                            stringResource(R.string.document_placeholder),
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = baseSize),
+                                            color = MaterialTheme.colorScheme.outline,
+                                        )
+                                    }
+                                    inner()
+                                }
+                            },
+                        )
+                        val l = layout
+                        if (l != null) {
+                            var tables = 0
+                            var images = 0
+                            transformation.blockAnchors.forEach { a ->
+                                if (a.transformedOffset > l.layoutInput.text.length) return@forEach
+                                val embed = vm.embeds[a.embedId] ?: return@forEach
+                                val top = with(density) { l.getLineTop(l.getLineForOffset(a.transformedOffset)).toDp() }
+                                val place = Modifier.offset(x = 22.dp, y = 18.dp + top)
+                                key(a.offset, a.embedId) {
+                                    if (embed.kind == EmbedKind.TABLE) {
+                                        TableBlock(embed, contentWidth, onClick = { editingBlock = a.offset to a.embedId }, modifier = place.testTag("doc_table_${tables++}"))
+                                    } else {
+                                        ImageBlock(
+                                            rememberEmbedBitmap(vm, a.embedId),
+                                            imageSize(embed, contentWidth),
+                                            onClick = { editingBlock = a.offset to a.embedId },
+                                            modifier = place.testTag("doc_image_${images++}"),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            EmbedBar(vm)
+            EmbedBar(vm) { o, id -> editingBlock = o to id }
             FormattingToolbar(vm, showFormatting = vm.supportsRichFormatting || vm.supportsMarkdownFormatting)
         }
     }
 
+    editingBlock?.let { (offset, id) ->
+        val embed = vm.embeds[id]
+        if (embed == null || vm.model.styles.getOrNull(offset)?.embedId != id) {
+            editingBlock = null
+        } else if (embed.kind == EmbedKind.TABLE) {
+            TableEditorDialog(
+                embed,
+                onSave = { vm.replaceEmbed(offset, it); editingBlock = null },
+                onDelete = { vm.removeEmbed(offset); editingBlock = null },
+                onDismiss = { editingBlock = null },
+            )
+        } else {
+            ImageDialog(
+                rememberEmbedBitmap(vm, id),
+                onDelete = { vm.removeEmbed(offset); editingBlock = null },
+                onDismiss = { editingBlock = null },
+            )
+        }
+    }
+    if (showInsertTable) {
+        InsertTableDialog(onInsert = { r, c -> showInsertTable = false; vm.insertTable(r, c) }, onDismiss = { showInsertTable = false })
+    }
     if (showUnsaved) {
         UnsavedChangesDialog(
             onSave = { showUnsaved = false; closeAfterSave = true; requestSave() },
@@ -577,15 +662,15 @@ private fun embedLabeler(): (Embed) -> String {
     }
 }
 
-/** When the caret sits next to a table, offers a read-only preview of it. */
+/** When the caret sits next to a table that is not drawn in place, offers to edit it. */
 @Composable
-private fun EmbedBar(vm: DocumentEditorViewModel) {
+private fun EmbedBar(vm: DocumentEditorViewModel, onEdit: (offset: Int, id: Int) -> Unit) {
+    if (!vm.supportsRichFormatting) return
     val sel = vm.value.selection
-    val table = listOf(sel.start - 1, sel.start)
-        .mapNotNull { vm.model.styles.getOrNull(it)?.embedId }
-        .mapNotNull { vm.embeds[it] }
-        .firstOrNull { it.kind == EmbedKind.TABLE } ?: return
-    var preview by remember { mutableStateOf(false) }
+    val hit = listOf(sel.start - 1, sel.start)
+        .firstOrNull { o -> vm.model.styles.getOrNull(o)?.embedId?.let { vm.embeds[it]?.kind == EmbedKind.TABLE } == true } ?: return
+    val id = vm.model.styles[hit].embedId ?: return
+    val table = vm.embeds[id] ?: return
     Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
         Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -593,38 +678,7 @@ private fun EmbedBar(vm: DocumentEditorViewModel) {
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = { preview = true }) { Text(stringResource(R.string.embed_preview)) }
+            TextButton(onClick = { onEdit(hit, id) }) { Text(stringResource(R.string.table_edit)) }
         }
-    }
-    if (preview) {
-        AlertDialog(
-            onDismissRequest = { preview = false },
-            title = { Text("${stringResource(R.string.embed_table)} ${table.label}") },
-            text = {
-                Column(Modifier.horizontalScroll(rememberScrollState())) {
-                    table.tableRows.forEach { row ->
-                        Row {
-                            row.forEach { cell ->
-                                Text(
-                                    cell,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    modifier = Modifier
-                                        .width(110.dp)
-                                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                                        .padding(6.dp),
-                                )
-                            }
-                        }
-                    }
-                    Text(
-                        stringResource(R.string.embed_table_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 12.dp),
-                    )
-                }
-            },
-            confirmButton = { TextButton(onClick = { preview = false }) { Text(stringResource(R.string.action_ok)) } },
-        )
     }
 }

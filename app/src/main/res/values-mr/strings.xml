@@ -167,8 +167,6 @@
     <string name="embed_table">टेबल</string>
     <string name="embed_equation">समीकरण</string>
     <string name="embed_object">ऑब्जेक्ट</string>
-    <string name="embed_preview">पूर्वावलोकन</string>
-    <string name="embed_table_note">सेव्ह करताना टेबल, इमेज आणि इतर ऑब्जेक्ट जसेच्या तसे राहतात. गरज असल्यास ते Word मध्ये संपादित करा.</string>
     <string name="draft_found">%1$s चे सेव्ह न केलेले बदल सापडले.</string>
     <string name="draft_restore">पुनर्संचयित करा</string>
     <string name="draft_discard">टाकून द्या</string>

@@ -167,8 +167,6 @@
     <string name="embed_table">টেবিল</string>
     <string name="embed_equation">সমীকরণ</string>
     <string name="embed_object">অবজেক্ট</string>
-    <string name="embed_preview">প্রিভিউ</string>
-    <string name="embed_table_note">সেভ করার সময় টেবিল, ছবি ও অন্যান্য অবজেক্ট অপরিবর্তিত থাকে। দরকার হলে Word-এ এডিট করুন।</string>
     <string name="draft_found">%1$s সময়ের সেভ না করা পরিবর্তন পাওয়া গেছে।</string>
     <string name="draft_restore">ফিরিয়ে আনুন</string>
     <string name="draft_discard">বাদ দিন</string>
