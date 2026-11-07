@@ -1,26 +1,30 @@
 Inkwell opens and edits office files on your phone. When you save, it keeps the parts it cannot edit, such as charts and equations.
 
-<b>Documents (DOCX, TXT, Markdown)</b>
+<b>Documents (DOCX, ODT, TXT, Markdown)</b>
 • Bold, italic, underline, headings, lists, quotes, alignment, find and replace
-• Images, tables, links, equations and styles are kept when you save
+• Tables and pictures appear in place; edit tables and insert new ones
+• Links, equations and styles are kept when you save
 • Export to PDF or print
 
-<b>Spreadsheets (XLSX, CSV)</b>
+<b>Spreadsheets (XLSX, ODS, CSV)</b>
 • Cell formatting: colours, fill, borders, alignment, number and date formats
 • 50+ formulas: VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates, TEXT and more
 • Sort, fill down, insert and delete rows and columns, multiple sheets
-• Charts, merged cells and conditional formatting are kept
+• View charts, freeze panes and filter rows
+• Merged cells and conditional formatting are kept
 
 <b>PDF</b>
 • Highlights and notes you can remove later
 • Draw your signature and place it on the page
 • Fill in forms
 • Redaction: blur or black out parts of a page, and Inkwell deletes the hidden content from the file
+• Select and copy text, jump through the table of contents
 • Rotate, delete and extract pages, merge files, search, password-protected files
 
-<b>Presentations (PPTX)</b>
+<b>Presentations (PPTX, ODP)</b>
 • View and present slides with speaker notes
-• Edit slide text and export to PDF
+• Edit slide text; add, duplicate, move and delete slides
+• Create new presentations and export to PDF
 
 <b>Tools</b>
 • 29 tools that work offline: merge, split, organize, rotate and delete pages
@@ -30,6 +34,7 @@ Inkwell opens and edits office files on your phone. When you save, it keeps the 
 • Watermark, page numbers, password protect and unlock, crop, flatten, properties, extract images, compare two PDFs
 
 <b>And</b>
+• Launcher shortcuts for new files, scanning and your last file
 • Undo and redo everywhere
 • Drafts are saved automatically and restored after a crash
 • Folders tab, thumbnail grid, pinned and recent files

@@ -2,6 +2,16 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.0] - 2026-11-07
+
+### Added
+- Documents: tables and pictures appear in place; tap a table to edit cells or add and remove rows and columns; insert new tables and pictures
+- PDF: long-press to select and copy text; Contents menu jumps to the document outline
+- Spreadsheets: view charts from the file, freeze panes, filter rows by column values
+- Presentations: add, duplicate, move and delete slides; create a new presentation
+- OpenDocument: open and save .odt and .ods, view .odp
+- Launcher shortcuts: new document, new spreadsheet, scan, tools and the last opened file
+
 ## [1.2.1] - 2026-11-06
 
 ### Changed

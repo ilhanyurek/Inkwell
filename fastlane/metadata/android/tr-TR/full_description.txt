@@ -1,26 +1,30 @@
 Inkwell ofis dosyalarını telefonunuzda açar ve düzenler. Kaydederken düzenleyemediği kısımlara, örneğin grafiklere ve denklemlere dokunmaz.
 
-<b>Belgeler (DOCX, TXT, Markdown)</b>
+<b>Belgeler (DOCX, ODT, TXT, Markdown)</b>
 • Kalın, italik, altı çizili, başlıklar, listeler, alıntılar, hizalama, bul ve değiştir
-• Kaydederken resimler, tablolar, bağlantılar, denklemler ve stiller korunur
+• Tablolar ve resimler yerinde görünür; tabloları düzenleyin, yeni tablo ve resim ekleyin
+• Kaydederken bağlantılar, denklemler ve stiller korunur
 • PDF olarak dışa aktarma veya yazdırma
 
-<b>Tablolar (XLSX, CSV)</b>
+<b>Tablolar (XLSX, ODS, CSV)</b>
 • Hücre biçimlendirme: renkler, dolgu, kenarlıklar, hizalama, sayı ve tarih biçimleri
 • 50'den fazla formül: DÜŞEYARA, ÇAPRAZARA, İNDİS/KAÇINCI, ÇOKETOPLA, tarih işlevleri, METNEÇEVİR ve dahası
 • Sıralama, aşağı doldurma, satır ve sütun ekleme/silme, birden çok sayfa
-• Grafikler, birleştirilmiş hücreler ve koşullu biçimlendirme korunur
+• Grafikleri görüntüleme, bölmeleri dondurma, satırları filtreleme
+• Birleştirilmiş hücreler ve koşullu biçimlendirme korunur
 
 <b>PDF</b>
 • Sonradan silinebilen vurgular ve notlar
 • İmzanızı çizip sayfaya yerleştirme
 • Form doldurma
 • Karartma: sayfanın bir kısmını bulanıklaştırın veya siyahla kapatın, Inkwell gizlenen içeriği dosyadan siler
+• Metin seçip kopyalama, içindekilerden sayfaya gitme
 • Sayfa döndürme, silme ve ayırma, dosya birleştirme, arama, parolalı dosyalar
 
-<b>Sunumlar (PPTX)</b>
+<b>Sunumlar (PPTX, ODP)</b>
 • Konuşmacı notlarıyla görüntüleme ve sunma
-• Slayt metnini düzenleme ve PDF olarak dışa aktarma
+• Slayt metnini düzenleme; slayt ekleme, çoğaltma, taşıma ve silme
+• Yeni sunum oluşturma ve PDF olarak dışa aktarma
 
 <b>Araçlar</b>
 • İnternetsiz çalışan 29 araç: birleştirme, ayırma, sayfa düzenleme, döndürme ve silme
@@ -30,6 +34,7 @@ Inkwell ofis dosyalarını telefonunuzda açar ve düzenler. Kaydederken düzenl
 • Filigran, sayfa numarası, parola koyma ve kaldırma, kırpma, düzleştirme, özellikler, resim çıkarma, iki PDF'i karşılaştırma
 
 <b>Ayrıca</b>
+• Yeni dosya, tarama ve son dosya için başlatıcı kısayolları
 • Her yerde geri al ve yinele
 • Taslaklar otomatik kaydedilir, çökme sonrası geri yüklenir
 • Klasörler sekmesi, küçük resim ızgarası, sabitlenmiş ve son dosyalar

@@ -1,1 +1,1 @@
-Android'de DOCX, XLSX, CSV, PDF ve PPTX dosyalarını internetsiz açıp düzenleyin.
+DOCX, XLSX, PPTX, PDF ve OpenDocument dosyalarını internetsiz açıp düzenleyin.
