@@ -384,6 +384,33 @@
     <string name="tool_compare_second">দ্বিতীয়</string>
     <string name="tool_compare_same">লেখায় কোনো পার্থক্য নেই।</string>
     <string name="tool_compare_summary">%1$d লাইন যোগ, %2$d লাইন বাদ</string>
+    <string name="pdf_contents">সূচিপত্র</string>
+    <string name="pdf_select_page">পুরো পৃষ্ঠা</string>
+    <string name="insert_table">টেবিল যোগ করুন</string>
+    <string name="insert_image">ছবি যোগ করুন</string>
+    <string name="table_edit">টেবিল সম্পাদনা</string>
+    <string name="table_delete">টেবিল মুছুন</string>
+    <string name="table_add_row">সারি</string>
+    <string name="table_add_column">কলাম</string>
+    <string name="table_remove_row">সারি সরান</string>
+    <string name="table_remove_column">কলাম সরান</string>
+    <string name="table_rows">সারি</string>
+    <string name="table_columns">কলাম</string>
+    <string name="image_unsupported">এই ছবিটি দেখানো যাচ্ছে না</string>
+    <string name="sheet_freeze">প্যান স্থির করুন</string>
+    <string name="sheet_unfreeze">প্যান মুক্ত করুন</string>
+    <string name="sheet_filter">ফিল্টার</string>
+    <string name="sheet_filter_all">সব নির্বাচন</string>
+    <string name="sheet_filter_clear">ফিল্টার সরান</string>
+    <string name="sheet_filter_blank">(ফাঁকা)</string>
+    <string name="sheet_charts">চার্ট</string>
+    <string name="slide_add">নতুন স্লাইড</string>
+    <string name="slide_duplicate">ডুপ্লিকেট</string>
+    <string name="slide_delete">স্লাইড মুছুন</string>
+    <string name="slide_move_left">বাঁয়ে সরান</string>
+    <string name="slide_move_right">ডানে সরান</string>
+    <string name="new_presentation">প্রেজেন্টেশন</string>
+    <string name="new_presentation_desc">শিরোনাম ও বিষয়বস্তুর লেআউটসহ স্লাইড</string>
     <plurals name="pdf_results">
         <item quantity="one">%dটি মিল</item>
         <item quantity="other">%dটি মিল</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%dটি জায়গায় বদলানো হয়েছে</item>
         <item quantity="other">%dটি জায়গায় বদলানো হয়েছে</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%dটি শব্দ নির্বাচিত</item>
+        <item quantity="other">%dটি শব্দ নির্বাচিত</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%dটি সারি লুকানো</item>
+        <item quantity="other">%dটি সারি লুকানো</item>
     </plurals>
 </resources>

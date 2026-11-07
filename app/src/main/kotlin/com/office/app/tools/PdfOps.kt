@@ -14,11 +14,10 @@ import android.os.ParcelFileDescriptor
 import com.office.app.export.PdfExporter
 import com.office.app.ui.pdf.PdfTools
 import com.office.app.ui.slides.SlideRenderer
+import com.office.core.odf.OfficeReaders
 import com.office.core.csv.Csv
-import com.office.core.docx.DocxReader
 import com.office.core.docx.DocxWriter
 import com.office.core.formula.FormulaEngine
-import com.office.core.pptx.PptxReader
 import com.office.core.pptx.PptxWriter
 import com.office.core.text.MarkdownCodec
 import com.office.core.text.Paragraph
@@ -27,7 +26,6 @@ import com.office.core.text.PlainTextCodec
 import com.office.core.text.TextDocument
 import com.office.core.text.TextRun
 import com.office.core.util.TextDiff
-import com.office.core.xlsx.XlsxReader
 import com.tom_roush.pdfbox.cos.COSName
 import com.tom_roush.pdfbox.io.MemoryUsageSetting
 import com.tom_roush.pdfbox.multipdf.PDFMergerUtility
@@ -282,7 +280,7 @@ object PdfOps {
     }
 
     suspend fun wordToPdf(input: File, output: File) = withContext(Dispatchers.IO) {
-        val doc = input.inputStream().use { DocxReader.read(it) }
+        val doc = input.inputStream().use { OfficeReaders.document(it) }
         output.outputStream().use { PdfExporter.document(doc, input.name, it) }
     }
 
@@ -294,7 +292,7 @@ object PdfOps {
 
     /** Every sheet of a workbook (or a CSV) one after another. */
     suspend fun sheetToPdf(input: File, csv: Boolean, output: File) = withContext(Dispatchers.IO) {
-        val wb = if (csv) Csv.toWorkbook(Csv.parse(input.readBytes())) else input.inputStream().use { XlsxReader.read(it) }
+        val wb = if (csv) Csv.toWorkbook(Csv.parse(input.readBytes())) else input.inputStream().use { OfficeReaders.workbook(it) }
         val engine = FormulaEngine(wb)
         val parts = wb.sheets.mapIndexed { i, sheet ->
             File(output.parentFile, "${output.nameWithoutExtension}-part$i.pdf").also { f ->
@@ -309,7 +307,7 @@ object PdfOps {
     }
 
     suspend fun slidesToPdf(input: File, output: File) = withContext(Dispatchers.IO) {
-        val pres = input.inputStream().use { PptxReader.read(it) }
+        val pres = input.inputStream().use { OfficeReaders.presentation(it) }
         output.outputStream().use { SlideRenderer.exportPdf(pres, it) }
     }
 

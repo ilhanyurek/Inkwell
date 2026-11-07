@@ -384,6 +384,33 @@
     <string name="tool_compare_second">Второй</string>
     <string name="tool_compare_same">Различий в тексте нет.</string>
     <string name="tool_compare_summary">Добавлено строк: %1$d, удалено: %2$d</string>
+    <string name="pdf_contents">Содержание</string>
+    <string name="pdf_select_page">Вся страница</string>
+    <string name="insert_table">Вставить таблицу</string>
+    <string name="insert_image">Вставить изображение</string>
+    <string name="table_edit">Изменить таблицу</string>
+    <string name="table_delete">Удалить таблицу</string>
+    <string name="table_add_row">Строка</string>
+    <string name="table_add_column">Столбец</string>
+    <string name="table_remove_row">Удалить строку</string>
+    <string name="table_remove_column">Удалить столбец</string>
+    <string name="table_rows">Строки</string>
+    <string name="table_columns">Столбцы</string>
+    <string name="image_unsupported">Не удаётся показать это изображение</string>
+    <string name="sheet_freeze">Закрепить области</string>
+    <string name="sheet_unfreeze">Снять закрепление</string>
+    <string name="sheet_filter">Фильтр</string>
+    <string name="sheet_filter_all">Выбрать все</string>
+    <string name="sheet_filter_clear">Сбросить фильтр</string>
+    <string name="sheet_filter_blank">(Пустые)</string>
+    <string name="sheet_charts">Диаграммы</string>
+    <string name="slide_add">Новый слайд</string>
+    <string name="slide_duplicate">Дублировать</string>
+    <string name="slide_delete">Удалить слайд</string>
+    <string name="slide_move_left">Переместить влево</string>
+    <string name="slide_move_right">Переместить вправо</string>
+    <string name="new_presentation">Презентация</string>
+    <string name="new_presentation_desc">Слайды с заголовком и содержимым</string>
     <plurals name="pdf_results">
         <item quantity="one">%d совпадение</item>
         <item quantity="few">%d совпадения</item>
@@ -395,5 +422,17 @@
         <item quantity="few">Заменено %d совпадения</item>
         <item quantity="many">Заменено %d совпадений</item>
         <item quantity="other">Заменено %d совпадения</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">Выбрано %d слово</item>
+        <item quantity="few">Выбрано %d слова</item>
+        <item quantity="many">Выбрано %d слов</item>
+        <item quantity="other">Выбрано %d слова</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">Скрыта %d строка</item>
+        <item quantity="few">Скрыто %d строки</item>
+        <item quantity="many">Скрыто %d строк</item>
+        <item quantity="other">Скрыто %d строки</item>
     </plurals>
 </resources>

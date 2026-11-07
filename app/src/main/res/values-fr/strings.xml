@@ -384,6 +384,33 @@
     <string name="tool_compare_second">Second</string>
     <string name="tool_compare_same">Aucune différence dans le texte.</string>
     <string name="tool_compare_summary">%1$d lignes ajoutées, %2$d supprimées</string>
+    <string name="pdf_contents">Sommaire</string>
+    <string name="pdf_select_page">Page entière</string>
+    <string name="insert_table">Insérer un tableau</string>
+    <string name="insert_image">Insérer une image</string>
+    <string name="table_edit">Modifier le tableau</string>
+    <string name="table_delete">Supprimer le tableau</string>
+    <string name="table_add_row">Ligne</string>
+    <string name="table_add_column">Colonne</string>
+    <string name="table_remove_row">Supprimer la ligne</string>
+    <string name="table_remove_column">Supprimer la colonne</string>
+    <string name="table_rows">Lignes</string>
+    <string name="table_columns">Colonnes</string>
+    <string name="image_unsupported">Impossible d\'afficher cette image</string>
+    <string name="sheet_freeze">Figer les volets</string>
+    <string name="sheet_unfreeze">Libérer les volets</string>
+    <string name="sheet_filter">Filtrer</string>
+    <string name="sheet_filter_all">Tout sélectionner</string>
+    <string name="sheet_filter_clear">Effacer le filtre</string>
+    <string name="sheet_filter_blank">(Vides)</string>
+    <string name="sheet_charts">Graphiques</string>
+    <string name="slide_add">Nouvelle diapositive</string>
+    <string name="slide_duplicate">Dupliquer</string>
+    <string name="slide_delete">Supprimer la diapositive</string>
+    <string name="slide_move_left">Déplacer à gauche</string>
+    <string name="slide_move_right">Déplacer à droite</string>
+    <string name="new_presentation">Présentation</string>
+    <string name="new_presentation_desc">Diapositives avec titre et contenu</string>
     <plurals name="pdf_results">
         <item quantity="one">%d résultat</item>
         <item quantity="other">%d résultats</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d occurrence remplacée</item>
         <item quantity="other">%d occurrences remplacées</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d mot sélectionné</item>
+        <item quantity="other">%d mots sélectionnés</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d ligne masquée</item>
+        <item quantity="other">%d lignes masquées</item>
     </plurals>
 </resources>

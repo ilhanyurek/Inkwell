@@ -384,6 +384,33 @@
     <string name="tool_compare_second">दूसरी</string>
     <string name="tool_compare_same">टेक्स्ट में कोई अंतर नहीं है।</string>
     <string name="tool_compare_summary">%1$d पंक्तियां जोड़ी गईं, %2$d हटाई गईं</string>
+    <string name="pdf_contents">विषय-सूची</string>
+    <string name="pdf_select_page">पूरा पेज</string>
+    <string name="insert_table">टेबल डालें</string>
+    <string name="insert_image">इमेज डालें</string>
+    <string name="table_edit">टेबल संपादित करें</string>
+    <string name="table_delete">टेबल हटाएं</string>
+    <string name="table_add_row">पंक्ति</string>
+    <string name="table_add_column">कॉलम</string>
+    <string name="table_remove_row">पंक्ति हटाएं</string>
+    <string name="table_remove_column">कॉलम हटाएं</string>
+    <string name="table_rows">पंक्तियां</string>
+    <string name="table_columns">कॉलम</string>
+    <string name="image_unsupported">यह इमेज नहीं दिखाई जा सकती</string>
+    <string name="sheet_freeze">पेन फ़्रीज़ करें</string>
+    <string name="sheet_unfreeze">पेन अनफ़्रीज़ करें</string>
+    <string name="sheet_filter">फ़िल्टर</string>
+    <string name="sheet_filter_all">सभी चुनें</string>
+    <string name="sheet_filter_clear">फ़िल्टर हटाएं</string>
+    <string name="sheet_filter_blank">(खाली)</string>
+    <string name="sheet_charts">चार्ट</string>
+    <string name="slide_add">नई स्लाइड</string>
+    <string name="slide_duplicate">डुप्लिकेट</string>
+    <string name="slide_delete">स्लाइड हटाएं</string>
+    <string name="slide_move_left">बाईं ओर ले जाएं</string>
+    <string name="slide_move_right">दाईं ओर ले जाएं</string>
+    <string name="new_presentation">प्रेज़ेंटेशन</string>
+    <string name="new_presentation_desc">शीर्षक और सामग्री लेआउट वाली स्लाइड</string>
     <plurals name="pdf_results">
         <item quantity="one">%d नतीजा</item>
         <item quantity="other">%d नतीजे</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d जगह बदला गया</item>
         <item quantity="other">%d जगह बदला गया</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d शब्द चुना गया</item>
+        <item quantity="other">%d शब्द चुने गए</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d पंक्ति छिपी है</item>
+        <item quantity="other">%d पंक्तियां छिपी हैं</item>
     </plurals>
 </resources>

@@ -17,6 +17,10 @@ object DocxImages {
         embed.media?.let { return it.bytes }
         if (pkg == null || embed.kind != EmbedKind.IMAGE) return null
         val root = runCatching { XmlParser.parse(embed.xml) }.getOrNull() ?: return null
+        // OpenDocument: <draw:frame><draw:image xlink:href="Pictures/…"/></draw:frame>
+        (if (root.localName == "image") root else root.descendants("image").firstOrNull())?.attr("xlink:href")?.let { href ->
+            return pkg.bytes(href.removePrefix("./"))
+        }
         val relId = root.descendants("blip").firstNotNullOfOrNull { it.attr("r:embed") ?: it.attr("embed") }
             ?: root.descendants("imagedata").firstNotNullOfOrNull { it.attr("r:id") }
             ?: return null
@@ -28,6 +32,11 @@ object DocxImages {
     /** Display size in EMU from `wp:extent`, if present. */
     fun extent(embed: Embed): Pair<Long, Long>? {
         val root = runCatching { XmlParser.parse(embed.xml) }.getOrNull() ?: return null
+        if (root.localName == "frame") {
+            val w = com.office.core.odf.Odf.toEmu(root.attr("svg:width")) ?: return null
+            val h = com.office.core.odf.Odf.toEmu(root.attr("svg:height")) ?: return null
+            return if (w > 0 && h > 0) w to h else null
+        }
         val ext = root.descendants("extent").firstOrNull() ?: return null
         val cx = ext.attr("cx")?.toLongOrNull() ?: return null
         val cy = ext.attr("cy")?.toLongOrNull() ?: return null

@@ -384,10 +384,43 @@
     <string name="tool_compare_second">第二个</string>
     <string name="tool_compare_same">文本没有差异。</string>
     <string name="tool_compare_summary">新增 %1$d 行，删除 %2$d 行</string>
+    <string name="pdf_contents">目录</string>
+    <string name="pdf_select_page">整页</string>
+    <string name="insert_table">插入表格</string>
+    <string name="insert_image">插入图片</string>
+    <string name="table_edit">编辑表格</string>
+    <string name="table_delete">删除表格</string>
+    <string name="table_add_row">行</string>
+    <string name="table_add_column">列</string>
+    <string name="table_remove_row">删除行</string>
+    <string name="table_remove_column">删除列</string>
+    <string name="table_rows">行数</string>
+    <string name="table_columns">列数</string>
+    <string name="image_unsupported">无法显示此图片</string>
+    <string name="sheet_freeze">冻结窗格</string>
+    <string name="sheet_unfreeze">取消冻结窗格</string>
+    <string name="sheet_filter">筛选</string>
+    <string name="sheet_filter_all">全选</string>
+    <string name="sheet_filter_clear">清除筛选</string>
+    <string name="sheet_filter_blank">(空白)</string>
+    <string name="sheet_charts">图表</string>
+    <string name="slide_add">新建幻灯片</string>
+    <string name="slide_duplicate">复制</string>
+    <string name="slide_delete">删除幻灯片</string>
+    <string name="slide_move_left">左移</string>
+    <string name="slide_move_right">右移</string>
+    <string name="new_presentation">演示文稿</string>
+    <string name="new_presentation_desc">带标题和内容版式的幻灯片</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 个匹配项</item>
     </plurals>
     <plurals name="replaced_count">
         <item quantity="other">已替换 %d 处</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="other">已选择 %d 个词</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="other">已隐藏 %d 行</item>
     </plurals>
 </resources>

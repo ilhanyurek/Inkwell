@@ -12,18 +12,16 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.LruCache
 import com.office.app.ui.slides.SlideRenderer
+import com.office.core.odf.OfficeReaders
 import com.office.core.FileKind
 import com.office.core.csv.Csv
-import com.office.core.docx.DocxReader
 import com.office.core.formula.FormulaEngine
-import com.office.core.pptx.PptxReader
 import com.office.core.sheet.CellRef
 import com.office.core.sheet.NumberFormat
 import com.office.core.sheet.Value
 import com.office.core.text.MarkdownCodec
 import com.office.core.text.ParagraphStyle
 import com.office.core.text.PlainTextCodec
-import com.office.core.xlsx.XlsxReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -63,7 +61,7 @@ class ThumbnailStore(private val context: Context) {
         return when (file.kind) {
             FileKind.PDF -> pdf(file)
             FileKind.PRESENTATION -> {
-                val pres = PptxReader.read(ByteArrayInputStream(bytes(file)))
+                val pres = OfficeReaders.presentation(ByteArrayInputStream(bytes(file)))
                 pres.slides.firstOrNull()?.let { SlideRenderer.thumbnail(pres, it, WIDTH) }
             }
             FileKind.SPREADSHEET, FileKind.CSV -> sheet(file)
@@ -97,7 +95,7 @@ class ThumbnailStore(private val context: Context) {
     private fun document(file: RecentFile): Bitmap {
         val data = bytes(file)
         val doc = when (file.kind) {
-            FileKind.DOCUMENT -> DocxReader.read(ByteArrayInputStream(data))
+            FileKind.DOCUMENT -> OfficeReaders.document(ByteArrayInputStream(data))
             FileKind.MARKDOWN -> MarkdownCodec.read(data)
             else -> PlainTextCodec.read(data)
         }
@@ -129,7 +127,7 @@ class ThumbnailStore(private val context: Context) {
 
     private fun sheet(file: RecentFile): Bitmap {
         val data = bytes(file)
-        val wb = if (file.kind == FileKind.CSV) Csv.toWorkbook(Csv.parse(data)) else XlsxReader.read(ByteArrayInputStream(data))
+        val wb = if (file.kind == FileKind.CSV) Csv.toWorkbook(Csv.parse(data)) else OfficeReaders.workbook(ByteArrayInputStream(data))
         val sheet = wb.sheets.first()
         val engine = FormulaEngine(wb)
         val bmp = Bitmap.createBitmap(WIDTH, (WIDTH * 0.8f).toInt(), Bitmap.Config.ARGB_8888)

@@ -81,8 +81,17 @@ class ZipPackage(val entries: Map<String, ByteArray>) {
 
         fun write(output: OutputStream, entries: List<Pair<String, ByteArray>>) {
             val zip = ZipOutputStream(output)
-            for ((name, data) in entries) {
-                zip.putNextEntry(ZipEntry(name))
+            // OpenDocument requires "mimetype" first and uncompressed; it is written that way when present.
+            val ordered = entries.sortedBy { if (it.first == "mimetype") 0 else 1 }
+            for ((name, data) in ordered) {
+                val entry = ZipEntry(name)
+                if (name == "mimetype") {
+                    entry.method = ZipEntry.STORED
+                    entry.size = data.size.toLong()
+                    entry.compressedSize = data.size.toLong()
+                    entry.crc = java.util.zip.CRC32().also { it.update(data) }.value
+                }
+                zip.putNextEntry(entry)
                 zip.write(data)
                 zip.closeEntry()
             }

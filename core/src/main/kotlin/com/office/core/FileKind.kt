@@ -3,31 +3,34 @@ package com.office.core
 /** The editors the app offers, chosen from a file's extension or MIME type. */
 enum class FileKind(val extensions: List<String>, val mimeTypes: List<String>) {
     DOCUMENT(
-        listOf("docx", "docm", "dotx"),
+        listOf("docx", "docm", "dotx", "odt"),
         listOf(
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.ms-word.document.macroEnabled.12",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+            "application/vnd.oasis.opendocument.text",
         ),
     ),
     TEXT(listOf("txt", "log", "ini", "json", "xml", "yaml", "yml"), listOf("text/plain", "application/json", "text/xml")),
     MARKDOWN(listOf("md", "markdown"), listOf("text/markdown", "text/x-markdown")),
     SPREADSHEET(
-        listOf("xlsx", "xlsm", "xltx"),
+        listOf("xlsx", "xlsm", "xltx", "ods"),
         listOf(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.ms-excel.sheet.macroEnabled.12",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+            "application/vnd.oasis.opendocument.spreadsheet",
         ),
     ),
     CSV(listOf("csv", "tsv"), listOf("text/csv", "text/comma-separated-values", "text/tab-separated-values", "application/csv")),
     PDF(listOf("pdf"), listOf("application/pdf")),
     PRESENTATION(
-        listOf("pptx", "ppsx", "potx"),
+        listOf("pptx", "ppsx", "potx", "odp"),
         listOf(
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
             "application/vnd.openxmlformats-officedocument.presentationml.template",
+            "application/vnd.oasis.opendocument.presentation",
         ),
     ),
     ;

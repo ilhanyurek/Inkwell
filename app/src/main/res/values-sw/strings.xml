@@ -384,6 +384,33 @@
     <string name="tool_compare_second">Ya pili</string>
     <string name="tool_compare_same">Hakuna tofauti kwenye maandishi.</string>
     <string name="tool_compare_summary">Mistari %1$d imeongezwa, %2$d imeondolewa</string>
+    <string name="pdf_contents">Yaliyomo</string>
+    <string name="pdf_select_page">Ukurasa mzima</string>
+    <string name="insert_table">Weka jedwali</string>
+    <string name="insert_image">Weka picha</string>
+    <string name="table_edit">Hariri jedwali</string>
+    <string name="table_delete">Futa jedwali</string>
+    <string name="table_add_row">Safu mlalo</string>
+    <string name="table_add_column">Safu wima</string>
+    <string name="table_remove_row">Ondoa safu mlalo</string>
+    <string name="table_remove_column">Ondoa safu wima</string>
+    <string name="table_rows">Safu mlalo</string>
+    <string name="table_columns">Safu wima</string>
+    <string name="image_unsupported">Picha hii haiwezi kuonyeshwa</string>
+    <string name="sheet_freeze">Gandisha vidirisha</string>
+    <string name="sheet_unfreeze">Achilia vidirisha</string>
+    <string name="sheet_filter">Chuja</string>
+    <string name="sheet_filter_all">Chagua zote</string>
+    <string name="sheet_filter_clear">Ondoa kichujio</string>
+    <string name="sheet_filter_blank">(Tupu)</string>
+    <string name="sheet_charts">Chati</string>
+    <string name="slide_add">Slaidi mpya</string>
+    <string name="slide_duplicate">Rudufu</string>
+    <string name="slide_delete">Futa slaidi</string>
+    <string name="slide_move_left">Sogeza kushoto</string>
+    <string name="slide_move_right">Sogeza kulia</string>
+    <string name="new_presentation">Wasilisho</string>
+    <string name="new_presentation_desc">Slaidi zenye mpangilio wa kichwa na maudhui</string>
     <plurals name="pdf_results">
         <item quantity="one">Kinacholingana %d</item>
         <item quantity="other">Vinavyolingana %d</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">Imebadilishwa mahali %d</item>
         <item quantity="other">Imebadilishwa mahali %d</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">Neno %d limechaguliwa</item>
+        <item quantity="other">Maneno %d yamechaguliwa</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">Safu %d imefichwa</item>
+        <item quantity="other">Safu %d zimefichwa</item>
     </plurals>
 </resources>

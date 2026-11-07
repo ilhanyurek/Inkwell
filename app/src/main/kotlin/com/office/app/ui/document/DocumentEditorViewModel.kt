@@ -23,6 +23,9 @@ import com.office.core.docx.DocxImages
 import com.office.core.docx.DocxReader
 import com.office.core.docx.DocxTable
 import com.office.core.docx.DocxWriter
+import com.office.core.odf.Odf
+import com.office.core.odf.OdtReader
+import com.office.core.odf.OdtWriter
 import com.office.core.text.Embed
 import com.office.core.text.TextDocument
 import com.office.core.zip.ZipPackage
@@ -98,6 +101,13 @@ class DocumentEditorViewModel(
         private set
 
     val supportsRichFormatting get() = kind == FileKind.DOCUMENT
+
+    /** The document is OpenDocument text (.odt) rather than Word; it is saved in the same format. */
+    var isOdf by mutableStateOf(info?.name?.substringAfterLast('.', "")?.lowercase() == "odt")
+        private set
+
+    /** Inserting and editing tables and pictures works on Word documents. */
+    val supportsBlockEditing get() = kind == FileKind.DOCUMENT && !isOdf
     val supportsMarkdownFormatting get() = kind == FileKind.MARKDOWN
 
     /** Keeps an unsaved copy in app storage a few seconds after each change. */
@@ -133,7 +143,9 @@ class DocumentEditorViewModel(
     private fun parse(bytes: ByteArray): TextDocument = when (kind) {
         FileKind.DOCUMENT -> ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
             originalPackage = pkg
-            DocxReader.read(pkg)
+            val odf = Odf.isOdf(pkg)
+            viewModelScope.launch { isOdf = odf }
+            if (odf) OdtReader.read(pkg) else DocxReader.read(pkg)
         }
         FileKind.MARKDOWN -> MarkdownCodec.read(bytes)
         else -> PlainTextCodec.read(bytes)
@@ -409,17 +421,19 @@ class DocumentEditorViewModel(
 
     // --- saving ---------------------------------------------------------------------------
 
-    val mimeType: String get() = kind.primaryMime
+    val mimeType: String get() = if (isOdf) Odf.ODT_MIME else kind.primaryMime
 
     fun suggestedName(base: String): String {
         val stem = fileName?.substringBeforeLast('.') ?: base
-        return "$stem.${kind.primaryExtension}"
+        return "$stem.${if (isOdf) "odt" else kind.primaryExtension}"
     }
 
     private fun serialize(targetKind: FileKind = kind): ByteArray {
         val doc = currentDocument()
         return when (targetKind) {
-            FileKind.DOCUMENT -> ByteArrayOutputStream().also { DocxWriter.write(doc, it, originalPackage) }.toByteArray()
+            FileKind.DOCUMENT -> ByteArrayOutputStream().also {
+                if (isOdf) OdtWriter.write(doc, it, originalPackage) else DocxWriter.write(doc, it, originalPackage)
+            }.toByteArray()
             FileKind.MARKDOWN -> MarkdownCodec.write(doc)
             else -> PlainTextCodec.write(doc)
         }

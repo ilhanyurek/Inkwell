@@ -215,7 +215,7 @@ fun DocumentEditorScreen(
                         }
                         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_find_replace)) }, onClick = { menuOpen = false; showFind = true })
-                            if (vm.supportsRichFormatting) {
+                            if (vm.supportsBlockEditing) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.insert_table)) },
                                     onClick = { menuOpen = false; showInsertTable = true },
@@ -315,7 +315,7 @@ fun DocumentEditorScreen(
                                 val place = Modifier.offset(x = 22.dp, y = 18.dp + top)
                                 key(a.offset, a.embedId) {
                                     if (embed.kind == EmbedKind.TABLE) {
-                                        TableBlock(embed, contentWidth, onClick = { editingBlock = a.offset to a.embedId }, modifier = place.testTag("doc_table_${tables++}"))
+                                        TableBlock(embed, contentWidth, onClick = { if (vm.supportsBlockEditing) editingBlock = a.offset to a.embedId }, modifier = place.testTag("doc_table_${tables++}"))
                                     } else {
                                         ImageBlock(
                                             rememberEmbedBitmap(vm, a.embedId),
@@ -665,7 +665,7 @@ private fun embedLabeler(): (Embed) -> String {
 /** When the caret sits next to a table that is not drawn in place, offers to edit it. */
 @Composable
 private fun EmbedBar(vm: DocumentEditorViewModel, onEdit: (offset: Int, id: Int) -> Unit) {
-    if (!vm.supportsRichFormatting) return
+    if (!vm.supportsBlockEditing) return
     val sel = vm.value.selection
     val hit = listOf(sel.start - 1, sel.start)
         .firstOrNull { o -> vm.model.styles.getOrNull(o)?.embedId?.let { vm.embeds[it]?.kind == EmbedKind.TABLE } == true } ?: return

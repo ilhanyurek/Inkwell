@@ -384,6 +384,33 @@
     <string name="tool_compare_second">دوم</string>
     <string name="tool_compare_same">تفاوتی در متن نیست.</string>
     <string name="tool_compare_summary">%1$d خط اضافه و %2$d خط حذف شد</string>
+    <string name="pdf_contents">فهرست</string>
+    <string name="pdf_select_page">کل صفحه</string>
+    <string name="insert_table">درج جدول</string>
+    <string name="insert_image">درج تصویر</string>
+    <string name="table_edit">ویرایش جدول</string>
+    <string name="table_delete">حذف جدول</string>
+    <string name="table_add_row">سطر</string>
+    <string name="table_add_column">ستون</string>
+    <string name="table_remove_row">حذف سطر</string>
+    <string name="table_remove_column">حذف ستون</string>
+    <string name="table_rows">سطرها</string>
+    <string name="table_columns">ستون‌ها</string>
+    <string name="image_unsupported">نمایش این تصویر ممکن نیست</string>
+    <string name="sheet_freeze">ثابت کردن بخش‌ها</string>
+    <string name="sheet_unfreeze">آزاد کردن بخش‌ها</string>
+    <string name="sheet_filter">فیلتر</string>
+    <string name="sheet_filter_all">انتخاب همه</string>
+    <string name="sheet_filter_clear">حذف فیلتر</string>
+    <string name="sheet_filter_blank">(خالی)</string>
+    <string name="sheet_charts">نمودارها</string>
+    <string name="slide_add">اسلاید جدید</string>
+    <string name="slide_duplicate">تکثیر</string>
+    <string name="slide_delete">حذف اسلاید</string>
+    <string name="slide_move_left">انتقال به چپ</string>
+    <string name="slide_move_right">انتقال به راست</string>
+    <string name="new_presentation">ارائه</string>
+    <string name="new_presentation_desc">اسلایدهایی با چیدمان عنوان و محتوا</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجه</item>
         <item quantity="other">%d نتیجه</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d مورد جایگزین شد</item>
         <item quantity="other">%d مورد جایگزین شد</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d کلمه انتخاب شد</item>
+        <item quantity="other">%d کلمه انتخاب شد</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d سطر پنهان</item>
+        <item quantity="other">%d سطر پنهان</item>
     </plurals>
 </resources>

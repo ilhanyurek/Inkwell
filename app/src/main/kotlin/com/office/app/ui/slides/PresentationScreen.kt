@@ -103,6 +103,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.platform.testTag
 import com.office.core.pptx.PptxSlides
+import com.office.core.odf.Odf
+import com.office.core.odf.OdpReader
 import com.office.core.pptx.PptxReader
 import com.office.core.zip.ZipPackage
 import com.office.core.pptx.Presentation
@@ -131,6 +133,10 @@ class PresentationViewModel(private val container: AppContainer, val uri: Uri) :
     var canUndo by mutableStateOf(false)
         private set
 
+    /** OpenDocument presentations are shown but not edited. */
+    @Volatile var readOnly = false
+        private set
+
     init {
         viewModelScope.launch {
             runCatching {
@@ -138,7 +144,12 @@ class PresentationViewModel(private val container: AppContainer, val uri: Uri) :
                 withContext(Dispatchers.Default) {
                     val p = ZipPackage.read(ByteArrayInputStream(bytes))
                     pkg = p
-                    PptxReader.read(p)
+                    if (Odf.isOdf(p)) {
+                        readOnly = true
+                        OdpReader.read(p)
+                    } else {
+                        PptxReader.read(p)
+                    }
                 }
             }.onSuccess { presentation = it }.onFailure { error = it.message ?: it.javaClass.simpleName }
         }
@@ -300,7 +311,7 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                     if (vm.dirty) {
                         IconButton(onClick = ::requestSave, enabled = !vm.busy) { Icon(Icons.Outlined.Save, stringResource(R.string.action_save)) }
                     }
-                    IconButton(onClick = { editing = !editing }) {
+                    if (!vm.readOnly) IconButton(onClick = { editing = !editing }) {
                         Icon(
                             if (editing) Icons.Default.EditOff else Icons.Default.Edit,
                             stringResource(if (editing) R.string.slide_edit_done else R.string.slide_edit),
@@ -386,7 +397,7 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                                             )
                                             .combinedClickable(
                                                 onClick = { scope.launch { pager.animateScrollToPage(i) } },
-                                                onLongClick = { slideMenu = i },
+                                                onLongClick = { if (!vm.readOnly) slideMenu = i },
                                             )
                                             .testTag("slide_thumb_$i"),
                                         thumbnail = true,
@@ -396,7 +407,11 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                                             slideMenu = null
                                             vm.changeSlides(op) { scope.launch { pager.scrollToPage(page) } }
                                         }
-                                        DropdownMenuItem(text = { Text(stringResource(R.string.slide_add)) }, onClick = { go(i + 1) { PptxSlides.addSlide(it, i) } })
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.slide_add)) },
+                                            onClick = { go(i + 1) { PptxSlides.addSlide(it, i) } },
+                                            modifier = Modifier.testTag("slide_menu_add"),
+                                        )
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.slide_duplicate)) },
                                             onClick = { go(i + 1) { PptxSlides.duplicate(it, i) } },
@@ -427,7 +442,7 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                                 )
                             }
                         }
-                        item {
+                        if (!vm.readOnly) item {
                             Box(
                                 Modifier
                                     .width(96.dp)

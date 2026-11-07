@@ -384,6 +384,33 @@
     <string name="tool_compare_second">دوسری</string>
     <string name="tool_compare_same">متن میں کوئی فرق نہیں۔</string>
     <string name="tool_compare_summary">%1$d سطریں شامل، %2$d حذف</string>
+    <string name="pdf_contents">فہرست</string>
+    <string name="pdf_select_page">پورا صفحہ</string>
+    <string name="insert_table">جدول داخل کریں</string>
+    <string name="insert_image">تصویر داخل کریں</string>
+    <string name="table_edit">جدول میں ترمیم کریں</string>
+    <string name="table_delete">جدول حذف کریں</string>
+    <string name="table_add_row">قطار</string>
+    <string name="table_add_column">کالم</string>
+    <string name="table_remove_row">قطار ہٹائیں</string>
+    <string name="table_remove_column">کالم ہٹائیں</string>
+    <string name="table_rows">قطاریں</string>
+    <string name="table_columns">کالم</string>
+    <string name="image_unsupported">یہ تصویر نہیں دکھائی جا سکتی</string>
+    <string name="sheet_freeze">پین منجمد کریں</string>
+    <string name="sheet_unfreeze">پین غیر منجمد کریں</string>
+    <string name="sheet_filter">فلٹر</string>
+    <string name="sheet_filter_all">سب منتخب کریں</string>
+    <string name="sheet_filter_clear">فلٹر ہٹائیں</string>
+    <string name="sheet_filter_blank">(خالی)</string>
+    <string name="sheet_charts">چارٹس</string>
+    <string name="slide_add">نئی سلائیڈ</string>
+    <string name="slide_duplicate">نقل بنائیں</string>
+    <string name="slide_delete">سلائیڈ حذف کریں</string>
+    <string name="slide_move_left">بائیں منتقل کریں</string>
+    <string name="slide_move_right">دائیں منتقل کریں</string>
+    <string name="new_presentation">پریزنٹیشن</string>
+    <string name="new_presentation_desc">عنوان اور مواد والی سلائیڈز</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجہ</item>
         <item quantity="other">%d نتائج</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d جگہ بدلا گیا</item>
         <item quantity="other">%d جگہ بدلا گیا</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d لفظ منتخب</item>
+        <item quantity="other">%d الفاظ منتخب</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d قطار چھپی ہوئی</item>
+        <item quantity="other">%d قطاریں چھپی ہوئی</item>
     </plurals>
 </resources>

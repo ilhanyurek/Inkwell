@@ -101,7 +101,8 @@ class RealFilesTest {
             rule.onNodeWithTag("slide_thumb_0").performTouchInput { longClick() }
             rule.onNodeWithTag("slide_duplicate").performClick()
             rule.waitForText(str(R.string.slide_of, 2, 4))
-            rule.onNodeWithTag("slide_add").performClick()
+            rule.onNodeWithTag("slide_thumb_1").performTouchInput { longClick() }
+            rule.onNodeWithTag("slide_menu_add").performClick()
             rule.waitForText(str(R.string.slide_of, 3, 5))
             rule.onNodeWithTag("slide_thumb_0").performTouchInput { longClick() }
             rule.onNodeWithTag("slide_delete").performClick()
@@ -110,6 +111,24 @@ class RealFilesTest {
             rule.onNodeWithContentDescription(str(R.string.action_save)).assertExists()
         }
     }
+
+    @Test fun openDocumentText() = open(
+        "report.odt", "application/vnd.oasis.opendocument.text",
+        "Quarterly Report", "İzmir sales doubled", "City", "Centered closing line.",
+        shot = "27_real_odt",
+    )
+
+    @Test fun openDocumentSpreadsheet() = open(
+        "budget.ods", "application/vnd.oasis.opendocument.spreadsheet",
+        "Kalem", "Defter", "Sales", "Notes", "1750",
+        shot = "28_real_ods",
+    )
+
+    @Test fun openDocumentPresentation() = open(
+        "deck.odp", "application/vnd.oasis.opendocument.presentation",
+        "Inkwell Deck", str(R.string.slide_of, 1, 3),
+        shot = "29_real_odp",
+    )
 
     @Test fun pdfForm() = open(
         "form.pdf", "application/pdf",

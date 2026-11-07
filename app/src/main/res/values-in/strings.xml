@@ -384,10 +384,43 @@
     <string name="tool_compare_second">Kedua</string>
     <string name="tool_compare_same">Tidak ada perbedaan teks.</string>
     <string name="tool_compare_summary">%1$d baris ditambahkan, %2$d dihapus</string>
+    <string name="pdf_contents">Daftar isi</string>
+    <string name="pdf_select_page">Seluruh halaman</string>
+    <string name="insert_table">Sisipkan tabel</string>
+    <string name="insert_image">Sisipkan gambar</string>
+    <string name="table_edit">Edit tabel</string>
+    <string name="table_delete">Hapus tabel</string>
+    <string name="table_add_row">Baris</string>
+    <string name="table_add_column">Kolom</string>
+    <string name="table_remove_row">Hapus baris</string>
+    <string name="table_remove_column">Hapus kolom</string>
+    <string name="table_rows">Baris</string>
+    <string name="table_columns">Kolom</string>
+    <string name="image_unsupported">Gambar ini tidak dapat ditampilkan</string>
+    <string name="sheet_freeze">Bekukan panel</string>
+    <string name="sheet_unfreeze">Lepas panel</string>
+    <string name="sheet_filter">Filter</string>
+    <string name="sheet_filter_all">Pilih semua</string>
+    <string name="sheet_filter_clear">Hapus filter</string>
+    <string name="sheet_filter_blank">(Kosong)</string>
+    <string name="sheet_charts">Diagram</string>
+    <string name="slide_add">Slide baru</string>
+    <string name="slide_duplicate">Duplikat</string>
+    <string name="slide_delete">Hapus slide</string>
+    <string name="slide_move_left">Pindah ke kiri</string>
+    <string name="slide_move_right">Pindah ke kanan</string>
+    <string name="new_presentation">Presentasi</string>
+    <string name="new_presentation_desc">Slide dengan tata letak judul dan konten</string>
     <plurals name="pdf_results">
         <item quantity="other">%d hasil</item>
     </plurals>
     <plurals name="replaced_count">
         <item quantity="other">%d kemunculan diganti</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="other">%d kata dipilih</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="other">%d baris disembunyikan</item>
     </plurals>
 </resources>

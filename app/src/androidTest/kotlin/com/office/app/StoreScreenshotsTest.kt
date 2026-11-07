@@ -40,7 +40,7 @@ class StoreScreenshotsTest {
 
         open("Quarterly Report.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
             rule.waitForText("Q3 2026 Business Review")
-            rule.waitForText("${str(R.string.embed_table)} 4×3")
+            rule.waitForText("North America")
             rule.screenshot("store_2_document")
         }
         open("Budget 2026.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {

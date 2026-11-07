@@ -384,10 +384,43 @@
     <string name="tool_compare_second">두 번째</string>
     <string name="tool_compare_same">텍스트에 차이가 없습니다.</string>
     <string name="tool_compare_summary">%1$d줄 추가, %2$d줄 삭제</string>
+    <string name="pdf_contents">목차</string>
+    <string name="pdf_select_page">전체 페이지</string>
+    <string name="insert_table">표 삽입</string>
+    <string name="insert_image">이미지 삽입</string>
+    <string name="table_edit">표 편집</string>
+    <string name="table_delete">표 삭제</string>
+    <string name="table_add_row">행</string>
+    <string name="table_add_column">열</string>
+    <string name="table_remove_row">행 삭제</string>
+    <string name="table_remove_column">열 삭제</string>
+    <string name="table_rows">행 수</string>
+    <string name="table_columns">열 수</string>
+    <string name="image_unsupported">이 이미지를 표시할 수 없습니다</string>
+    <string name="sheet_freeze">틀 고정</string>
+    <string name="sheet_unfreeze">틀 고정 취소</string>
+    <string name="sheet_filter">필터</string>
+    <string name="sheet_filter_all">모두 선택</string>
+    <string name="sheet_filter_clear">필터 해제</string>
+    <string name="sheet_filter_blank">(빈 셀)</string>
+    <string name="sheet_charts">차트</string>
+    <string name="slide_add">새 슬라이드</string>
+    <string name="slide_duplicate">복제</string>
+    <string name="slide_delete">슬라이드 삭제</string>
+    <string name="slide_move_left">왼쪽으로 이동</string>
+    <string name="slide_move_right">오른쪽으로 이동</string>
+    <string name="new_presentation">프레젠테이션</string>
+    <string name="new_presentation_desc">제목 및 내용 레이아웃의 슬라이드</string>
     <plurals name="pdf_results">
         <item quantity="other">일치 항목 %d개</item>
     </plurals>
     <plurals name="replaced_count">
         <item quantity="other">%d개 항목을 바꿨습니다</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="other">단어 %d개 선택됨</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="other">행 %d개 숨김</item>
     </plurals>
 </resources>

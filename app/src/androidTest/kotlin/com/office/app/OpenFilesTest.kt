@@ -185,15 +185,15 @@ class OpenFilesTest {
             }
             rule.waitUntil(10_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_copy")).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("pdf_copy").performClick()
-            val clip = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().let { inst ->
+            fun clip(): String {
                 var text = ""
-                inst.runOnMainSync {
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync {
                     val cm = targetContext.getSystemService(android.content.ClipboardManager::class.java)
                     text = cm.primaryClip?.getItemAt(0)?.text?.toString().orEmpty()
                 }
-                text
+                return text
             }
-            org.junit.Assert.assertTrue(clip, clip.contains("Application"))
+            rule.waitUntil(10_000) { clip().contains("Application") }
         }
     }
 }

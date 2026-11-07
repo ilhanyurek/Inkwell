@@ -384,6 +384,33 @@
     <string name="tool_compare_second">Zweite</string>
     <string name="tool_compare_same">Keine Unterschiede im Text.</string>
     <string name="tool_compare_summary">%1$d Zeilen hinzugefügt, %2$d entfernt</string>
+    <string name="pdf_contents">Inhalt</string>
+    <string name="pdf_select_page">Ganze Seite</string>
+    <string name="insert_table">Tabelle einfügen</string>
+    <string name="insert_image">Bild einfügen</string>
+    <string name="table_edit">Tabelle bearbeiten</string>
+    <string name="table_delete">Tabelle löschen</string>
+    <string name="table_add_row">Zeile</string>
+    <string name="table_add_column">Spalte</string>
+    <string name="table_remove_row">Zeile entfernen</string>
+    <string name="table_remove_column">Spalte entfernen</string>
+    <string name="table_rows">Zeilen</string>
+    <string name="table_columns">Spalten</string>
+    <string name="image_unsupported">Dieses Bild kann nicht angezeigt werden</string>
+    <string name="sheet_freeze">Fenster fixieren</string>
+    <string name="sheet_unfreeze">Fixierung aufheben</string>
+    <string name="sheet_filter">Filter</string>
+    <string name="sheet_filter_all">Alle auswählen</string>
+    <string name="sheet_filter_clear">Filter entfernen</string>
+    <string name="sheet_filter_blank">(Leer)</string>
+    <string name="sheet_charts">Diagramme</string>
+    <string name="slide_add">Neue Folie</string>
+    <string name="slide_duplicate">Duplizieren</string>
+    <string name="slide_delete">Folie löschen</string>
+    <string name="slide_move_left">Nach links</string>
+    <string name="slide_move_right">Nach rechts</string>
+    <string name="new_presentation">Präsentation</string>
+    <string name="new_presentation_desc">Folien mit Titel- und Inhaltslayout</string>
     <plurals name="pdf_results">
         <item quantity="one">%d Treffer</item>
         <item quantity="other">%d Treffer</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d Vorkommen ersetzt</item>
         <item quantity="other">%d Vorkommen ersetzt</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d Wort ausgewählt</item>
+        <item quantity="other">%d Wörter ausgewählt</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d Zeile ausgeblendet</item>
+        <item quantity="other">%d Zeilen ausgeblendet</item>
     </plurals>
 </resources>

@@ -384,6 +384,33 @@
     <string name="tool_compare_second">Segundo</string>
     <string name="tool_compare_same">Nenhuma diferença no texto.</string>
     <string name="tool_compare_summary">%1$d linhas adicionadas, %2$d removidas</string>
+    <string name="pdf_contents">Sumário</string>
+    <string name="pdf_select_page">Página inteira</string>
+    <string name="insert_table">Inserir tabela</string>
+    <string name="insert_image">Inserir imagem</string>
+    <string name="table_edit">Editar tabela</string>
+    <string name="table_delete">Excluir tabela</string>
+    <string name="table_add_row">Linha</string>
+    <string name="table_add_column">Coluna</string>
+    <string name="table_remove_row">Remover linha</string>
+    <string name="table_remove_column">Remover coluna</string>
+    <string name="table_rows">Linhas</string>
+    <string name="table_columns">Colunas</string>
+    <string name="image_unsupported">Não é possível mostrar esta imagem</string>
+    <string name="sheet_freeze">Congelar painéis</string>
+    <string name="sheet_unfreeze">Descongelar painéis</string>
+    <string name="sheet_filter">Filtrar</string>
+    <string name="sheet_filter_all">Selecionar tudo</string>
+    <string name="sheet_filter_clear">Limpar filtro</string>
+    <string name="sheet_filter_blank">(Vazias)</string>
+    <string name="sheet_charts">Gráficos</string>
+    <string name="slide_add">Novo slide</string>
+    <string name="slide_duplicate">Duplicar</string>
+    <string name="slide_delete">Excluir slide</string>
+    <string name="slide_move_left">Mover para a esquerda</string>
+    <string name="slide_move_right">Mover para a direita</string>
+    <string name="new_presentation">Apresentação</string>
+    <string name="new_presentation_desc">Slides com layouts de título e conteúdo</string>
     <plurals name="pdf_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d ocorrência substituída</item>
         <item quantity="other">%d ocorrências substituídas</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d palavra selecionada</item>
+        <item quantity="other">%d palavras selecionadas</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d linha oculta</item>
+        <item quantity="other">%d linhas ocultas</item>
     </plurals>
 </resources>

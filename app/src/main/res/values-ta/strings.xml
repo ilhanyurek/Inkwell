@@ -384,6 +384,33 @@
     <string name="tool_compare_second">இரண்டாவது</string>
     <string name="tool_compare_same">உரையில் வேறுபாடுகள் இல்லை.</string>
     <string name="tool_compare_summary">%1$d வரிகள் சேர்க்கப்பட்டன, %2$d நீக்கப்பட்டன</string>
+    <string name="pdf_contents">உள்ளடக்கம்</string>
+    <string name="pdf_select_page">முழுப் பக்கம்</string>
+    <string name="insert_table">அட்டவணை சேர்</string>
+    <string name="insert_image">படம் சேர்</string>
+    <string name="table_edit">அட்டவணையைத் திருத்து</string>
+    <string name="table_delete">அட்டவணையை நீக்கு</string>
+    <string name="table_add_row">வரிசை</string>
+    <string name="table_add_column">நெடுவரிசை</string>
+    <string name="table_remove_row">வரிசையை நீக்கு</string>
+    <string name="table_remove_column">நெடுவரிசையை நீக்கு</string>
+    <string name="table_rows">வரிசைகள்</string>
+    <string name="table_columns">நெடுவரிசைகள்</string>
+    <string name="image_unsupported">இந்தப் படத்தைக் காட்ட முடியாது</string>
+    <string name="sheet_freeze">பலகங்களை உறைய வை</string>
+    <string name="sheet_unfreeze">பலகங்களை விடுவி</string>
+    <string name="sheet_filter">வடிகட்டு</string>
+    <string name="sheet_filter_all">அனைத்தையும் தேர்ந்தெடு</string>
+    <string name="sheet_filter_clear">வடிகட்டியை நீக்கு</string>
+    <string name="sheet_filter_blank">(காலி)</string>
+    <string name="sheet_charts">விளக்கப்படங்கள்</string>
+    <string name="slide_add">புதிய ஸ்லைடு</string>
+    <string name="slide_duplicate">நகலெடு</string>
+    <string name="slide_delete">ஸ்லைடை நீக்கு</string>
+    <string name="slide_move_left">இடப்புறம் நகர்த்து</string>
+    <string name="slide_move_right">வலப்புறம் நகர்த்து</string>
+    <string name="new_presentation">விளக்கக்காட்சி</string>
+    <string name="new_presentation_desc">தலைப்பு மற்றும் உள்ளடக்க அமைப்புடன் ஸ்லைடுகள்</string>
     <plurals name="pdf_results">
         <item quantity="one">%d பொருத்தம்</item>
         <item quantity="other">%d பொருத்தங்கள்</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d இடத்தில் மாற்றப்பட்டது</item>
         <item quantity="other">%d இடங்களில் மாற்றப்பட்டது</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d சொல் தேர்ந்தெடுக்கப்பட்டது</item>
+        <item quantity="other">%d சொற்கள் தேர்ந்தெடுக்கப்பட்டன</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d வரிசை மறைக்கப்பட்டது</item>
+        <item quantity="other">%d வரிசைகள் மறைக்கப்பட்டன</item>
     </plurals>
 </resources>

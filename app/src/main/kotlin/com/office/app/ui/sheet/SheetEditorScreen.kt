@@ -226,7 +226,7 @@ fun SheetEditorScreen(
                                 onClick = { menuOpen = false; if (vm.editing) vm.commitEdit(move = false); showFilter = true },
                                 modifier = Modifier.testTag("menu_filter"),
                             )
-                            if (!vm.isCsv) {
+                            if (!vm.isCsv && !vm.isOdf) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(if (vm.isFrozen) R.string.sheet_unfreeze else R.string.sheet_freeze)) },
                                     onClick = {

@@ -384,6 +384,33 @@
     <string name="tool_compare_second">الثاني</string>
     <string name="tool_compare_same">لا توجد اختلافات في النص.</string>
     <string name="tool_compare_summary">أُضيف %1$d سطر وحُذف %2$d</string>
+    <string name="pdf_contents">المحتويات</string>
+    <string name="pdf_select_page">الصفحة كاملة</string>
+    <string name="insert_table">إدراج جدول</string>
+    <string name="insert_image">إدراج صورة</string>
+    <string name="table_edit">تعديل الجدول</string>
+    <string name="table_delete">حذف الجدول</string>
+    <string name="table_add_row">صف</string>
+    <string name="table_add_column">عمود</string>
+    <string name="table_remove_row">إزالة الصف</string>
+    <string name="table_remove_column">إزالة العمود</string>
+    <string name="table_rows">الصفوف</string>
+    <string name="table_columns">الأعمدة</string>
+    <string name="image_unsupported">تعذّر عرض هذه الصورة</string>
+    <string name="sheet_freeze">تجميد الأجزاء</string>
+    <string name="sheet_unfreeze">إلغاء تجميد الأجزاء</string>
+    <string name="sheet_filter">تصفية</string>
+    <string name="sheet_filter_all">تحديد الكل</string>
+    <string name="sheet_filter_clear">مسح التصفية</string>
+    <string name="sheet_filter_blank">(فارغة)</string>
+    <string name="sheet_charts">المخططات</string>
+    <string name="slide_add">شريحة جديدة</string>
+    <string name="slide_duplicate">تكرار</string>
+    <string name="slide_delete">حذف الشريحة</string>
+    <string name="slide_move_left">نقل لليسار</string>
+    <string name="slide_move_right">نقل لليمين</string>
+    <string name="new_presentation">عرض تقديمي</string>
+    <string name="new_presentation_desc">شرائح بتخطيط عنوان ومحتوى</string>
     <plurals name="pdf_results">
         <item quantity="zero">لا توجد نتائج (%d)</item>
         <item quantity="one">نتيجة واحدة (%d)</item>
@@ -399,5 +426,21 @@
         <item quantity="few">تم استبدال %d تطابقات</item>
         <item quantity="many">تم استبدال %d تطابقًا</item>
         <item quantity="other">تم استبدال %d تطابق</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="zero">لم تُحدَّد أي كلمة (%d)</item>
+        <item quantity="one">تم تحديد كلمة واحدة (%d)</item>
+        <item quantity="two">تم تحديد كلمتين (%d)</item>
+        <item quantity="few">تم تحديد %d كلمات</item>
+        <item quantity="many">تم تحديد %d كلمة</item>
+        <item quantity="other">تم تحديد %d كلمة</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="zero">لا صفوف مخفية (%d)</item>
+        <item quantity="one">صف واحد مخفي (%d)</item>
+        <item quantity="two">صفان مخفيان (%d)</item>
+        <item quantity="few">%d صفوف مخفية</item>
+        <item quantity="many">%d صفًا مخفيًا</item>
+        <item quantity="other">%d صف مخفي</item>
     </plurals>
 </resources>

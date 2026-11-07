@@ -384,6 +384,33 @@
     <string name="tool_compare_second">Segundo</string>
     <string name="tool_compare_same">No hay diferencias en el texto.</string>
     <string name="tool_compare_summary">%1$d líneas añadidas, %2$d eliminadas</string>
+    <string name="pdf_contents">Contenido</string>
+    <string name="pdf_select_page">Página completa</string>
+    <string name="insert_table">Insertar tabla</string>
+    <string name="insert_image">Insertar imagen</string>
+    <string name="table_edit">Editar tabla</string>
+    <string name="table_delete">Eliminar tabla</string>
+    <string name="table_add_row">Fila</string>
+    <string name="table_add_column">Columna</string>
+    <string name="table_remove_row">Quitar fila</string>
+    <string name="table_remove_column">Quitar columna</string>
+    <string name="table_rows">Filas</string>
+    <string name="table_columns">Columnas</string>
+    <string name="image_unsupported">Esta imagen no se puede mostrar</string>
+    <string name="sheet_freeze">Inmovilizar paneles</string>
+    <string name="sheet_unfreeze">Movilizar paneles</string>
+    <string name="sheet_filter">Filtrar</string>
+    <string name="sheet_filter_all">Seleccionar todo</string>
+    <string name="sheet_filter_clear">Quitar filtro</string>
+    <string name="sheet_filter_blank">(Vacías)</string>
+    <string name="sheet_charts">Gráficos</string>
+    <string name="slide_add">Nueva diapositiva</string>
+    <string name="slide_duplicate">Duplicar</string>
+    <string name="slide_delete">Eliminar diapositiva</string>
+    <string name="slide_move_left">Mover a la izquierda</string>
+    <string name="slide_move_right">Mover a la derecha</string>
+    <string name="new_presentation">Presentación</string>
+    <string name="new_presentation_desc">Diapositivas con diseños de título y contenido</string>
     <plurals name="pdf_results">
         <item quantity="one">%d coincidencia</item>
         <item quantity="other">%d coincidencias</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">Se reemplazó %d coincidencia</item>
         <item quantity="other">Se reemplazaron %d coincidencias</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d palabra seleccionada</item>
+        <item quantity="other">%d palabras seleccionadas</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d fila oculta</item>
+        <item quantity="other">%d filas ocultas</item>
     </plurals>
 </resources>

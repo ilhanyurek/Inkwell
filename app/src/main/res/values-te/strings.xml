@@ -384,6 +384,33 @@
     <string name="tool_compare_second">రెండవది</string>
     <string name="tool_compare_same">టెక్స్ట్‌లో తేడాలు లేవు.</string>
     <string name="tool_compare_summary">%1$d పంక్తులు చేరాయి, %2$d తొలగించబడ్డాయి</string>
+    <string name="pdf_contents">విషయ సూచిక</string>
+    <string name="pdf_select_page">పూర్తి పేజీ</string>
+    <string name="insert_table">పట్టికను చొప్పించు</string>
+    <string name="insert_image">చిత్రాన్ని చొప్పించు</string>
+    <string name="table_edit">పట్టికను సవరించు</string>
+    <string name="table_delete">పట్టికను తొలగించు</string>
+    <string name="table_add_row">వరుస</string>
+    <string name="table_add_column">నిలువు వరుస</string>
+    <string name="table_remove_row">వరుసను తీసివేయి</string>
+    <string name="table_remove_column">నిలువు వరుసను తీసివేయి</string>
+    <string name="table_rows">వరుసలు</string>
+    <string name="table_columns">నిలువు వరుసలు</string>
+    <string name="image_unsupported">ఈ చిత్రాన్ని చూపించలేము</string>
+    <string name="sheet_freeze">పేన్‌లను స్తంభింపజేయి</string>
+    <string name="sheet_unfreeze">పేన్‌లను విడుదల చేయి</string>
+    <string name="sheet_filter">ఫిల్టర్</string>
+    <string name="sheet_filter_all">అన్నీ ఎంచుకో</string>
+    <string name="sheet_filter_clear">ఫిల్టర్ తీసివేయి</string>
+    <string name="sheet_filter_blank">(ఖాళీ)</string>
+    <string name="sheet_charts">చార్ట్‌లు</string>
+    <string name="slide_add">కొత్త స్లైడ్</string>
+    <string name="slide_duplicate">నకిలీ చేయి</string>
+    <string name="slide_delete">స్లైడ్‌ను తొలగించు</string>
+    <string name="slide_move_left">ఎడమకు జరుపు</string>
+    <string name="slide_move_right">కుడికి జరుపు</string>
+    <string name="new_presentation">ప్రెజెంటేషన్</string>
+    <string name="new_presentation_desc">శీర్షిక మరియు కంటెంట్ లేఅవుట్‌లతో స్లైడ్‌లు</string>
     <plurals name="pdf_results">
         <item quantity="one">%d సరిపోలిక</item>
         <item quantity="other">%d సరిపోలికలు</item>
@@ -391,5 +418,13 @@
     <plurals name="replaced_count">
         <item quantity="one">%d చోట భర్తీ చేయబడింది</item>
         <item quantity="other">%d చోట్ల భర్తీ చేయబడింది</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d పదం ఎంచుకోబడింది</item>
+        <item quantity="other">%d పదాలు ఎంచుకోబడ్డాయి</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d వరుస దాచబడింది</item>
+        <item quantity="other">%d వరుసలు దాచబడ్డాయి</item>
     </plurals>
 </resources>

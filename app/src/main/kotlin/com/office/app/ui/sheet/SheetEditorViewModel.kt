@@ -29,6 +29,9 @@ import com.office.core.sheet.Value
 import com.office.core.sheet.Workbook
 import com.office.core.xlsx.XlsxReader
 import com.office.core.xlsx.XlsxWriter
+import com.office.core.odf.Odf
+import com.office.core.odf.OdsReader
+import com.office.core.odf.OdsWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -102,6 +105,10 @@ class SheetEditorViewModel(
     val sheet: Sheet get() = workbook.sheets[activeSheetIndex.coerceIn(0, workbook.sheets.lastIndex)]
     val isCsv get() = kind == FileKind.CSV
 
+    /** The workbook is an OpenDocument spreadsheet (.ods); it is saved in the same format. */
+    var isOdf by mutableStateOf(info?.name?.substringAfterLast('.', "")?.lowercase() == "ods")
+        private set
+
     val autosaver = DraftAutosaver(
         scope = container.appScope,
         store = container.drafts,
@@ -137,7 +144,11 @@ class SheetEditorViewModel(
             csvDelimiter = parsed.delimiter
             Csv.toWorkbook(parsed, fileName?.substringBeforeLast('.')?.take(31) ?: "Sheet1")
         } else {
-            ZipPackage.read(ByteArrayInputStream(bytes)).also { originalPackage = it }.let { XlsxReader.read(it) }
+            ZipPackage.read(ByteArrayInputStream(bytes)).also { originalPackage = it }.let { pkg ->
+                val odf = Odf.isOdf(pkg)
+                viewModelScope.launch { isOdf = odf }
+                if (odf) OdsReader.read(pkg) else XlsxReader.read(pkg)
+            }
         }
 
     private fun apply(wb: Workbook) {
@@ -600,14 +611,16 @@ class SheetEditorViewModel(
 
     // --- saving ---------------------------------------------------------------------------------
 
-    val mimeType get() = kind.primaryMime
+    val mimeType get() = if (isOdf) Odf.ODS_MIME else kind.primaryMime
 
     fun suggestedName(base: String, targetKind: FileKind = kind) =
-        (fileName?.substringBeforeLast('.') ?: base) + "." + targetKind.primaryExtension
+        (fileName?.substringBeforeLast('.') ?: base) + "." + if (isOdf && targetKind == FileKind.SPREADSHEET) "ods" else targetKind.primaryExtension
 
     private fun serialize(target: FileKind): ByteArray = when (target) {
         FileKind.CSV -> Csv.write(Csv.fromSheet(sheet), csvDelimiter).toByteArray(Charsets.UTF_8)
-        else -> ByteArrayOutputStream().also { XlsxWriter.write(workbook, it, originalPackage) }.toByteArray()
+        else -> ByteArrayOutputStream().also {
+            if (isOdf) OdsWriter.write(workbook, it, originalPackage) else XlsxWriter.write(workbook, it, originalPackage)
+        }.toByteArray()
     }
 
     fun save(onDone: (Throwable?) -> Unit) {

@@ -384,10 +384,43 @@
     <string name="tool_compare_second">Thứ hai</string>
     <string name="tool_compare_same">Văn bản không có khác biệt.</string>
     <string name="tool_compare_summary">Thêm %1$d dòng, xóa %2$d dòng</string>
+    <string name="pdf_contents">Mục lục</string>
+    <string name="pdf_select_page">Cả trang</string>
+    <string name="insert_table">Chèn bảng</string>
+    <string name="insert_image">Chèn hình ảnh</string>
+    <string name="table_edit">Sửa bảng</string>
+    <string name="table_delete">Xóa bảng</string>
+    <string name="table_add_row">Hàng</string>
+    <string name="table_add_column">Cột</string>
+    <string name="table_remove_row">Xóa hàng</string>
+    <string name="table_remove_column">Xóa cột</string>
+    <string name="table_rows">Số hàng</string>
+    <string name="table_columns">Số cột</string>
+    <string name="image_unsupported">Không thể hiển thị hình ảnh này</string>
+    <string name="sheet_freeze">Cố định ngăn</string>
+    <string name="sheet_unfreeze">Bỏ cố định ngăn</string>
+    <string name="sheet_filter">Lọc</string>
+    <string name="sheet_filter_all">Chọn tất cả</string>
+    <string name="sheet_filter_clear">Xóa bộ lọc</string>
+    <string name="sheet_filter_blank">(Trống)</string>
+    <string name="sheet_charts">Biểu đồ</string>
+    <string name="slide_add">Trang chiếu mới</string>
+    <string name="slide_duplicate">Nhân bản</string>
+    <string name="slide_delete">Xóa trang chiếu</string>
+    <string name="slide_move_left">Chuyển sang trái</string>
+    <string name="slide_move_right">Chuyển sang phải</string>
+    <string name="new_presentation">Bản trình bày</string>
+    <string name="new_presentation_desc">Trang chiếu có bố cục tiêu đề và nội dung</string>
     <plurals name="pdf_results">
         <item quantity="other">%d kết quả</item>
     </plurals>
     <plurals name="replaced_count">
         <item quantity="other">Đã thay thế %d chỗ</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="other">Đã chọn %d từ</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="other">Đã ẩn %d hàng</item>
     </plurals>
 </resources>

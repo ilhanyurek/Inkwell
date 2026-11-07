@@ -384,10 +384,43 @@
     <string name="tool_compare_second">2 つ目</string>
     <string name="tool_compare_same">テキストに違いはありません。</string>
     <string name="tool_compare_summary">%1$d 行追加、%2$d 行削除</string>
+    <string name="pdf_contents">目次</string>
+    <string name="pdf_select_page">ページ全体</string>
+    <string name="insert_table">表を挿入</string>
+    <string name="insert_image">画像を挿入</string>
+    <string name="table_edit">表を編集</string>
+    <string name="table_delete">表を削除</string>
+    <string name="table_add_row">行</string>
+    <string name="table_add_column">列</string>
+    <string name="table_remove_row">行を削除</string>
+    <string name="table_remove_column">列を削除</string>
+    <string name="table_rows">行数</string>
+    <string name="table_columns">列数</string>
+    <string name="image_unsupported">この画像は表示できません</string>
+    <string name="sheet_freeze">ウィンドウ枠の固定</string>
+    <string name="sheet_unfreeze">ウィンドウ枠の固定を解除</string>
+    <string name="sheet_filter">フィルター</string>
+    <string name="sheet_filter_all">すべて選択</string>
+    <string name="sheet_filter_clear">フィルターを解除</string>
+    <string name="sheet_filter_blank">(空白)</string>
+    <string name="sheet_charts">グラフ</string>
+    <string name="slide_add">新しいスライド</string>
+    <string name="slide_duplicate">複製</string>
+    <string name="slide_delete">スライドを削除</string>
+    <string name="slide_move_left">左へ移動</string>
+    <string name="slide_move_right">右へ移動</string>
+    <string name="new_presentation">プレゼンテーション</string>
+    <string name="new_presentation_desc">タイトルとコンテンツのレイアウトのスライド</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 件一致</item>
     </plurals>
     <plurals name="replaced_count">
         <item quantity="other">%d 件置換しました</item>
+    </plurals>
+    <plurals name="pdf_words_selected">
+        <item quantity="other">%d 語を選択</item>
+    </plurals>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="other">%d 行を非表示</item>
     </plurals>
 </resources>
