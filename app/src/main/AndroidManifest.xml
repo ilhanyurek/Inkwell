@@ -20,6 +20,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
+            <!-- Launcher shortcuts (res/xml/shortcuts.xml). -->
+            <intent-filter>
+                <action android:name="com.office.app.action.SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
 
             <!-- "Open with" for the formats we support. -->
             <intent-filter>

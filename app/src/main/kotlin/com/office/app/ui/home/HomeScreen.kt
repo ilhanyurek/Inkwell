@@ -115,8 +115,13 @@ fun HomeScreen(
     onOpenDraft: (String) -> Unit = {},
     onOpenFolder: (Uri, String) -> Unit = { _, _ -> },
     onTool: (com.office.app.ui.tools.ToolId) -> Unit = {},
+    requestedTab: Int? = null,
+    onTabRequestHandled: () -> Unit = {},
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
+    LaunchedEffect(requestedTab) {
+        if (requestedTab != null) { tab = requestedTab; onTabRequestHandled() }
+    }
     var grid by rememberSaveable { mutableStateOf(false) }
     val treeLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { tree ->
         if (tree != null) kotlinx.coroutines.MainScope().launch { container.folders.add(tree) }

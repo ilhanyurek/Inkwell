@@ -40,7 +40,10 @@ fun EditorHost(
                 container.files.info(uri)
             }.onSuccess { i ->
                 info = i
-                if (i.kind != null) container.recents.record(i)
+                if (i.kind != null) {
+                    container.recents.record(i)
+                    com.office.app.data.LastFileShortcut.update(container.appContext, i)
+                }
             }.onFailure { failed = true }
         }
     }

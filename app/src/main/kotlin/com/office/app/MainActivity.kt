@@ -19,10 +19,16 @@ class MainActivity : AppCompatActivity() {
     /** A file handed to us by another app ("Open with" / share), consumed by the nav host. */
     private val pendingUri = mutableStateOf<Uri?>(null)
 
+    /** A launcher shortcut ("new_document", "new_sheet", "scan", "tools"), consumed by the nav host. */
+    private val pendingShortcut = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null) pendingUri.value = extractUri(intent)
+        if (savedInstanceState == null) {
+            pendingUri.value = extractUri(intent)
+            pendingShortcut.value = extractShortcut(intent)
+        }
         val container = (application as OfficeApp).container
         setContent {
             val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = Settings())
@@ -31,6 +37,8 @@ class MainActivity : AppCompatActivity() {
                     container = container,
                     incomingUri = pendingUri.value,
                     onIncomingConsumed = { pendingUri.value = null },
+                    incomingShortcut = pendingShortcut.value,
+                    onShortcutConsumed = { pendingShortcut.value = null },
                 )
             }
         }
@@ -39,7 +47,11 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         extractUri(intent)?.let { pendingUri.value = it }
+        extractShortcut(intent)?.let { pendingShortcut.value = it }
     }
+
+    private fun extractShortcut(intent: Intent?): String? =
+        if (intent?.action == SHORTCUT_ACTION) intent.getStringExtra("target") else null
 
     private fun extractUri(intent: Intent?): Uri? = when (intent?.action) {
         Intent.ACTION_VIEW, Intent.ACTION_EDIT -> intent.data
@@ -50,5 +62,9 @@ class MainActivity : AppCompatActivity() {
             intent.getParcelableExtra(Intent.EXTRA_STREAM)
         }
         else -> null
+    }
+
+    companion object {
+        const val SHORTCUT_ACTION = "com.office.app.action.SHORTCUT"
     }
 }

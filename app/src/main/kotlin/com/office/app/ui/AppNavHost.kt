@@ -3,6 +3,10 @@ package com.office.app.ui
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,8 +34,30 @@ object Routes {
 }
 
 @Composable
-fun AppNavHost(container: AppContainer, incomingUri: Uri?, onIncomingConsumed: () -> Unit) {
+fun AppNavHost(
+    container: AppContainer,
+    incomingUri: Uri?,
+    onIncomingConsumed: () -> Unit,
+    incomingShortcut: String? = null,
+    onShortcutConsumed: () -> Unit = {},
+) {
     val nav = rememberNavController()
+    // Home tab asked for by a launcher shortcut; HomeScreen consumes it.
+    var requestedHomeTab by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(incomingShortcut) {
+        when (incomingShortcut) {
+            null -> return@LaunchedEffect
+            "new_document" -> nav.navigate(Routes.new(FileKind.DOCUMENT)) { popUpTo(Routes.HOME) }
+            "new_sheet" -> nav.navigate(Routes.new(FileKind.SPREADSHEET)) { popUpTo(Routes.HOME) }
+            "scan" -> nav.navigate(Routes.tool(com.office.app.ui.tools.ToolId.SCAN)) { popUpTo(Routes.HOME) }
+            "tools" -> {
+                nav.popBackStack(Routes.HOME, inclusive = false)
+                requestedHomeTab = 2
+            }
+        }
+        onShortcutConsumed()
+    }
 
     LaunchedEffect(incomingUri) {
         if (incomingUri != null) {
@@ -50,6 +76,8 @@ fun AppNavHost(container: AppContainer, incomingUri: Uri?, onIncomingConsumed: (
                 onOpenDraft = { nav.navigate(Routes.draft(it)) },
                 onOpenFolder = { uri, name -> nav.navigate(Routes.folder(uri, name)) },
                 onTool = { nav.navigate(Routes.tool(it)) },
+                requestedTab = requestedHomeTab,
+                onTabRequestHandled = { requestedHomeTab = null },
             )
         }
         composable(Routes.TOOL, arguments = listOf(navArgument("id") { type = NavType.StringType })) { entry ->

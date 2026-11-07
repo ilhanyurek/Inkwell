@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_document"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_document"
+        android:shortcutShortLabel="@string/new_document">
+        <intent
+            android:action="com.office.app.action.SHORTCUT"
+            android:targetPackage="com.inkwell.app"
+            android:targetClass="com.office.app.MainActivity">
+            <extra android:name="target" android:value="new_document" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="new_sheet"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_sheet"
+        android:shortcutShortLabel="@string/new_sheet">
+        <intent
+            android:action="com.office.app.action.SHORTCUT"
+            android:targetPackage="com.inkwell.app"
+            android:targetClass="com.office.app.MainActivity">
+            <extra android:name="target" android:value="new_sheet" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="scan"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_scan"
+        android:shortcutShortLabel="@string/tool_scan">
+        <intent
+            android:action="com.office.app.action.SHORTCUT"
+            android:targetPackage="com.inkwell.app"
+            android:targetClass="com.office.app.MainActivity">
+            <extra android:name="target" android:value="scan" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="tools"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_tools"
+        android:shortcutShortLabel="@string/home_tools">
+        <intent
+            android:action="com.office.app.action.SHORTCUT"
+            android:targetPackage="com.inkwell.app"
+            android:targetClass="com.office.app.MainActivity">
+            <extra android:name="target" android:value="tools" />
+        </intent>
+    </shortcut>
+</shortcuts>
