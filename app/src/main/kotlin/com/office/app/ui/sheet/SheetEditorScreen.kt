@@ -28,6 +28,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -144,6 +148,8 @@ fun SheetEditorScreen(
     var menuOpen by remember { mutableStateOf(false) }
     var showSort by remember { mutableStateOf(false) }
     var showFormat by remember { mutableStateOf(false) }
+    var showFilter by remember { mutableStateOf(false) }
+    var showCharts by remember { mutableStateOf(false) }
     var exportFormat by remember { mutableStateOf(kind) }
 
     fun afterSave(e: Throwable?) {
@@ -208,6 +214,28 @@ fun SheetEditorScreen(
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_save_as)) }, onClick = {
                                 menuOpen = false; saveAs.launch(vm.suggestedName(untitled))
                             })
+                            if (vm.sheet.charts.isNotEmpty()) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.sheet_charts)) },
+                                    onClick = { menuOpen = false; showCharts = true },
+                                    modifier = Modifier.testTag("menu_charts"),
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.sheet_filter)) },
+                                onClick = { menuOpen = false; if (vm.editing) vm.commitEdit(move = false); showFilter = true },
+                                modifier = Modifier.testTag("menu_filter"),
+                            )
+                            if (!vm.isCsv) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(if (vm.isFrozen) R.string.sheet_unfreeze else R.string.sheet_freeze)) },
+                                    onClick = {
+                                        menuOpen = false
+                                        if (vm.isFrozen) vm.unfreeze() else vm.freezeAtSelection()
+                                    },
+                                    modifier = Modifier.testTag("menu_freeze"),
+                                )
+                            }
                             val other = if (vm.isCsv) FileKind.SPREADSHEET else FileKind.CSV
                             DropdownMenuItem(
                                 text = { Text(stringResource(if (other == FileKind.CSV) R.string.action_export_csv else R.string.action_export_xlsx)) },
@@ -245,6 +273,7 @@ fun SheetEditorScreen(
             vm.recoverableDraft?.let { d -> DraftBanner(d.savedAt, onRestore = vm::restoreDraft, onDiscard = vm::discardDraft) }
             FormulaBar(vm)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            FilterBar(vm)
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 Grid(vm)
             }
@@ -265,6 +294,26 @@ fun SheetEditorScreen(
     }
     if (showSort) SortDialog(vm, onDismiss = { showSort = false })
     if (showFormat) FormatSheet(vm, onDismiss = { showFormat = false })
+    if (showFilter) FilterDialog(vm, onDismiss = { showFilter = false })
+    if (showCharts) ChartsDialog(vm, onDismiss = { showCharts = false })
+}
+
+@Composable
+private fun FilterBar(vm: SheetEditorViewModel) {
+    val f = vm.filter?.takeIf { it.sheet == vm.activeSheetIndex } ?: return
+    val hidden = remember(vm.revision, f) { vm.hiddenRows().size }
+    Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
+        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.FilterList, null, Modifier.size(16.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "${CellRef.columnName(f.col)} · ${pluralStringResource(R.plurals.sheet_rows_hidden, hidden, hidden)}",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.weight(1f).testTag("filter_bar"),
+            )
+            TextButton(onClick = vm::clearFilter) { Text(stringResource(R.string.sheet_filter_clear)) }
+        }
+    }
 }
 
 @Composable
@@ -331,6 +380,19 @@ private fun FormulaBar(vm: SheetEditorViewModel) {
 
 private fun widthDp(vm: SheetEditorViewModel, col: Int): Dp = (vm.columnWidthChars(col) * DP_PER_CHAR).coerceIn(40f, 520f).dp
 
+private class GridColors(
+    val gridLine: Color,
+    val headerBg: Color,
+    val selectionBg: Color,
+    val headerSelBg: Color,
+    val focus: Color,
+    val error: Color,
+    val text: Color,
+    val cellBorder: Color,
+    val muted: Color,
+    val frozenLine: Color,
+)
+
 @Composable
 private fun Grid(vm: SheetEditorViewModel) {
     @Suppress("UNUSED_VARIABLE") val rev = vm.revision // read to recompose on mutations
@@ -338,163 +400,217 @@ private fun Grid(vm: SheetEditorViewModel) {
     val rowCount = maxOf(sheet.maxRow + 40, vm.selection.bottom + 20, 100)
     val colCount = maxOf(sheet.maxCol + 6, vm.selection.right + 4, 26)
     val widths = remember(vm.revision, vm.activeSheetIndex, colCount) { List(colCount) { widthDp(vm, it) } }
-    val totalWidth = remember(widths) { widths.fold(0.dp) { a, b -> a + b } }
-    val starts = remember(widths) { widths.runningFold(0.dp) { a, b -> a + b } }
+    val frozenCols = sheet.frozenCols.coerceIn(0, colCount - 1)
+    val frozenRows = sheet.frozenRows.coerceIn(0, rowCount - 1)
+    val hidden = remember(vm.revision, vm.activeSheetIndex, vm.filter) { vm.hiddenRows() }
+    val topRows = remember(frozenRows, hidden) { (0 until frozenRows).filter { it !in hidden } }
+    val scrollRows = remember(frozenRows, rowCount, hidden) { (frozenRows until rowCount).filter { it !in hidden } }
+    val leftCols = 0 until frozenCols
+    val rightCols = frozenCols until colCount
 
     val listState = rememberLazyListState()
     val headerState = rememberLazyListState()
+    val leftState = rememberLazyListState()
     val hScroll = rememberScrollState()
-    val density = LocalDensity.current
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
-            .collect { (i, o) -> headerState.scrollToItem(i, o) }
+            .collect { (i, o) ->
+                headerState.scrollToItem(i, o)
+                leftState.scrollToItem(i, o)
+            }
     }
 
-    val gridLine = MaterialTheme.colorScheme.outlineVariant
-    val headerBg = MaterialTheme.colorScheme.surfaceContainer
-    val selectionBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-    val headerSelBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-    val focusColor = MaterialTheme.colorScheme.primary
-    val errorColor = MaterialTheme.colorScheme.error
-    val textColor = MaterialTheme.colorScheme.onSurface
-    val cellBorder = MaterialTheme.colorScheme.onSurfaceVariant
-    val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    val sel = vm.selection
+    val colors = GridColors(
+        gridLine = MaterialTheme.colorScheme.outlineVariant,
+        headerBg = MaterialTheme.colorScheme.surfaceContainer,
+        selectionBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+        headerSelBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+        focus = MaterialTheme.colorScheme.primary,
+        error = MaterialTheme.colorScheme.error,
+        text = MaterialTheme.colorScheme.onSurface,
+        cellBorder = MaterialTheme.colorScheme.onSurfaceVariant,
+        muted = MaterialTheme.colorScheme.onSurfaceVariant,
+        frozenLine = MaterialTheme.colorScheme.outline,
+    )
+    val filterCol = vm.filter?.takeIf { it.sheet == vm.activeSheetIndex }?.col
+
+    @Composable
+    fun Pane(cols: IntRange, state: LazyListState, scrollable: Boolean, modifier: Modifier) {
+        Column(modifier) {
+            ColumnHeaders(vm, cols, widths, colors, filterCol)
+            topRows.forEach { r -> CellRow(vm, r, cols, widths, colors) }
+            if (topRows.isNotEmpty()) FrozenDivider(colors, horizontal = true)
+            LazyColumn(state = state, userScrollEnabled = scrollable, modifier = Modifier.fillMaxSize()) {
+                items(scrollRows.size, key = { scrollRows[it] }) { i -> CellRow(vm, scrollRows[i], cols, widths, colors) }
+            }
+        }
+    }
 
     Row(Modifier.fillMaxSize()) {
-        // Row numbers (frozen column)
-        Column(Modifier.width(ROW_HEADER_WIDTH).fillMaxHeight().background(headerBg)) {
+        // Row numbers
+        Column(Modifier.width(ROW_HEADER_WIDTH).fillMaxHeight().background(colors.headerBg)) {
             Box(Modifier.height(HEADER_HEIGHT).fillMaxWidth().drawBehind {
-                drawLine(gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
+                drawLine(colors.gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
             })
+            topRows.forEach { r -> RowHeader(vm, r, colors) }
+            if (topRows.isNotEmpty()) FrozenDivider(colors, horizontal = true)
             LazyColumn(state = headerState, userScrollEnabled = false) {
-                items(rowCount) { r ->
-                    val selected = r in sel.top..sel.bottom
-                    Box(
-                        Modifier
-                            .height(ROW_HEIGHT)
-                            .fillMaxWidth()
-                            .background(if (selected) headerSelBg else Color.Transparent)
-                            .clickable { vm.selectRow(r) }
-                            .drawBehind {
-                                drawLine(gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
-                                drawLine(gridLine, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
-                            },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text((r + 1).toString(), fontSize = 11.sp, color = if (selected) focusColor else muted)
+                items(scrollRows.size, key = { scrollRows[it] }) { i -> RowHeader(vm, scrollRows[i], colors) }
+            }
+        }
+        if (!leftCols.isEmpty()) {
+            val leftWidth = leftCols.fold(0.dp) { a, c -> a + widths[c] }
+            Pane(leftCols, leftState, scrollable = false, modifier = Modifier.width(leftWidth).fillMaxHeight())
+            FrozenDivider(colors, horizontal = false)
+        }
+        Box(Modifier.fillMaxSize().horizontalScroll(hScroll)) {
+            val width = rightCols.fold(0.dp) { a, c -> a + widths[c] }
+            Pane(rightCols, listState, scrollable = true, modifier = Modifier.width(width))
+        }
+    }
+}
+
+@Composable
+private fun FrozenDivider(colors: GridColors, horizontal: Boolean) {
+    Box(
+        (if (horizontal) Modifier.fillMaxWidth().height(2.dp) else Modifier.fillMaxHeight().width(2.dp))
+            .background(colors.frozenLine),
+    )
+}
+
+@Composable
+private fun RowHeader(vm: SheetEditorViewModel, r: Int, colors: GridColors) {
+    val selected = r in vm.selection.top..vm.selection.bottom
+    Box(
+        Modifier
+            .height(ROW_HEIGHT)
+            .fillMaxWidth()
+            .background(if (selected) colors.headerSelBg else Color.Transparent)
+            .clickable { vm.selectRow(r) }
+            .drawBehind {
+                drawLine(colors.gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
+                drawLine(colors.gridLine, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text((r + 1).toString(), fontSize = 11.sp, color = if (selected) colors.focus else colors.muted)
+    }
+}
+
+@Composable
+private fun ColumnHeaders(vm: SheetEditorViewModel, cols: IntRange, widths: List<Dp>, colors: GridColors, filterCol: Int?) {
+    val sel = vm.selection
+    Row(Modifier.height(HEADER_HEIGHT).background(colors.headerBg)) {
+        for (c in cols) {
+            val selected = c in sel.left..sel.right
+            Box(
+                Modifier
+                    .width(widths[c])
+                    .fillMaxHeight()
+                    .background(if (selected) colors.headerSelBg else Color.Transparent)
+                    .clickable { vm.selectColumn(c) }
+                    .drawBehind {
+                        drawLine(colors.gridLine, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
+                        drawLine(colors.gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(CellRef.columnName(c), fontSize = 11.sp, color = if (selected || c == filterCol) colors.focus else colors.muted)
+                    if (c == filterCol) {
+                        Icon(Icons.Default.FilterList, stringResource(R.string.sheet_filter), Modifier.size(12.dp), tint = colors.focus)
                     }
                 }
             }
         }
-        Box(Modifier.fillMaxSize().horizontalScroll(hScroll)) {
-            Column(Modifier.width(totalWidth)) {
-                // Column letters (frozen row)
-                Row(Modifier.height(HEADER_HEIGHT).background(headerBg)) {
-                    for (c in 0 until colCount) {
-                        val selected = c in sel.left..sel.right
-                        Box(
-                            Modifier
-                                .width(widths[c])
-                                .fillMaxHeight()
-                                .background(if (selected) headerSelBg else Color.Transparent)
-                                .clickable { vm.selectColumn(c) }
-                                .drawBehind {
-                                    drawLine(gridLine, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
-                                    drawLine(gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
-                                },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(CellRef.columnName(c), fontSize = 11.sp, color = if (selected) focusColor else muted)
-                        }
-                    }
+    }
+}
+
+@Composable
+private fun CellRow(vm: SheetEditorViewModel, r: Int, cols: IntRange, widths: List<Dp>, colors: GridColors) {
+    val sheet = vm.sheet
+    val sel = vm.selection
+    val density = LocalDensity.current
+    val starts = remember(widths, cols) { cols.runningFold(0.dp) { a, c -> a + widths[c] } }
+    Row(
+        Modifier
+            .height(ROW_HEIGHT)
+            .pointerInput(r, starts, cols) {
+                fun colAt(x: Float): Int {
+                    val xdp = with(density) { x.toDp() }
+                    val idx = starts.indexOfFirst { it > xdp } - 1
+                    return cols.first + (if (idx < 0) cols.count() - 1 else idx.coerceIn(0, cols.count() - 1))
                 }
-                LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                    items(rowCount) { r ->
-                        Row(
-                            Modifier
-                                .height(ROW_HEIGHT)
-                                .pointerInput(r, starts) {
-                                    fun colAt(x: Float): Int {
-                                        val xdp = with(density) { x.toDp() }
-                                        val idx = starts.indexOfFirst { it > xdp } - 1
-                                        return if (idx < 0) colCount - 1 else idx.coerceIn(0, colCount - 1)
-                                    }
-                                    detectTapGestures(
-                                        onTap = { vm.tapCell(CellRef(r, colAt(it.x))) },
-                                        onDoubleTap = {
-                                            vm.tapCell(CellRef(r, colAt(it.x)))
-                                            vm.beginEditing()
-                                        },
-                                        onLongPress = { vm.extendSelection(CellRef(r, colAt(it.x))) },
-                                    )
-                                },
-                        ) {
-                            for (c in 0 until colCount) {
-                                val ref = CellRef(r, c)
-                                val inSel = ref in sel
-                                val isFocus = ref == sel.focus
-                                val value = if (c <= sheet.maxCol && r <= sheet.maxRow) vm.display(ref) else Value.Empty
-                                val st = sheet.styles[ref]
-                                val fill = st?.fill?.let { Color(it) }
-                                val align = when (st?.hAlign) {
-                                    HAlign.LEFT -> TextAlign.Start
-                                    HAlign.CENTER -> TextAlign.Center
-                                    HAlign.RIGHT -> TextAlign.End
-                                    null -> if (value is Value.Num) TextAlign.End else TextAlign.Start
-                                }
-                                Box(
-                                    Modifier
-                                        .width(widths[c])
-                                        .fillMaxHeight()
-                                        .then(if (fill != null) Modifier.background(fill) else Modifier)
-                                        .background(if (inSel && !sel.isSingle) selectionBg else Color.Transparent)
-                                        .drawBehind {
-                                            drawLine(gridLine, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
-                                            drawLine(gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
-                                            if (st?.border == true) {
-                                                drawRect(cellBorder, style = Stroke(1.5f))
-                                            }
-                                        }
-                                        .then(if (isFocus) Modifier.border(2.dp, focusColor) else Modifier)
-                                        .padding(horizontal = 6.dp),
-                                    contentAlignment = when (align) {
-                                        TextAlign.End -> Alignment.CenterEnd
-                                        TextAlign.Center -> Alignment.Center
-                                        else -> Alignment.CenterStart
-                                    },
-                                ) {
-                                    if (value != Value.Empty) {
-                                        val decorations = buildList {
-                                            if (st?.underline == true) add(TextDecoration.Underline)
-                                            if (st?.strike == true) add(TextDecoration.LineThrough)
-                                        }
-                                        Text(
-                                            vm.displayText(ref, value),
-                                            fontSize = (st?.fontSizePt?.let { it * 14f / 11f } ?: 14f).coerceIn(8f, 28f).sp,
-                                            fontWeight = if (st?.bold == true) FontWeight.Bold else null,
-                                            fontStyle = if (st?.italic == true) FontStyle.Italic else null,
-                                            textDecoration = if (decorations.isEmpty()) null else TextDecoration.combine(decorations),
-                                            maxLines = if (st?.wrap == true) 2 else 1,
-                                            lineHeight = 15.sp,
-                                            overflow = TextOverflow.Clip,
-                                            softWrap = st?.wrap == true,
-                                            textAlign = align,
-                                            color = when {
-                                                value is Value.Err -> errorColor
-                                                st?.fontColor != null -> Color(st.fontColor!!)
-                                                // Keep text readable on light fills in dark mode.
-                                                fill != null -> if (fill.luminance() > 0.5f) Color(0xFF1B1C1E) else Color(0xFFF5F5F5)
-                                                value is Value.Bool -> focusColor
-                                                else -> textColor
-                                            },
-                                        )
-                                    }
-                                }
-                            }
+                detectTapGestures(
+                    onTap = { vm.tapCell(CellRef(r, colAt(it.x))) },
+                    onDoubleTap = {
+                        vm.tapCell(CellRef(r, colAt(it.x)))
+                        vm.beginEditing()
+                    },
+                    onLongPress = { vm.extendSelection(CellRef(r, colAt(it.x))) },
+                )
+            },
+    ) {
+        for (c in cols) {
+            val ref = CellRef(r, c)
+            val inSel = ref in sel
+            val isFocus = ref == sel.focus
+            val value = if (c <= sheet.maxCol && r <= sheet.maxRow) vm.display(ref) else Value.Empty
+            val st = sheet.styles[ref]
+            val fill = st?.fill?.let { Color(it) }
+            val align = when (st?.hAlign) {
+                HAlign.LEFT -> TextAlign.Start
+                HAlign.CENTER -> TextAlign.Center
+                HAlign.RIGHT -> TextAlign.End
+                null -> if (value is Value.Num) TextAlign.End else TextAlign.Start
+            }
+            Box(
+                Modifier
+                    .width(widths[c])
+                    .fillMaxHeight()
+                    .then(if (fill != null) Modifier.background(fill) else Modifier)
+                    .background(if (inSel && !sel.isSingle) colors.selectionBg else Color.Transparent)
+                    .drawBehind {
+                        drawLine(colors.gridLine, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
+                        drawLine(colors.gridLine, Offset(0f, size.height), Offset(size.width, size.height), 1f)
+                        if (st?.border == true) {
+                            drawRect(colors.cellBorder, style = Stroke(1.5f))
                         }
                     }
+                    .then(if (isFocus) Modifier.border(2.dp, colors.focus) else Modifier)
+                    .padding(horizontal = 6.dp),
+                contentAlignment = when (align) {
+                    TextAlign.End -> Alignment.CenterEnd
+                    TextAlign.Center -> Alignment.Center
+                    else -> Alignment.CenterStart
+                },
+            ) {
+                if (value != Value.Empty) {
+                    val decorations = buildList {
+                        if (st?.underline == true) add(TextDecoration.Underline)
+                        if (st?.strike == true) add(TextDecoration.LineThrough)
+                    }
+                    Text(
+                        vm.displayText(ref, value),
+                        fontSize = (st?.fontSizePt?.let { it * 14f / 11f } ?: 14f).coerceIn(8f, 28f).sp,
+                        fontWeight = if (st?.bold == true) FontWeight.Bold else null,
+                        fontStyle = if (st?.italic == true) FontStyle.Italic else null,
+                        textDecoration = if (decorations.isEmpty()) null else TextDecoration.combine(decorations),
+                        maxLines = if (st?.wrap == true) 2 else 1,
+                        lineHeight = 15.sp,
+                        overflow = TextOverflow.Clip,
+                        softWrap = st?.wrap == true,
+                        textAlign = align,
+                        color = when {
+                            value is Value.Err -> colors.error
+                            st?.fontColor != null -> Color(st.fontColor!!)
+                            // Keep text readable on light fills in dark mode.
+                            fill != null -> if (fill.luminance() > 0.5f) Color(0xFF1B1C1E) else Color(0xFFF5F5F5)
+                            value is Value.Bool -> colors.focus
+                            else -> colors.text
+                        },
+                    )
                 }
             }
         }

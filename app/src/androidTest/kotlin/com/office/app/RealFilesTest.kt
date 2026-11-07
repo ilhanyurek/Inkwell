@@ -6,6 +6,9 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
+import com.office.core.xlsx.XlsxReader
+import com.office.core.zip.ZipPackage
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -38,6 +41,37 @@ class RealFilesTest {
         "Kalem", "Defter", "Sales", "Notes", "3.50 ₺", "12.01.2025",
         shot = "21_real_xlsx",
     )
+
+    @Test fun excelChartsFilterAndFreeze() = rule.explainFailure {
+        val file = Fixtures.asset("budget.xlsx")
+        ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")).use {
+            rule.waitForText("Defter")
+            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+            rule.onNodeWithTag("menu_charts").performClick()
+            rule.onNodeWithTag("chart_0").assertExists()
+            rule.waitForText("Units")
+            rule.screenshot("25_xlsx_chart")
+            rule.onNodeWithContentDescription(str(R.string.action_close)).performClick()
+
+            // Column A is selected: hide the "Kalem" row.
+            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+            rule.onNodeWithTag("menu_filter").performClick()
+            rule.onNodeWithTag("filter_value_Kalem").performClick()
+            rule.onNodeWithTag("filter_apply").performClick()
+            rule.onNodeWithTag("filter_bar").assertExists()
+            rule.waitUntil(5_000) { rule.onAllNodesWithText("Kalem").fetchSemanticsNodes().isEmpty() }
+            rule.onAllNodesWithText("Defter").fetchSemanticsNodes().isNotEmpty().let { assert(it) }
+            rule.onNodeWithText(str(R.string.sheet_filter_clear)).performClick()
+            rule.waitForText("Kalem")
+
+            rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
+            rule.onNodeWithTag("menu_freeze").performClick()
+            rule.onNodeWithContentDescription(str(R.string.action_save)).performClick()
+            rule.waitUntil(15_000) {
+                runCatching { XlsxReader.read(ZipPackage.read(file.inputStream())).sheets[0].frozenRows == 1 }.getOrDefault(false)
+            }
+        }
+    }
 
     @Test fun powerPointDeck() = open(
         "deck.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation",

@@ -20,6 +20,8 @@ import com.office.core.csv.Csv
 import com.office.core.formula.FormulaEngine
 import com.office.core.sheet.CellRef
 import com.office.core.sheet.CellStyle
+import com.office.core.sheet.ChartRef
+import com.office.core.sheet.ChartSpec
 import com.office.core.sheet.NumberFormat
 import com.office.core.zip.ZipPackage
 import com.office.core.sheet.Sheet
@@ -503,8 +505,74 @@ class SheetEditorViewModel(
         return sb.toString()
     }
 
+    // --- frozen panes, filter, charts ------------------------------------------------------
+
+    val isFrozen: Boolean get() = sheet.frozenRows > 0 || sheet.frozenCols > 0
+
+    /** Freezes the rows above and the columns left of the selected cell (the top row from A1). */
+    fun freezeAtSelection() = mutate {
+        val f = selection.focus
+        if (f.row == 0 && f.col == 0) {
+            sheet.frozenRows = 1
+            sheet.frozenCols = 0
+        } else {
+            sheet.frozenRows = f.row
+            sheet.frozenCols = f.col
+        }
+    }
+
+    fun unfreeze() = mutate {
+        sheet.frozenRows = 0
+        sheet.frozenCols = 0
+    }
+
+    /** A view-only filter: rows below [headerRow] whose value in [col] is not in [allowed] are hidden. */
+    data class Filter(val sheet: Int, val col: Int, val headerRow: Int, val allowed: Set<String>)
+
+    var filter by mutableStateOf<Filter?>(null)
+        private set
+
+    /** The header row and the distinct values below it in [col], for the filter dialog. */
+    fun filterChoices(col: Int): Pair<Int, List<String>> {
+        val header = (0..sheet.maxRow).firstOrNull { sheet[CellRef(it, col)].isNotEmpty() } ?: 0
+        val values = ((header + 1)..sheet.maxRow).map { displayText(CellRef(it, col)) }.distinct()
+        return header to values.sortedWith(compareBy({ it.isEmpty() }, { it.lowercase() }))
+    }
+
+    fun setFilter(col: Int, headerRow: Int, allowed: Set<String>, all: Int) {
+        filter = if (allowed.size >= all) null else Filter(activeSheetIndex, col, headerRow, allowed)
+    }
+
+    fun clearFilter() {
+        filter = null
+    }
+
+    fun hiddenRows(): Set<Int> {
+        val f = filter?.takeIf { it.sheet == activeSheetIndex } ?: return emptySet()
+        return ((f.headerRow + 1)..sheet.maxRow).filter { displayText(CellRef(it, f.col)) !in f.allowed }.toSet()
+    }
+
+    /** Category labels and series values of [chart], read live from the cells it points to. */
+    data class ChartData(val categories: List<String>, val series: List<Pair<String, List<Double?>>>)
+
+    fun chartData(chart: ChartSpec): ChartData {
+        fun sheetFor(ref: ChartRef) = ref.sheet?.let { workbook.sheet(it) } ?: sheet
+        val categories = chart.categories?.let { ref -> ref.cells.map { engine.display(sheetFor(ref), it) } } ?: chart.cachedCategories
+        val series = chart.series.map { s ->
+            val name = s.nameRef?.let { engine.display(sheetFor(it), it.from) }?.takeIf { it.isNotEmpty() } ?: s.name
+            val values = s.values?.let { ref ->
+                val target = ref.sheet?.let { workbook.sheet(it) }
+                if (ref.sheet != null && target == null) null
+                else ref.cells.map { (engine.value(sheetFor(ref), it) as? Value.Num)?.v }
+            } ?: s.cachedValues
+            name to values
+        }
+        return ChartData(categories, series)
+    }
+
     fun selectSheet(index: Int) {
         if (editing) commitEdit(move = false)
+        filter = null
         activeSheetIndex = index.coerceIn(0, workbook.sheets.lastIndex)
         selection = Selection.single(CellRef(0, 0))
         loadEditTextForSelection()

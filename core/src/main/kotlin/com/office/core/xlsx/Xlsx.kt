@@ -43,6 +43,10 @@ object XlsxReader {
             sheets += readSheet(name, xml, shared, styles).also {
                 it.sourcePath = path
                 it.sourceRelId = rid
+                val (rows, cols) = XlsxViews.frozen(xml.child("sheetViews"))
+                it.frozenRows = rows
+                it.frozenCols = cols
+                it.charts += runCatching { XlsxCharts.read(pkg, path) }.getOrDefault(emptyList())
             }
         }
         if (sheets.isEmpty()) sheets += Sheet("Sheet1")
@@ -281,11 +285,11 @@ object XlsxWriter {
             }
             append("</sheetData>")
         }
-        parts += sheet.extraXml
+        parts += sheet.extraXml.map { (k, v) -> if (k == "sheetViews") k to XlsxViews.withFrozen(v, sheet.frozenRows, sheet.frozenCols) else k to v }
         if (sheet.extraXml.none { it.first == "pageMargins" }) {
             parts += "pageMargins" to """<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>"""
         }
-        if (sheet.extraXml.none { it.first == "sheetViews" }) parts += "sheetViews" to """<sheetViews><sheetView workbookViewId="0"/></sheetViews>"""
+        if (sheet.extraXml.none { it.first == "sheetViews" }) parts += "sheetViews" to XlsxViews.withFrozen(null, sheet.frozenRows, sheet.frozenCols)
         val sb = StringBuilder()
         sb.append("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""").append('\n')
         sb.append("<worksheet")

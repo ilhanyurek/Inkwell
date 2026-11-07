@@ -90,7 +90,17 @@ class FixtureTest {
         assertEquals("0.0%", sales.style(CellRef.parse("F2")!!).numFmt)
         assertTrue(sales.extraXml.any { it.first == "mergeCells" } && sales.extraXml.any { it.first == "drawing" })
 
+        // The bar chart drawn by openpyxl: one series (Units) over the product names.
+        val chart = sales.charts.single()
+        assertEquals(com.office.core.sheet.ChartType.COLUMN, chart.type)
+        assertEquals(CellRef.parse("H2"), chart.anchor)
+        assertEquals(listOf(CellRef.parse("B2"), CellRef.parse("B3"), CellRef.parse("B4")), chart.series.single().values!!.cells)
+        assertEquals(CellRef.parse("A2"), chart.categories!!.from)
+        assertEquals(0 to 0, sales.frozenRows to sales.frozenCols)
+
         // Edit values and formatting, then save into the original package.
+        sales.frozenRows = 1
+        sales.frozenCols = 1
         sales[CellRef.parse("B2")!!] = "130"
         sales.setStyle(CellRef.parse("A2")!!, sales.style(CellRef.parse("A2")!!).copy(italic = true, fontColor = 0xFFC00000).edited())
         sales.setStyle(CellRef.parse("D7")!!, CellStyle(numFmt = "#,##0.000", bold = true))
@@ -112,6 +122,8 @@ class FixtureTest {
         assertEquals(0xFFC00000, s2.style(CellRef.parse("A2")!!).fontColor)
         assertEquals("#,##0.000", s2.style(CellRef.parse("D7")!!).numFmt)
         assertEquals("new sheet", again.sheets[2][CellRef(0, 0)])
+        assertEquals(1 to 1, s2.frozenRows to s2.frozenCols)
+        assertEquals(1, s2.charts.size)
     }
 
     @Test fun pptxFromPythonPptx() {

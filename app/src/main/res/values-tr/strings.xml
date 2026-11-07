@@ -416,4 +416,15 @@
     <string name="table_rows">Satırlar</string>
     <string name="table_columns">Sütunlar</string>
     <string name="image_unsupported">Bu resim gösterilemiyor</string>
+    <string name="sheet_freeze">Bölmeleri dondur</string>
+    <string name="sheet_unfreeze">Bölmeleri çöz</string>
+    <string name="sheet_filter">Filtrele</string>
+    <string name="sheet_filter_all">Tümünü seç</string>
+    <string name="sheet_filter_clear">Filtreyi kaldır</string>
+    <string name="sheet_filter_blank">(Boş)</string>
+    <string name="sheet_charts">Grafikler</string>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d satır gizli</item>
+        <item quantity="other">%d satır gizli</item>
+    </plurals>
 </resources>

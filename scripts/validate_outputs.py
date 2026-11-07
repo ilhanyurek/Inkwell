@@ -27,9 +27,10 @@ assert ws["A2"].font.i and ws["A2"].font.color.rgb.endswith("C00000"), "edited s
 assert ws["D7"].number_format == "#,##0.000" and ws["D7"].font.b, "new style missing"
 assert "A10:D10" in [str(r) for r in ws.merged_cells.ranges], "merged cells lost"
 assert any(n.startswith("xl/charts/") for n in zipfile.ZipFile(path).namelist()), "chart lost"
+assert ws.freeze_panes == "B2", ws.freeze_panes
 values = load_workbook(path, data_only=True)["Sales"]
 assert values["D6"].value == 1785, values["D6"].value
-print("budget-resaved.xlsx OK: formulas, styles, merged cells, chart and new sheet kept")
+print("budget-resaved.xlsx OK: formulas, styles, merged cells, chart, frozen panes and new sheet kept")
 
 from pptx import Presentation
 prs = Presentation(out / "deck-edited.pptx")

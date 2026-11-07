@@ -416,4 +416,15 @@
     <string name="table_rows">Rows</string>
     <string name="table_columns">Columns</string>
     <string name="image_unsupported">This image cannot be shown</string>
+    <string name="sheet_freeze">Freeze panes</string>
+    <string name="sheet_unfreeze">Unfreeze panes</string>
+    <string name="sheet_filter">Filter</string>
+    <string name="sheet_filter_all">Select all</string>
+    <string name="sheet_filter_clear">Clear filter</string>
+    <string name="sheet_filter_blank">(Blank)</string>
+    <string name="sheet_charts">Charts</string>
+    <plurals name="sheet_rows_hidden">
+        <item quantity="one">%d row hidden</item>
+        <item quantity="other">%d rows hidden</item>
+    </plurals>
 </resources>

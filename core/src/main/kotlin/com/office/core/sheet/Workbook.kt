@@ -77,7 +77,18 @@ class Sheet(
     val maxRow: Int get() = cells.keys.maxOfOrNull { it.row } ?: -1
     val maxCol: Int get() = cells.keys.maxOfOrNull { it.col } ?: -1
 
-    fun copy(): Sheet = Sheet(name, HashMap(cells), HashMap(cachedValues), HashMap(columnWidths), HashMap(styles), ArrayList(extraXml), sourcePath, sourceRelId)
+    /** Rows and columns kept in view while scrolling (Excel's freeze panes). */
+    var frozenRows: Int = 0
+    var frozenCols: Int = 0
+
+    /** Charts drawn on this sheet, read from the file; they are kept unchanged on save. */
+    val charts: MutableList<ChartSpec> = ArrayList()
+
+    fun copy(): Sheet = Sheet(name, HashMap(cells), HashMap(cachedValues), HashMap(columnWidths), HashMap(styles), ArrayList(extraXml), sourcePath, sourceRelId).also {
+        it.frozenRows = frozenRows
+        it.frozenCols = frozenCols
+        it.charts += charts
+    }
 
     /** Largest row/column that has content or formatting. */
     val usedMaxRow: Int get() = maxOf(maxRow, styles.keys.maxOfOrNull { it.row } ?: -1)
