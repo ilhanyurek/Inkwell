@@ -131,4 +131,30 @@ class OpenFilesTest {
             rule.waitUntil(15_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_annotations_0")).fetchSemanticsNodes().isNotEmpty() }
         }
     }
+
+    @Test
+    fun longPressSelectsAndCopiesPdfText() = rule.explainFailure {
+        open(Fixtures.asset("form.pdf"), "application/pdf").use {
+            rule.waitForText(str(R.string.pdf_page_of, 1, 2))
+            rule.waitUntil(10_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_page_0")).fetchSemanticsNodes().isNotEmpty() }
+            // "Application form" sits at the top of page 1.
+            rule.onNodeWithTag("pdf_page_0").performTouchInput {
+                down(Offset(width * 0.2f, height * 0.068f))
+                advanceEventTime(1_000)
+                moveTo(Offset(width * 0.45f, height * 0.068f))
+                up()
+            }
+            rule.waitUntil(10_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_copy")).fetchSemanticsNodes().isNotEmpty() }
+            rule.onNodeWithTag("pdf_copy").performClick()
+            val clip = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().let { inst ->
+                var text = ""
+                inst.runOnMainSync {
+                    val cm = targetContext.getSystemService(android.content.ClipboardManager::class.java)
+                    text = cm.primaryClip?.getItemAt(0)?.text?.toString().orEmpty()
+                }
+                text
+            }
+            org.junit.Assert.assertTrue(clip, clip.contains("Application"))
+        }
+    }
 }

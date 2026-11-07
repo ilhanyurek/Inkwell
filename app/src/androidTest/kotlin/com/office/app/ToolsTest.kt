@@ -8,6 +8,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.office.app.tools.PdfOps
 import com.office.app.ui.pdf.PagePoint
 import com.office.app.ui.pdf.PdfTools
+import com.office.app.ui.pdf.OutlineItem
 import com.office.core.docx.DocxReader
 import com.office.core.pptx.PptxReader
 import com.office.core.util.TextDiff
@@ -199,5 +200,34 @@ class ToolsTest {
         val lines = PdfOps.compare(form(), w) { "Page $it" }
         assertTrue(lines.any { it.kind == TextDiff.Kind.ADDED && it.text.contains("DRAFT COPY") })
         assertTrue(PdfOps.compare(form(), form()) { "Page $it" }.all { it.kind == TextDiff.Kind.SAME })
+    }
+
+    @Test
+    fun wordsAndOutlineForSelectionAndContents() = runBlocking {
+        val words = PdfTools.words(form(), 0)
+        val title = words.firstOrNull { it.text == "Application" }
+        assertTrue("words: ${words.take(10)}", title != null)
+        assertTrue(title!!.left < title.right && title.top < title.bottom && title.top < 0.3f)
+        assertEquals("Application form", PdfTools.joinWords(words.take(2)))
+
+        // A PDF with two bookmarks, one nested.
+        val f = out("outline.pdf")
+        PDDocument().use { doc ->
+            repeat(3) { doc.addPage(com.tom_roush.pdfbox.pdmodel.PDPage()) }
+            val outline = com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline()
+            fun item(title: String, page: Int) = com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem().apply {
+                this.title = title
+                destination = com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitDestination().apply { this.page = doc.getPage(page) }
+            }
+            val chapter = item("Chapter 1", 0)
+            chapter.addLast(item("Section 1.1", 2))
+            outline.addLast(chapter)
+            doc.documentCatalog.documentOutline = outline
+            doc.save(f)
+        }
+        assertEquals(
+            listOf(OutlineItem("Chapter 1", 0, 0), OutlineItem("Section 1.1", 1, 2)),
+            PdfTools.outline(f),
+        )
     }
 }

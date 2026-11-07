@@ -401,4 +401,10 @@
     <string name="tool_compare_second">İkinci</string>
     <string name="tool_compare_same">Metinde fark yok.</string>
     <string name="tool_compare_summary">%1$d satır eklendi, %2$d silindi</string>
+    <string name="pdf_contents">İçindekiler</string>
+    <string name="pdf_select_page">Tüm sayfa</string>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d kelime seçildi</item>
+        <item quantity="other">%d kelime seçildi</item>
+    </plurals>
 </resources>

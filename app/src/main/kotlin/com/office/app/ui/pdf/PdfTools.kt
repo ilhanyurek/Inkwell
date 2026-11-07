@@ -47,6 +47,16 @@ data class AnnotationInfo(
     operator fun contains(p: PagePoint) = p.x in left..right && p.y in top..bottom
 }
 
+/** A word on a page with its box normalised like [PagePoint]; [line] groups words on the same text line. */
+data class PdfWord(val text: String, val left: Float, val top: Float, val right: Float, val bottom: Float, val line: Int) {
+    operator fun contains(p: PagePoint) = p.x in left..right && p.y in top..bottom
+    val centerX get() = (left + right) / 2
+    val centerY get() = (top + bottom) / 2
+}
+
+/** One entry of the document outline (bookmarks). */
+data class OutlineItem(val title: String, val level: Int, val page: Int)
+
 enum class FieldType { TEXT, CHECKBOX, CHOICE, RADIO }
 
 enum class RedactMode { BLUR, BLACK }
@@ -373,6 +383,79 @@ object PdfTools {
     }
 
     /** Text of every page, used for search. */
+    /** The words of one page in reading order, with their boxes. */
+    suspend fun words(file: File, pageIndex: Int): List<PdfWord> = withContext(Dispatchers.IO) {
+        PDDocument.load(file).use { doc ->
+            val out = ArrayList<PdfWord>()
+            val stripper = object : PDFTextStripper() {
+                var line = 0
+                var lastBaseline = Float.NaN
+                override fun writeString(text: String, positions: MutableList<com.tom_roush.pdfbox.text.TextPosition>) {
+                    val word = ArrayList<com.tom_roush.pdfbox.text.TextPosition>()
+                    fun flush() {
+                        if (word.isEmpty()) return
+                        val first = word.first()
+                        val w = first.pageWidth.takeIf { it > 0f } ?: return
+                        val h = first.pageHeight.takeIf { it > 0f } ?: return
+                        val baseline = first.yDirAdj
+                        val height = word.maxOf { it.heightDir }.coerceAtLeast(1f)
+                        if (!lastBaseline.isNaN() && kotlin.math.abs(baseline - lastBaseline) > height * 0.5f) line++
+                        lastBaseline = baseline
+                        val left = word.minOf { it.xDirAdj }
+                        val right = word.maxOf { it.xDirAdj + it.widthDirAdj }
+                        out += PdfWord(
+                            word.joinToString("") { it.unicode },
+                            (left / w).coerceIn(0f, 1f),
+                            ((baseline - height) / h).coerceIn(0f, 1f),
+                            (right / w).coerceIn(0f, 1f),
+                            ((baseline + height * 0.25f) / h).coerceIn(0f, 1f),
+                            line,
+                        )
+                        word.clear()
+                    }
+                    for (tp in positions) {
+                        if (tp.unicode.isBlank()) flush() else word += tp
+                    }
+                    flush()
+                }
+            }
+            stripper.sortByPosition = true
+            stripper.startPage = pageIndex + 1
+            stripper.endPage = pageIndex + 1
+            runCatching { stripper.getText(doc) }
+            out
+        }
+    }
+
+    /** Joins words into text, with a line break where the text line changes. */
+    fun joinWords(words: List<PdfWord>): String = buildString {
+        var line = Int.MIN_VALUE
+        for (w in words) {
+            if (isNotEmpty()) append(if (w.line != line) '\n' else ' ')
+            append(w.text)
+            line = w.line
+        }
+    }
+
+    /** The document's bookmarks, flattened with their nesting level. */
+    suspend fun outline(file: File): List<OutlineItem> = withContext(Dispatchers.IO) {
+        PDDocument.load(file).use { doc ->
+            val out = ArrayList<OutlineItem>()
+            fun walk(node: com.tom_roush.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode, level: Int) {
+                var item = node.firstChild
+                var guard = 0
+                while (item != null && guard++ < 2000) {
+                    val page = runCatching { item.findDestinationPage(doc)?.let { doc.pages.indexOf(it) } }.getOrNull() ?: -1
+                    out += OutlineItem(item.title.orEmpty().trim(), level, page)
+                    if (level < 6) walk(item, level + 1)
+                    item = item.nextSibling
+                }
+            }
+            doc.documentCatalog.documentOutline?.let { walk(it, 0) }
+            out.filter { it.title.isNotEmpty() }
+        }
+    }
+
     suspend fun pageTexts(file: File): List<String> = withContext(Dispatchers.IO) {
         PDDocument.load(file).use { doc ->
             val stripper = PDFTextStripper()

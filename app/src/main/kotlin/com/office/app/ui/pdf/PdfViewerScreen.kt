@@ -6,6 +6,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -173,6 +175,10 @@ fun PdfViewerScreen(
     var redactMode by remember { mutableStateOf(RedactMode.BLUR) }
     var confirmRedact by remember { mutableStateOf(false) }
     var deleteCandidate by remember { mutableStateOf<AnnotationInfo?>(null) }
+    var selection by remember { mutableStateOf<TextSelection?>(null) }
+    var showOutline by remember { mutableStateOf(false) }
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    val copiedMsg = stringResource(R.string.copied)
 
     val currentPage by remember { derivedStateOf { listState.firstVisibleItemIndex } }
     val savedMsg = stringResource(R.string.saved)
@@ -247,6 +253,9 @@ fun PdfViewerScreen(
                         Box(if (vm.formFields.isNotEmpty()) Modifier.testTag("pdf_form_ready") else Modifier) {
                             IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.action_more)) }
                             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                                if (vm.outline.isNotEmpty()) {
+                                    DropdownMenuItem(text = { Text(stringResource(R.string.pdf_contents)) }, onClick = { menuOpen = false; showOutline = true })
+                                }
                                 DropdownMenuItem(text = { Text(stringResource(R.string.pdf_go_to_page)) }, onClick = { menuOpen = false; showGoTo = true })
                                 DropdownMenuItem(text = { Text(stringResource(R.string.pdf_rotate_page)) }, onClick = { menuOpen = false; vm.rotate(currentPage, 90) })
                                 if (vm.pageSizes.size > 1) {
@@ -284,7 +293,19 @@ fun PdfViewerScreen(
         },
         bottomBar = {
             val p = placement
-            if (p != null && signature != null) {
+            val sel = selection
+            if (sel != null && tool == Tool.VIEW) {
+                SelectionBar(
+                    count = sel.selected.size,
+                    onCopy = {
+                        clipboard.setText(androidx.compose.ui.text.AnnotatedString(PdfTools.joinWords(sel.selected)))
+                        toast(context, copiedMsg)
+                        selection = null
+                    },
+                    onSelectAll = { selection = sel.copy(start = 0, end = sel.words.lastIndex) },
+                    onClose = { selection = null },
+                )
+            } else if (p != null && signature != null) {
                 PlacementBar(
                     width = p.width,
                     onWidth = { placement = p.copy(width = it) },
@@ -379,7 +400,23 @@ fun PdfViewerScreen(
                                     else placement = Placement(index, pt, placement?.width ?: 0.3f)
                                 },
                                 onMovePlacement = { pt -> placement = placement?.copy(center = pt) },
-                                onLongPress = { pt -> deleteCandidate = vm.annotations.lastOrNull { it.page == index && pt in it } },
+                                onLongPress = { pt ->
+                                    val hit = vm.annotations.lastOrNull { it.page == index && pt in it }
+                                    if (hit != null) deleteCandidate = hit
+                                    else scope.launch {
+                                        val words = vm.words(index)
+                                        val at = nearestWord(words, pt)
+                                        selection = if (at >= 0) TextSelection(index, words, at, at) else null
+                                    }
+                                },
+                                onSelectTo = { pt ->
+                                    val sel = selection
+                                    if (sel != null && sel.page == index) {
+                                        val at = nearestWord(sel.words, pt)
+                                        if (at >= 0) selection = sel.copy(end = at)
+                                    }
+                                },
+                                selected = selection?.takeIf { it.page == index }?.selected.orEmpty(),
                                 redactions = redactions[index].orEmpty(),
                                 onRedact = { a, b -> redactions[index] = redactions[index].orEmpty() + (a to b) },
                             )
@@ -395,6 +432,32 @@ fun PdfViewerScreen(
             onSave = { showUnsaved = false; closeAfterSave = true; requestSave() },
             onDiscard = { showUnsaved = false; vm.discardDraft(); onClose() },
             onDismiss = { showUnsaved = false },
+        )
+    }
+    if (showOutline) {
+        AlertDialog(
+            onDismissRequest = { showOutline = false },
+            title = { Text(stringResource(R.string.pdf_contents)) },
+            text = {
+                LazyColumn(Modifier.heightIn(max = 460.dp)) {
+                    items(vm.outline.size) { i ->
+                        val item = vm.outline[i]
+                        Row(
+                            Modifier.fillMaxWidth()
+                                .clickable(enabled = item.page >= 0) {
+                                    showOutline = false
+                                    scope.launch { listState.scrollToItem(item.page) }
+                                }
+                                .padding(start = (item.level * 16).dp, top = 8.dp, bottom = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(item.title, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            if (item.page >= 0) Text("${item.page + 1}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showOutline = false }) { Text(stringResource(R.string.action_close)) } },
         )
     }
     if (showGoTo) {
@@ -488,6 +551,8 @@ private fun PdfPage(
     onSignAt: (PagePoint) -> Unit = {},
     onMovePlacement: (PagePoint) -> Unit = {},
     onLongPress: (PagePoint) -> Unit = {},
+    onSelectTo: (PagePoint) -> Unit = {},
+    selected: List<PdfWord> = emptyList(),
     redactions: List<Pair<PagePoint, PagePoint>> = emptyList(),
     onRedact: (PagePoint, PagePoint) -> Unit = { _, _ -> },
 ) {
@@ -532,8 +597,15 @@ private fun PdfPage(
                     Tool.SIGN -> Modifier.pointerInput(index) {
                         detectTapGestures { p -> onSignAt(PagePoint(p.x / size.width, p.y / size.height)) }
                     }
+                    // Long-press selects a word (or offers to delete an annotation); keep dragging to extend.
                     Tool.VIEW -> Modifier.pointerInput(index) {
-                        detectTapGestures(onLongPress = { p -> onLongPress(PagePoint(p.x / size.width, p.y / size.height)) })
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { p -> onLongPress(PagePoint(p.x / size.width, p.y / size.height)) },
+                            onDrag = { change, _ ->
+                                change.consume()
+                                onSelectTo(PagePoint(change.position.x / size.width, change.position.y / size.height))
+                            },
+                        )
                     }
                 },
             ),
@@ -545,6 +617,14 @@ private fun PdfPage(
         val pageAnnotations = vm.annotations.filter { it.page == index }
         if (pageAnnotations.isNotEmpty()) {
             AnnotationLayer(pageAnnotations, pageWidthPt = pw.toFloat())
+        }
+        if (selected.isNotEmpty()) {
+            val selColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+            Canvas(Modifier.fillMaxSize().testTag("pdf_selection")) {
+                selected.forEach { w ->
+                    drawRect(selColor, Offset(w.left * size.width, w.top * size.height), Size((w.right - w.left) * size.width, (w.bottom - w.top) * size.height))
+                }
+            }
         }
         if (placement != null && signature != null) {
             BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -965,6 +1045,43 @@ private fun RedactBar(mode: RedactMode, onMode: (RedactMode) -> Unit, count: Int
                 }
                 TextButton(onClick = onApply, enabled = count > 0) { Text(stringResource(R.string.pdf_redact_apply)) }
             }
+        }
+    }
+}
+
+/** Words picked by long-press and drag on one page; [start] and [end] may be in either order. */
+private data class TextSelection(val page: Int, val words: List<PdfWord>, val start: Int, val end: Int) {
+    val selected: List<PdfWord> get() = if (words.isEmpty()) emptyList() else words.subList(minOf(start, end), maxOf(start, end) + 1)
+}
+
+/** The word under [p], or the closest one on the nearest line; -1 when the page has no text. */
+private fun nearestWord(words: List<PdfWord>, p: PagePoint): Int {
+    if (words.isEmpty()) return -1
+    words.indexOfFirst { p in it }.let { if (it >= 0) return it }
+    return words.indices.minBy { i ->
+        val w = words[i]
+        val dy = when { p.y < w.top -> w.top - p.y; p.y > w.bottom -> p.y - w.bottom; else -> 0f }
+        val dx = when { p.x < w.left -> w.left - p.x; p.x > w.right -> p.x - w.right; else -> 0f }
+        dy * 4 + dx
+    }
+}
+
+@Composable
+private fun SelectionBar(count: Int, onCopy: () -> Unit, onSelectAll: () -> Unit, onClose: () -> Unit) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                pluralStringResource(R.plurals.pdf_words_selected, count, count),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onSelectAll) { Text(stringResource(R.string.pdf_select_page)) }
+            TextButton(onClick = onCopy, modifier = Modifier.testTag("pdf_copy")) { Text(stringResource(R.string.sheet_copy)) }
+            IconButton(onClick = onClose) { Icon(Icons.Default.Close, stringResource(R.string.action_close)) }
         }
     }
 }

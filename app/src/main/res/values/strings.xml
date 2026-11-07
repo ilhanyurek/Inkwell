@@ -401,4 +401,10 @@
     <string name="tool_compare_second">Second</string>
     <string name="tool_compare_same">No differences in the text.</string>
     <string name="tool_compare_summary">%1$d lines added, %2$d removed</string>
+    <string name="pdf_contents">Contents</string>
+    <string name="pdf_select_page">Whole page</string>
+    <plurals name="pdf_words_selected">
+        <item quantity="one">%d word selected</item>
+        <item quantity="other">%d words selected</item>
+    </plurals>
 </resources>

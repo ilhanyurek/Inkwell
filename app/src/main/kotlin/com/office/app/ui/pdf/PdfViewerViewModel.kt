@@ -322,11 +322,26 @@ class PdfViewerViewModel(
     var annotations by mutableStateOf<List<AnnotationInfo>>(emptyList())
         private set
 
+    /** Bookmarks of the document, loaded with the form fields. */
+    var outline by mutableStateOf<List<OutlineItem>>(emptyList())
+        private set
+
+    private val wordCache = HashMap<Pair<Int, Int>, List<PdfWord>>()
+
+    /** Words of a page for text selection; cached per document version. */
+    suspend fun words(page: Int): List<PdfWord> {
+        val key = version to page
+        wordCache[key]?.let { return it }
+        val file = working ?: return emptyList()
+        return runCatching { PdfTools.words(file, page) }.getOrDefault(emptyList()).also { wordCache[key] = it }
+    }
+
     fun loadFormFields() {
         val file = working ?: return
         viewModelScope.launch {
             formFields = runCatching { PdfTools.formFields(file) }.getOrDefault(emptyList())
             annotations = runCatching { PdfTools.annotations(file) }.getOrDefault(emptyList())
+            outline = runCatching { PdfTools.outline(file) }.getOrDefault(emptyList())
         }
     }
 
