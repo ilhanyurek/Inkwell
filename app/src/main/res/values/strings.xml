@@ -427,4 +427,11 @@
         <item quantity="one">%d row hidden</item>
         <item quantity="other">%d rows hidden</item>
     </plurals>
+    <string name="slide_add">New slide</string>
+    <string name="slide_duplicate">Duplicate</string>
+    <string name="slide_delete">Delete slide</string>
+    <string name="slide_move_left">Move left</string>
+    <string name="slide_move_right">Move right</string>
+    <string name="new_presentation">Presentation</string>
+    <string name="new_presentation_desc">Slides with title and content layouts</string>
 </resources>

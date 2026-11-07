@@ -158,7 +158,8 @@ object PptxReader {
                     val anchor = body?.child("bodyPr")?.attr("anchor") ?: if (isTitle) "ctr" else null
                     val hasText = paragraphs.any { it.text.isNotBlank() }
                     val id = el.path("nvSpPr", "cNvPr")?.attr("id")
-                    if (hasText) out += SlideShape.TextBox(frame, paragraphs, fill, isTitle, anchor == "ctr", id)
+                    // Empty placeholders are kept (invisible) so their text can be filled in.
+                    if (hasText || (ph != null && body != null)) out += SlideShape.TextBox(frame, paragraphs, fill, isTitle, anchor == "ctr", id)
                     else if (fill != null) out += SlideShape.Rect(frame, fill)
                 }
                 "pic" -> {

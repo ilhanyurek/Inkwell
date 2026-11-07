@@ -16,6 +16,7 @@ import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.document.DocumentEditorScreen
 import com.office.app.ui.pdf.PdfViewerScreen
 import com.office.app.ui.sheet.SheetEditorScreen
+import com.office.app.ui.slides.NewPresentation
 import com.office.app.ui.slides.PresentationScreen
 import com.office.core.FileKind
 
@@ -79,6 +80,10 @@ private fun Editor(
         FileKind.SPREADSHEET, FileKind.CSV ->
             SheetEditorScreen(container, uri, info, kind, onClose, onOpenOther, draftKey)
         FileKind.PDF -> if (uri != null && info != null) PdfViewerScreen(container, uri, info, onClose, onOpenOther, startTool) else ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
-        FileKind.PRESENTATION -> if (uri != null && info != null) PresentationScreen(container, uri, info, onClose) else ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
+        FileKind.PRESENTATION -> when {
+            uri != null && info != null -> PresentationScreen(container, uri, info, onClose)
+            uri == null -> NewPresentation(container, onClose, onOpenOther)
+            else -> ErrorScreen(stringResource(R.string.error_cannot_open), onBack = onClose)
+        }
     }
 }

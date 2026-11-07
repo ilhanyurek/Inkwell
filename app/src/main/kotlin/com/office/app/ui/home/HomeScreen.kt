@@ -476,6 +476,7 @@ private fun NewFileSheet(onDismiss: () -> Unit, onPick: (FileKind) -> Unit) {
             NewRow(FileKind.DOCUMENT, R.string.new_document, R.string.new_document_desc, onPick)
             NewRow(FileKind.SPREADSHEET, R.string.new_sheet, R.string.new_sheet_desc, onPick)
             NewRow(FileKind.CSV, R.string.new_csv, R.string.new_csv_desc, onPick)
+            NewRow(FileKind.PRESENTATION, R.string.new_presentation, R.string.new_presentation_desc, onPick)
             HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 24.dp), color = MaterialTheme.colorScheme.outlineVariant)
             NewRow(FileKind.MARKDOWN, R.string.new_note, R.string.new_note_desc, onPick)
             NewRow(FileKind.TEXT, R.string.new_text, R.string.new_text_desc, onPick)

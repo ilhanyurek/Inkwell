@@ -44,3 +44,14 @@ prs = Presentation(out / "pictures.pptx")
 assert len(prs.slides) == 2, len(prs.slides)
 assert all(len(s.shapes) == 1 and s.shapes[0].shape_type == 13 for s in prs.slides), "picture slides"
 print("pictures.pptx OK: 2 picture slides")
+
+prs = Presentation(out / "deck-slides.pptx")
+assert len(prs.slides) == 4, len(prs.slides)
+assert len(prs.slides[3].placeholders) == 2, "new slide placeholders"
+print("deck-slides.pptx OK: moved, duplicated, added and deleted slides")
+
+prs = Presentation(out / "new-grown.pptx")
+assert len(prs.slides) == 3, len(prs.slides)
+assert prs.slides[0].shapes.title.text == "Launch plan", prs.slides[0].shapes.title.text
+assert [l.name for l in prs.slide_layouts] == ["Title Slide", "Title and Content"]
+print("new-grown.pptx OK: new presentation with added slides")

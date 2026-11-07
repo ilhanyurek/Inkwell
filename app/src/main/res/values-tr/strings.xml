@@ -427,4 +427,11 @@
         <item quantity="one">%d satır gizli</item>
         <item quantity="other">%d satır gizli</item>
     </plurals>
+    <string name="slide_add">Yeni slayt</string>
+    <string name="slide_duplicate">Çoğalt</string>
+    <string name="slide_delete">Slaytı sil</string>
+    <string name="slide_move_left">Sola taşı</string>
+    <string name="slide_move_right">Sağa taşı</string>
+    <string name="new_presentation">Sunum</string>
+    <string name="new_presentation_desc">Başlık ve içerik düzenli slaytlar</string>
 </resources>

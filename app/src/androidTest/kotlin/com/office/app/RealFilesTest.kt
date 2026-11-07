@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import com.office.core.xlsx.XlsxReader
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.longClick
 import com.office.core.zip.ZipPackage
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -89,6 +91,23 @@ class RealFilesTest {
             rule.waitForText("Edited title")
             rule.onNodeWithContentDescription(str(R.string.action_save)).assertExists()
             rule.screenshot("24_pptx_edited")
+        }
+    }
+
+    @Test fun addDuplicateMoveAndDeleteSlides() = rule.explainFailure {
+        val file = Fixtures.asset("deck.pptx")
+        ActivityScenario.launch<MainActivity>(Fixtures.viewIntent(file, "application/vnd.openxmlformats-officedocument.presentationml.presentation")).use {
+            rule.waitForText(str(R.string.slide_of, 1, 3))
+            rule.onNodeWithTag("slide_thumb_0").performTouchInput { longClick() }
+            rule.onNodeWithTag("slide_duplicate").performClick()
+            rule.waitForText(str(R.string.slide_of, 2, 4))
+            rule.onNodeWithTag("slide_add").performClick()
+            rule.waitForText(str(R.string.slide_of, 3, 5))
+            rule.onNodeWithTag("slide_thumb_0").performTouchInput { longClick() }
+            rule.onNodeWithTag("slide_delete").performClick()
+            rule.waitForText(str(R.string.slide_of, 1, 4))
+            rule.screenshot("26_pptx_slides")
+            rule.onNodeWithContentDescription(str(R.string.action_save)).assertExists()
         }
     }
 

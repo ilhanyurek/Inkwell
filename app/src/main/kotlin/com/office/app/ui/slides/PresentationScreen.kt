@@ -99,6 +99,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import com.office.core.pptx.PptxEditor
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.platform.testTag
+import com.office.core.pptx.PptxSlides
 import com.office.core.pptx.PptxReader
 import com.office.core.zip.ZipPackage
 import com.office.core.pptx.Presentation
@@ -151,6 +155,22 @@ class PresentationViewModel(private val container: AppContainer, val uri: Uri) :
             pkg = updated
             presentation = withContext(Dispatchers.Default) { PptxReader.read(updated) }
             dirty = true
+        }
+    }
+
+    /** Applies a slide operation (add, duplicate, delete, move) with undo; [onDone] gets the new slide count. */
+    fun changeSlides(op: (ZipPackage) -> ZipPackage, onDone: () -> Unit = {}) {
+        val current = pkg ?: return
+        viewModelScope.launch {
+            val updated = withContext(Dispatchers.Default) { runCatching { op(current) }.getOrNull() } ?: return@launch
+            if (updated === current) return@launch
+            val read = withContext(Dispatchers.Default) { runCatching { PptxReader.read(updated) }.getOrNull() } ?: return@launch
+            undo.addLast(current)
+            canUndo = true
+            pkg = updated
+            presentation = read
+            dirty = true
+            onDone()
         }
     }
 
@@ -236,6 +256,7 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
     var menu by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf(false) }
     var editBox by remember { mutableStateOf<Pair<Slide, SlideShape.TextBox>?>(null) }
+    var slideMenu by remember { mutableStateOf<Int?>(null) }
     var showUnsaved by remember { mutableStateOf(false) }
     var closeAfterSave by remember { mutableStateOf(false) }
     val savedMsg = stringResource(R.string.saved)
@@ -354,23 +375,72 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                         itemsIndexed(pres.slides) { i, slide ->
                             val selected = i == pager.currentPage
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                SlideView(
-                                    vm, pres, slide,
-                                    Modifier
-                                        .width(96.dp)
-                                        .border(
-                                            if (selected) 2.dp else 0.5.dp,
-                                            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                Box {
+                                    SlideView(
+                                        vm, pres, slide,
+                                        Modifier
+                                            .width(96.dp)
+                                            .border(
+                                                if (selected) 2.dp else 0.5.dp,
+                                                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            )
+                                            .combinedClickable(
+                                                onClick = { scope.launch { pager.animateScrollToPage(i) } },
+                                                onLongClick = { slideMenu = i },
+                                            )
+                                            .testTag("slide_thumb_$i"),
+                                        thumbnail = true,
+                                    )
+                                    DropdownMenu(expanded = slideMenu == i, onDismissRequest = { slideMenu = null }) {
+                                        fun go(page: Int, op: (ZipPackage) -> ZipPackage) {
+                                            slideMenu = null
+                                            vm.changeSlides(op) { scope.launch { pager.scrollToPage(page) } }
+                                        }
+                                        DropdownMenuItem(text = { Text(stringResource(R.string.slide_add)) }, onClick = { go(i + 1) { PptxSlides.addSlide(it, i) } })
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.slide_duplicate)) },
+                                            onClick = { go(i + 1) { PptxSlides.duplicate(it, i) } },
+                                            modifier = Modifier.testTag("slide_duplicate"),
                                         )
-                                        .clickable { scope.launch { pager.animateScrollToPage(i) } },
-                                    thumbnail = true,
-                                )
+                                        if (i > 0) DropdownMenuItem(text = { Text(stringResource(R.string.slide_move_left)) }, onClick = { go(i - 1) { PptxSlides.move(it, i, i - 1) } })
+                                        if (i < pres.slides.lastIndex) {
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.slide_move_right)) },
+                                                onClick = { go(i + 1) { PptxSlides.move(it, i, i + 1) } },
+                                                modifier = Modifier.testTag("slide_move_right"),
+                                            )
+                                        }
+                                        if (pres.slides.size > 1) {
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.slide_delete)) },
+                                                onClick = { go((i - 1).coerceAtLeast(0)) { PptxSlides.delete(it, i) } },
+                                                modifier = Modifier.testTag("slide_delete"),
+                                            )
+                                        }
+                                    }
+                                }
                                 Text(
                                     (i + 1).toString(),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 4.dp),
                                 )
+                            }
+                        }
+                        item {
+                            Box(
+                                Modifier
+                                    .width(96.dp)
+                                    .aspectRatio(pres.aspectRatio)
+                                    .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                    .clickable {
+                                        val at = pager.currentPage
+                                        vm.changeSlides({ PptxSlides.addSlide(it, at) }) { scope.launch { pager.scrollToPage(at + 1) } }
+                                    }
+                                    .testTag("slide_add"),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.Default.Add, stringResource(R.string.slide_add), tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
