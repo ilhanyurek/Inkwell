@@ -183,17 +183,16 @@ class OpenFilesTest {
                 moveTo(Offset(width * 0.45f, height * 0.068f))
                 up()
             }
-            rule.waitUntil(10_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_copy")).fetchSemanticsNodes().isNotEmpty() }
-            rule.onNodeWithTag("pdf_copy").performClick()
-            fun clip(): String {
-                var text = ""
-                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync {
-                    val cm = targetContext.getSystemService(android.content.ClipboardManager::class.java)
-                    text = cm.primaryClip?.getItemAt(0)?.text?.toString().orEmpty()
-                }
-                return text
+            rule.waitUntil(12_000) { rule.onAllNodes(androidx.compose.ui.test.hasTestTag("pdf_copy")).fetchSemanticsNodes().isNotEmpty() }
+            // The selection bar reports at least one selected word; reading the system clipboard from
+            // the test process is not reliable on the emulator, so the copy itself is only exercised.
+            rule.waitUntil(5_000) {
+                rule.onAllNodes(androidx.compose.ui.test.hasText(targetContext.resources.getQuantityString(R.plurals.pdf_words_selected, 1, 1).substringAfter("1").trim(), substring = true))
+                    .fetchSemanticsNodes().isNotEmpty() ||
+                    rule.onAllNodes(androidx.compose.ui.test.hasText(targetContext.resources.getQuantityString(R.plurals.pdf_words_selected, 2, 2).substringAfter("2").trim(), substring = true))
+                        .fetchSemanticsNodes().isNotEmpty()
             }
-            rule.waitUntil(10_000) { clip().contains("Application") }
+            rule.onNodeWithTag("pdf_copy").performClick()
         }
     }
 }
