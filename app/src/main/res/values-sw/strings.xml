@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">PDF hii haikuweza kusomwa.</string>
     <string name="error_cannot_read_presentation">Wasilisho hili halikuweza kusomwa.</string>
     <string name="error_cannot_read_sheet">Lahajedwali hili halikuweza kusomwa.</string>
-    <string name="error_legacy_format">Miundo ya zamani ya Office (.doc, .xls, .ppt) haitumiki. Hifadhi faili kama .docx, .xlsx au .pptx kisha ujaribu tena.</string>
     <string name="error_no_app">Hakuna programu inayoweza kufungua faili hii.</string>
     <string name="error_pdf_merge">PDF hazikuweza kuunganishwa.</string>
     <string name="error_save_failed">Imeshindwa kuhifadhi. Jaribu \"Hifadhi kama\" ili uchague mahali pengine.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Sogeza kulia</string>
     <string name="new_presentation">Wasilisho</string>
     <string name="new_presentation_desc">Slaidi zenye mpangilio wa kichwa na maudhui</string>
+    <string name="error_legacy_format">Faili za zamani za PowerPoint (.ppt) hazitumiki. Hifadhi faili kama .pptx kisha ujaribu tena.</string>
+    <string name="legacy_banner">Muundo wa zamani wa Word (.doc). Kuhifadhi huunda nakala ya .docx.</string>
+    <string name="legacy_banner_sheet">Muundo wa zamani wa Excel (.xls). Kuhifadhi huunda nakala ya .xlsx; fomula hubaki kama thamani.</string>
+    <string name="error_password_legacy">Faili hii inalindwa na nenosiri. Ifungue katika Office, ondoa nenosiri kisha ujaribu tena.</string>
     <plurals name="pdf_results">
         <item quantity="one">Kinacholingana %d</item>
         <item quantity="other">Vinavyolingana %d</item>

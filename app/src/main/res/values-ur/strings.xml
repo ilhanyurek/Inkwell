@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">یہ PDF پڑھی نہیں جا سکی۔</string>
     <string name="error_cannot_read_presentation">یہ پریزنٹیشن پڑھی نہیں جا سکی۔</string>
     <string name="error_cannot_read_sheet">یہ اسپریڈشیٹ پڑھی نہیں جا سکی۔</string>
-    <string name="error_legacy_format">پرانے Office فارمیٹ (.doc، .xls، .ppt) تعاون یافتہ نہیں ہیں۔ فائل کو .docx، .xlsx یا .pptx کے طور پر محفوظ کر کے دوبارہ کوشش کریں۔</string>
     <string name="error_no_app">کوئی ایپ یہ فائل نہیں کھول سکتی۔</string>
     <string name="error_pdf_merge">PDF فائلیں ضم نہیں ہو سکیں۔</string>
     <string name="error_save_failed">محفوظ نہیں ہو سکا۔ کوئی اور جگہ چننے کے لیے \"بطور محفوظ کریں\" آزمائیں۔</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">دائیں منتقل کریں</string>
     <string name="new_presentation">پریزنٹیشن</string>
     <string name="new_presentation_desc">عنوان اور مواد والی سلائیڈز</string>
+    <string name="error_legacy_format">پرانی PowerPoint فائلیں (.ppt) سپورٹ نہیں ہیں۔ فائل کو .pptx کے طور پر محفوظ کر کے دوبارہ کوشش کریں۔</string>
+    <string name="legacy_banner">پرانا Word فارمیٹ (.doc)۔ محفوظ کرنے پر .docx کاپی بنتی ہے۔</string>
+    <string name="legacy_banner_sheet">پرانا Excel فارمیٹ (.xls)۔ محفوظ کرنے پر .xlsx کاپی بنتی ہے؛ فارمولے قدروں کی صورت میں رہتے ہیں۔</string>
+    <string name="error_password_legacy">یہ فائل پاس ورڈ سے محفوظ ہے۔ اسے Office میں کھولیں، پاس ورڈ ہٹائیں اور دوبارہ کوشش کریں۔</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجہ</item>
         <item quantity="other">%d نتائج</item>

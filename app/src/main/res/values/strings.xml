@@ -45,7 +45,7 @@
     <string name="error_cannot_read_pdf">This PDF could not be read.</string>
     <string name="error_cannot_read_presentation">This presentation could not be read.</string>
     <string name="error_cannot_read_sheet">This spreadsheet could not be read.</string>
-    <string name="error_legacy_format">Old Office formats (.doc, .xls, .ppt) are not supported. Save the file as .docx, .xlsx or .pptx and try again.</string>
+    <string name="error_legacy_format">Old PowerPoint files (.ppt) are not supported. Save the file as .pptx and try again.</string>
     <string name="error_no_app">No app can open this file.</string>
     <string name="error_pdf_merge">The PDFs could not be merged.</string>
     <string name="error_save_failed">Could not save. Try \"Save as\" to pick another location.</string>
@@ -434,4 +434,7 @@
     <string name="slide_move_right">Move right</string>
     <string name="new_presentation">Presentation</string>
     <string name="new_presentation_desc">Slides with title and content layouts</string>
+    <string name="legacy_banner">Old Word format (.doc). Saving creates a .docx copy.</string>
+    <string name="legacy_banner_sheet">Old Excel format (.xls). Saving creates an .xlsx copy; formulas are kept as values.</string>
+    <string name="error_password_legacy">This file is password protected. Open it in Office, remove the password and try again.</string>
 </resources>

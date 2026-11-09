@@ -55,3 +55,15 @@ assert len(prs.slides) == 3, len(prs.slides)
 assert prs.slides[0].shapes.title.text == "Launch plan", prs.slides[0].shapes.title.text
 assert [l.name for l in prs.slide_layouts] == ["Title Slide", "Title and Content"]
 print("new-grown.pptx OK: new presentation with added slides")
+
+from docx import Document as _Doc
+d = _Doc(out / "report-from-doc.docx")
+texts = [p.text for p in d.paragraphs]
+assert texts[0] == "Quarterly Report" and "Visit our site for more." in texts, texts
+assert len(d.tables) == 1 and d.tables[0].rows[0].cells[0].text == "City"
+print("report-from-doc.docx OK: text, styles and table from a .doc file")
+
+wb = load_workbook(out / "budget-from-xls.xlsx")
+assert wb.sheetnames == ["Sales", "Notes"], wb.sheetnames
+assert wb["Sales"]["A2"].value == "Kalem" and wb["Sales"]["A1"].font.b
+print("budget-from-xls.xlsx OK: sheets, values and fonts from a .xls file")

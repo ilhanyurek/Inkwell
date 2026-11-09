@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">Не удалось прочитать PDF.</string>
     <string name="error_cannot_read_presentation">Не удалось прочитать презентацию.</string>
     <string name="error_cannot_read_sheet">Не удалось прочитать таблицу.</string>
-    <string name="error_legacy_format">Старые форматы Office (.doc, .xls, .ppt) не поддерживаются. Сохраните файл в формате .docx, .xlsx или .pptx и повторите попытку.</string>
     <string name="error_no_app">Нет приложения, которое может открыть этот файл.</string>
     <string name="error_pdf_merge">Не удалось объединить PDF.</string>
     <string name="error_save_failed">Не удалось сохранить. Выберите другое место через «Сохранить как».</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Переместить вправо</string>
     <string name="new_presentation">Презентация</string>
     <string name="new_presentation_desc">Слайды с заголовком и содержимым</string>
+    <string name="error_legacy_format">Старые файлы PowerPoint (.ppt) не поддерживаются. Сохраните файл в формате .pptx и попробуйте снова.</string>
+    <string name="legacy_banner">Старый формат Word (.doc). При сохранении создаётся копия .docx.</string>
+    <string name="legacy_banner_sheet">Старый формат Excel (.xls). При сохранении создаётся копия .xlsx; формулы сохраняются как значения.</string>
+    <string name="error_password_legacy">Файл защищён паролем. Откройте его в Office, снимите пароль и попробуйте снова.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d совпадение</item>
         <item quantity="few">%d совпадения</item>

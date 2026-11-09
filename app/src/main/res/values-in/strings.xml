@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">PDF ini tidak dapat dibaca.</string>
     <string name="error_cannot_read_presentation">Presentasi ini tidak dapat dibaca.</string>
     <string name="error_cannot_read_sheet">Spreadsheet ini tidak dapat dibaca.</string>
-    <string name="error_legacy_format">Format Office lama (.doc, .xls, .ppt) tidak didukung. Simpan file sebagai .docx, .xlsx, atau .pptx lalu coba lagi.</string>
     <string name="error_no_app">Tidak ada aplikasi yang dapat membuka file ini.</string>
     <string name="error_pdf_merge">PDF tidak dapat digabungkan.</string>
     <string name="error_save_failed">Tidak dapat menyimpan. Coba \"Simpan sebagai\" untuk memilih lokasi lain.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Pindah ke kanan</string>
     <string name="new_presentation">Presentasi</string>
     <string name="new_presentation_desc">Slide dengan tata letak judul dan konten</string>
+    <string name="error_legacy_format">File PowerPoint lama (.ppt) tidak didukung. Simpan file sebagai .pptx lalu coba lagi.</string>
+    <string name="legacy_banner">Format Word lama (.doc). Menyimpan akan membuat salinan .docx.</string>
+    <string name="legacy_banner_sheet">Format Excel lama (.xls). Menyimpan akan membuat salinan .xlsx; rumus disimpan sebagai nilai.</string>
+    <string name="error_password_legacy">File ini dilindungi kata sandi. Buka di Office, hapus kata sandinya, lalu coba lagi.</string>
     <plurals name="pdf_results">
         <item quantity="other">%d hasil</item>
     </plurals>

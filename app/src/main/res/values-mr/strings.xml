@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">हा PDF वाचता आला नाही.</string>
     <string name="error_cannot_read_presentation">हे प्रेझेंटेशन वाचता आले नाही.</string>
     <string name="error_cannot_read_sheet">ही स्प्रेडशीट वाचता आली नाही.</string>
-    <string name="error_legacy_format">जुने Office फॉरमॅट (.doc, .xls, .ppt) समर्थित नाहीत. फाइल .docx, .xlsx किंवा .pptx म्हणून सेव्ह करून पुन्हा प्रयत्न करा.</string>
     <string name="error_no_app">ही फाइल उघडू शकेल असे कोणतेही ॲप नाही.</string>
     <string name="error_pdf_merge">PDF एकत्र करता आले नाहीत.</string>
     <string name="error_save_failed">सेव्ह करता आले नाही. दुसरी जागा निवडण्यासाठी \"म्हणून सेव्ह करा\" वापरून पहा.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">उजवीकडे हलवा</string>
     <string name="new_presentation">सादरीकरण</string>
     <string name="new_presentation_desc">शीर्षक आणि मजकूर मांडणी असलेल्या स्लाइड</string>
+    <string name="error_legacy_format">जुन्या PowerPoint फाइल्स (.ppt) समर्थित नाहीत. फाइल .pptx म्हणून सेव्ह करून पुन्हा प्रयत्न करा.</string>
+    <string name="legacy_banner">जुना Word फॉरमॅट (.doc). सेव्ह केल्यावर .docx प्रत तयार होते.</string>
+    <string name="legacy_banner_sheet">जुना Excel फॉरमॅट (.xls). सेव्ह केल्यावर .xlsx प्रत तयार होते; सूत्रे मूल्ये म्हणून राहतात.</string>
+    <string name="error_password_legacy">ही फाइल पासवर्डने संरक्षित आहे. ती Office मध्ये उघडा, पासवर्ड काढा आणि पुन्हा प्रयत्न करा.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d जुळणी</item>
         <item quantity="other">%d जुळण्या</item>

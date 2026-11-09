@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">Hindi mabasa ang PDF na ito.</string>
     <string name="error_cannot_read_presentation">Hindi mabasa ang presentation na ito.</string>
     <string name="error_cannot_read_sheet">Hindi mabasa ang spreadsheet na ito.</string>
-    <string name="error_legacy_format">Hindi suportado ang mga lumang format ng Office (.doc, .xls, .ppt). I-save ang file bilang .docx, .xlsx o .pptx at subukang muli.</string>
     <string name="error_no_app">Walang app na makakapagbukas sa file na ito.</string>
     <string name="error_pdf_merge">Hindi mapagsama ang mga PDF.</string>
     <string name="error_save_failed">Hindi ma-save. Subukan ang \"I-save bilang\" para pumili ng ibang lokasyon.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Ilipat pakanan</string>
     <string name="new_presentation">Presentation</string>
     <string name="new_presentation_desc">Mga slide na may layout ng pamagat at nilalaman</string>
+    <string name="error_legacy_format">Hindi suportado ang lumang PowerPoint file (.ppt). I-save ang file bilang .pptx at subukang muli.</string>
+    <string name="legacy_banner">Lumang format ng Word (.doc). Gagawa ng kopyang .docx kapag nag-save.</string>
+    <string name="legacy_banner_sheet">Lumang format ng Excel (.xls). Gagawa ng kopyang .xlsx kapag nag-save; mananatiling halaga ang mga formula.</string>
+    <string name="error_password_legacy">May password ang file na ito. Buksan ito sa Office, alisin ang password at subukang muli.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d tugma</item>
         <item quantity="other">%d tugma</item>

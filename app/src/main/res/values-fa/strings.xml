@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">این PDF خوانده نشد.</string>
     <string name="error_cannot_read_presentation">این ارائه خوانده نشد.</string>
     <string name="error_cannot_read_sheet">این صفحه‌گسترده خوانده نشد.</string>
-    <string name="error_legacy_format">قالب‌های قدیمی Office ‏(.doc،‏ .xls،‏ .ppt) پشتیبانی نمی‌شوند. فایل را با قالب .docx،‏ .xlsx یا .pptx ذخیره کنید و دوباره امتحان کنید.</string>
     <string name="error_no_app">هیچ برنامه‌ای نمی‌تواند این فایل را باز کند.</string>
     <string name="error_pdf_merge">ادغام PDFها ممکن نشد.</string>
     <string name="error_save_failed">ذخیره نشد. برای انتخاب مکانی دیگر «ذخیره با نام» را امتحان کنید.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">انتقال به راست</string>
     <string name="new_presentation">ارائه</string>
     <string name="new_presentation_desc">اسلایدهایی با چیدمان عنوان و محتوا</string>
+    <string name="error_legacy_format">فایل‌های قدیمی PowerPoint ‏(.ppt) پشتیبانی نمی‌شوند. فایل را با قالب .pptx ذخیره کنید و دوباره امتحان کنید.</string>
+    <string name="legacy_banner">قالب قدیمی Word ‏(.doc). با ذخیره، یک نسخه .docx ساخته می‌شود.</string>
+    <string name="legacy_banner_sheet">قالب قدیمی Excel ‏(.xls). با ذخیره، یک نسخه .xlsx ساخته می‌شود و فرمول‌ها به صورت مقدار می‌مانند.</string>
+    <string name="error_password_legacy">این فایل رمز دارد. آن را در Office باز کنید، رمز را بردارید و دوباره امتحان کنید.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجه</item>
         <item quantity="other">%d نتیجه</item>

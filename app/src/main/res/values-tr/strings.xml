@@ -45,7 +45,7 @@
     <string name="error_cannot_read_pdf">PDF okunamadı.</string>
     <string name="error_cannot_read_presentation">Sunum okunamadı.</string>
     <string name="error_cannot_read_sheet">Tablo okunamadı.</string>
-    <string name="error_legacy_format">Eski Office biçimleri (.doc, .xls, .ppt) desteklenmiyor. Dosyayı .docx, .xlsx veya .pptx olarak kaydedip yeniden deneyin.</string>
+    <string name="error_legacy_format">Eski PowerPoint dosyaları (.ppt) desteklenmiyor. Dosyayı .pptx olarak kaydedip yeniden deneyin.</string>
     <string name="error_no_app">Bu dosyayı açabilecek uygulama yok.</string>
     <string name="error_pdf_merge">PDF dosyaları birleştirilemedi.</string>
     <string name="error_save_failed">Kaydedilemedi. Başka bir konum seçmek için \"Farklı kaydet\"i deneyin.</string>
@@ -434,4 +434,7 @@
     <string name="slide_move_right">Sağa taşı</string>
     <string name="new_presentation">Sunum</string>
     <string name="new_presentation_desc">Başlık ve içerik düzenli slaytlar</string>
+    <string name="legacy_banner">Eski Word biçimi (.doc). Kaydedince .docx kopyası oluşturulur.</string>
+    <string name="legacy_banner_sheet">Eski Excel biçimi (.xls). Kaydedince .xlsx kopyası oluşturulur; formüller değer olarak kalır.</string>
+    <string name="error_password_legacy">Bu dosya parolalı. Office\'te açıp parolayı kaldırın ve yeniden deneyin.</string>
 </resources>

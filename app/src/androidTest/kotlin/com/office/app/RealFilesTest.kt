@@ -130,6 +130,18 @@ class RealFilesTest {
         shot = "29_real_odp",
     )
 
+    @Test fun wordLegacy() = open(
+        "report.doc", "application/msword",
+        "Quarterly Report", "İzmir sales doubled", "City", str(R.string.legacy_banner),
+        shot = "30_real_doc",
+    )
+
+    @Test fun excelLegacy() = open(
+        "budget.xls", "application/vnd.ms-excel",
+        "Kalem", "Defter", "Sales", "Notes", str(R.string.legacy_banner_sheet),
+        shot = "31_real_xls",
+    )
+
     @Test fun pdfForm() = open(
         "form.pdf", "application/pdf",
         str(R.string.pdf_page_of, 1, 2),

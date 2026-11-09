@@ -99,6 +99,7 @@ import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
 import com.office.app.ui.common.DraftBanner
 import com.office.app.ui.common.ErrorScreen
+import com.office.app.ui.common.InfoBanner
 import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.common.UndoRedoButtons
 import com.office.app.ui.common.UnsavedChangesDialog
@@ -165,7 +166,7 @@ fun DocumentEditorScreen(
 
     fun requestSave() {
         when {
-            vm.uri == null -> saveAs.launch(vm.suggestedName(untitled))
+            vm.uri == null || vm.isLegacy -> saveAs.launch(vm.suggestedName(untitled))
             vm.lossyImport -> showLossyWarning = true
             else -> vm.save(::afterSave)
         }
@@ -206,7 +207,7 @@ fun DocumentEditorScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = ::requestSave, enabled = !vm.saving && (vm.dirty || vm.uri == null)) {
+                    IconButton(onClick = ::requestSave, enabled = !vm.saving && (vm.dirty || vm.uri == null || vm.isLegacy)) {
                         Icon(Icons.Outlined.Save, contentDescription = stringResource(R.string.action_save))
                     }
                     Box {
@@ -254,7 +255,7 @@ fun DocumentEditorScreen(
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             if (vm.saving) LinearProgressIndicator(Modifier.fillMaxWidth().height(2.dp))
             vm.recoverableDraft?.let { d -> DraftBanner(d.savedAt, onRestore = vm::restoreDraft, onDiscard = vm::discardDraft) }
-            if (vm.lossyImport) LossyBanner()
+            if (vm.isLegacy) InfoBanner(stringResource(R.string.legacy_banner)) else if (vm.lossyImport) LossyBanner()
             if (showFind) FindBar(vm, onClose = { showFind = false })
 
             val baseSize = (16f * settings.editorTextScale).sp

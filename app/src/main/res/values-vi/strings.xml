@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">Không đọc được PDF này.</string>
     <string name="error_cannot_read_presentation">Không đọc được bản trình bày này.</string>
     <string name="error_cannot_read_sheet">Không đọc được bảng tính này.</string>
-    <string name="error_legacy_format">Không hỗ trợ định dạng Office cũ (.doc, .xls, .ppt). Hãy lưu tệp thành .docx, .xlsx hoặc .pptx rồi thử lại.</string>
     <string name="error_no_app">Không có ứng dụng nào mở được tệp này.</string>
     <string name="error_pdf_merge">Không gộp được các tệp PDF.</string>
     <string name="error_save_failed">Không lưu được. Hãy dùng \"Lưu thành\" để chọn vị trí khác.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Chuyển sang phải</string>
     <string name="new_presentation">Bản trình bày</string>
     <string name="new_presentation_desc">Trang chiếu có bố cục tiêu đề và nội dung</string>
+    <string name="error_legacy_format">Không hỗ trợ tệp PowerPoint cũ (.ppt). Hãy lưu tệp thành .pptx rồi thử lại.</string>
+    <string name="legacy_banner">Định dạng Word cũ (.doc). Khi lưu sẽ tạo bản sao .docx.</string>
+    <string name="legacy_banner_sheet">Định dạng Excel cũ (.xls). Khi lưu sẽ tạo bản sao .xlsx; công thức được giữ dưới dạng giá trị.</string>
+    <string name="error_password_legacy">Tệp này có mật khẩu. Hãy mở trong Office, gỡ mật khẩu rồi thử lại.</string>
     <plurals name="pdf_results">
         <item quantity="other">%d kết quả</item>
     </plurals>

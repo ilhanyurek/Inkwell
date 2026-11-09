@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">Dieses PDF konnte nicht gelesen werden.</string>
     <string name="error_cannot_read_presentation">Diese Präsentation konnte nicht gelesen werden.</string>
     <string name="error_cannot_read_sheet">Diese Tabelle konnte nicht gelesen werden.</string>
-    <string name="error_legacy_format">Alte Office-Formate (.doc, .xls, .ppt) werden nicht unterstützt. Speichern Sie die Datei als .docx, .xlsx oder .pptx und versuchen Sie es erneut.</string>
     <string name="error_no_app">Keine App kann diese Datei öffnen.</string>
     <string name="error_pdf_merge">Die PDFs konnten nicht zusammengeführt werden.</string>
     <string name="error_save_failed">Speichern fehlgeschlagen. Wählen Sie mit „Speichern unter“ einen anderen Ort.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Nach rechts</string>
     <string name="new_presentation">Präsentation</string>
     <string name="new_presentation_desc">Folien mit Titel- und Inhaltslayout</string>
+    <string name="error_legacy_format">Alte PowerPoint-Dateien (.ppt) werden nicht unterstützt. Speichern Sie die Datei als .pptx und versuchen Sie es erneut.</string>
+    <string name="legacy_banner">Altes Word-Format (.doc). Beim Speichern entsteht eine .docx-Kopie.</string>
+    <string name="legacy_banner_sheet">Altes Excel-Format (.xls). Beim Speichern entsteht eine .xlsx-Kopie; Formeln bleiben als Werte erhalten.</string>
+    <string name="error_password_legacy">Diese Datei ist kennwortgeschützt. Öffnen Sie sie in Office, entfernen Sie das Kennwort und versuchen Sie es erneut.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d Treffer</item>
         <item quantity="other">%d Treffer</item>

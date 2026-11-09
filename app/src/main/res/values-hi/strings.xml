@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">यह PDF पढ़ी नहीं जा सकी।</string>
     <string name="error_cannot_read_presentation">यह प्रेज़ेंटेशन पढ़ा नहीं जा सका।</string>
     <string name="error_cannot_read_sheet">यह स्प्रेडशीट पढ़ी नहीं जा सकी।</string>
-    <string name="error_legacy_format">पुराने Office फ़ॉर्मैट (.doc, .xls, .ppt) काम नहीं करते। फ़ाइल को .docx, .xlsx या .pptx के रूप में सेव करके फिर से कोशिश करें।</string>
     <string name="error_no_app">इस फ़ाइल को खोलने वाला कोई ऐप नहीं है।</string>
     <string name="error_pdf_merge">PDF को मर्ज नहीं किया जा सका।</string>
     <string name="error_save_failed">सेव नहीं हो सका। कोई दूसरी जगह चुनने के लिए \"इस रूप में सेव करें\" आज़माएं।</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">दाईं ओर ले जाएं</string>
     <string name="new_presentation">प्रेज़ेंटेशन</string>
     <string name="new_presentation_desc">शीर्षक और सामग्री लेआउट वाली स्लाइड</string>
+    <string name="error_legacy_format">पुरानी PowerPoint फ़ाइलें (.ppt) काम नहीं करतीं। फ़ाइल को .pptx के रूप में सेव करके फिर से कोशिश करें।</string>
+    <string name="legacy_banner">पुराना Word फ़ॉर्मैट (.doc)। सेव करने पर .docx कॉपी बनती है।</string>
+    <string name="legacy_banner_sheet">पुराना Excel फ़ॉर्मैट (.xls)। सेव करने पर .xlsx कॉपी बनती है; फ़ॉर्मूले मानों के रूप में रहते हैं।</string>
+    <string name="error_password_legacy">यह फ़ाइल पासवर्ड से सुरक्षित है। इसे Office में खोलें, पासवर्ड हटाएं और फिर से कोशिश करें।</string>
     <plurals name="pdf_results">
         <item quantity="one">%d नतीजा</item>
         <item quantity="other">%d नतीजे</item>

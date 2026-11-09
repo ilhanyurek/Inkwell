@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">ఈ PDFను చదవడం సాధ్యపడలేదు.</string>
     <string name="error_cannot_read_presentation">ఈ ప్రెజెంటేషన్‌ను చదవడం సాధ్యపడలేదు.</string>
     <string name="error_cannot_read_sheet">ఈ స్ప్రెడ్‌షీట్‌ను చదవడం సాధ్యపడలేదు.</string>
-    <string name="error_legacy_format">పాత Office ఫార్మాట్‌లకు (.doc, .xls, .ppt) సపోర్ట్ లేదు. ఫైల్‌ను .docx, .xlsx లేదా .pptxగా సేవ్ చేసి మళ్లీ ప్రయత్నించండి.</string>
     <string name="error_no_app">ఈ ఫైల్‌ను తెరవగల యాప్ ఏదీ లేదు.</string>
     <string name="error_pdf_merge">PDFలను విలీనం చేయడం సాధ్యపడలేదు.</string>
     <string name="error_save_failed">సేవ్ చేయడం సాధ్యపడలేదు. వేరే లొకేషన్ ఎంచుకోవడానికి \"ఇలా సేవ్ చేయండి\"ని ప్రయత్నించండి.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">కుడికి జరుపు</string>
     <string name="new_presentation">ప్రెజెంటేషన్</string>
     <string name="new_presentation_desc">శీర్షిక మరియు కంటెంట్ లేఅవుట్‌లతో స్లైడ్‌లు</string>
+    <string name="error_legacy_format">పాత PowerPoint ఫైల్‌లకు (.ppt) సపోర్ట్ లేదు. ఫైల్‌ను .pptxగా సేవ్ చేసి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="legacy_banner">పాత Word ఫార్మాట్ (.doc). సేవ్ చేస్తే .docx కాపీ తయారవుతుంది.</string>
+    <string name="legacy_banner_sheet">పాత Excel ఫార్మాట్ (.xls). సేవ్ చేస్తే .xlsx కాపీ తయారవుతుంది; ఫార్ములాలు విలువలుగా ఉంటాయి.</string>
+    <string name="error_password_legacy">ఈ ఫైల్‌కు పాస్‌వర్డ్ ఉంది. దాన్ని Officeలో తెరిచి, పాస్‌వర్డ్ తీసివేసి మళ్లీ ప్రయత్నించండి.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d సరిపోలిక</item>
         <item quantity="other">%d సరిపోలికలు</item>

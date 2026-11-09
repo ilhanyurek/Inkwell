@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">Não foi possível ler o PDF.</string>
     <string name="error_cannot_read_presentation">Não foi possível ler a apresentação.</string>
     <string name="error_cannot_read_sheet">Não foi possível ler a planilha.</string>
-    <string name="error_legacy_format">Formatos antigos do Office (.doc, .xls, .ppt) não são compatíveis. Salve o arquivo como .docx, .xlsx ou .pptx e tente novamente.</string>
     <string name="error_no_app">Nenhum app pode abrir este arquivo.</string>
     <string name="error_pdf_merge">Não foi possível combinar os PDFs.</string>
     <string name="error_save_failed">Não foi possível salvar. Use \"Salvar como\" para escolher outro local.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Mover para a direita</string>
     <string name="new_presentation">Apresentação</string>
     <string name="new_presentation_desc">Slides com layouts de título e conteúdo</string>
+    <string name="error_legacy_format">Arquivos antigos do PowerPoint (.ppt) não são compatíveis. Salve o arquivo como .pptx e tente novamente.</string>
+    <string name="legacy_banner">Formato antigo do Word (.doc). Ao salvar, é criada uma cópia .docx.</string>
+    <string name="legacy_banner_sheet">Formato antigo do Excel (.xls). Ao salvar, é criada uma cópia .xlsx; as fórmulas ficam como valores.</string>
+    <string name="error_password_legacy">Este arquivo está protegido por senha. Abra-o no Office, remova a senha e tente novamente.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>

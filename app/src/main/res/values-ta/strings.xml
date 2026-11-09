@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">இந்த PDFஐப் படிக்க முடியவில்லை.</string>
     <string name="error_cannot_read_presentation">இந்த விளக்கக்காட்சியைப் படிக்க முடியவில்லை.</string>
     <string name="error_cannot_read_sheet">இந்த விரிதாளைப் படிக்க முடியவில்லை.</string>
-    <string name="error_legacy_format">பழைய Office வடிவங்கள் (.doc, .xls, .ppt) ஆதரிக்கப்படவில்லை. கோப்பை .docx, .xlsx அல்லது .pptx ஆகச் சேமித்து மீண்டும் முயலுங்கள்.</string>
     <string name="error_no_app">இந்தக் கோப்பைத் திறக்கக்கூடிய ஆப்ஸ் எதுவும் இல்லை.</string>
     <string name="error_pdf_merge">PDFகளை ஒன்றிணைக்க முடியவில்லை.</string>
     <string name="error_save_failed">சேமிக்க முடியவில்லை. வேறு இடத்தைத் தேர்வுசெய்ய \"இவ்வாறு சேமி\" என்பதை முயலுங்கள்.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">வலப்புறம் நகர்த்து</string>
     <string name="new_presentation">விளக்கக்காட்சி</string>
     <string name="new_presentation_desc">தலைப்பு மற்றும் உள்ளடக்க அமைப்புடன் ஸ்லைடுகள்</string>
+    <string name="error_legacy_format">பழைய PowerPoint கோப்புகள் (.ppt) ஆதரிக்கப்படவில்லை. கோப்பை .pptx ஆகச் சேமித்து மீண்டும் முயலவும்.</string>
+    <string name="legacy_banner">பழைய Word வடிவம் (.doc). சேமித்தால் .docx நகல் உருவாகும்.</string>
+    <string name="legacy_banner_sheet">பழைய Excel வடிவம் (.xls). சேமித்தால் .xlsx நகல் உருவாகும்; சூத்திரங்கள் மதிப்புகளாக இருக்கும்.</string>
+    <string name="error_password_legacy">இந்தக் கோப்பு கடவுச்சொல்லால் பாதுகாக்கப்பட்டுள்ளது. Office-இல் திறந்து கடவுச்சொல்லை நீக்கி மீண்டும் முயலவும்.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d பொருத்தம்</item>
         <item quantity="other">%d பொருத்தங்கள்</item>

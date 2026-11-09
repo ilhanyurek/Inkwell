@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">PDF টি পড়া যায়নি।</string>
     <string name="error_cannot_read_presentation">প্রেজেন্টেশনটি পড়া যায়নি।</string>
     <string name="error_cannot_read_sheet">স্প্রেডশিটটি পড়া যায়নি।</string>
-    <string name="error_legacy_format">পুরনো Office ফরম্যাট (.doc, .xls, .ppt) সাপোর্ট করা হয় না। ফাইলটি .docx, .xlsx বা .pptx হিসেবে সেভ করে আবার চেষ্টা করুন।</string>
     <string name="error_no_app">এই ফাইল খোলার মতো কোনো অ্যাপ নেই।</string>
     <string name="error_pdf_merge">PDF গুলো একত্র করা যায়নি।</string>
     <string name="error_save_failed">সেভ করা যায়নি। অন্য জায়গা বেছে নিতে \"এই নামে সেভ করুন\" ব্যবহার করুন।</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">ডানে সরান</string>
     <string name="new_presentation">প্রেজেন্টেশন</string>
     <string name="new_presentation_desc">শিরোনাম ও বিষয়বস্তুর লেআউটসহ স্লাইড</string>
+    <string name="error_legacy_format">পুরনো PowerPoint ফাইল (.ppt) সাপোর্ট করা হয় না। ফাইলটি .pptx হিসেবে সেভ করে আবার চেষ্টা করুন।</string>
+    <string name="legacy_banner">পুরনো Word ফরম্যাট (.doc)। সেভ করলে একটি .docx কপি তৈরি হয়।</string>
+    <string name="legacy_banner_sheet">পুরনো Excel ফরম্যাট (.xls)। সেভ করলে একটি .xlsx কপি তৈরি হয়; সূত্রগুলো মান হিসেবে থাকে।</string>
+    <string name="error_password_legacy">এই ফাইলটি পাসওয়ার্ড দিয়ে সুরক্ষিত। Office-এ খুলে পাসওয়ার্ড সরিয়ে আবার চেষ্টা করুন।</string>
     <plurals name="pdf_results">
         <item quantity="one">%dটি মিল</item>
         <item quantity="other">%dটি মিল</item>

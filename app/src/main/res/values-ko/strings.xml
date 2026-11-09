@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">PDF를 읽을 수 없습니다.</string>
     <string name="error_cannot_read_presentation">프레젠테이션을 읽을 수 없습니다.</string>
     <string name="error_cannot_read_sheet">스프레드시트를 읽을 수 없습니다.</string>
-    <string name="error_legacy_format">이전 Office 형식(.doc, .xls, .ppt)은 지원되지 않습니다. 파일을 .docx, .xlsx 또는 .pptx로 저장한 후 다시 시도하세요.</string>
     <string name="error_no_app">이 파일을 열 수 있는 앱이 없습니다.</string>
     <string name="error_pdf_merge">PDF를 병합할 수 없습니다.</string>
     <string name="error_save_failed">저장할 수 없습니다. \'다른 이름으로 저장\'으로 다른 위치를 선택해 보세요.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">오른쪽으로 이동</string>
     <string name="new_presentation">프레젠테이션</string>
     <string name="new_presentation_desc">제목 및 내용 레이아웃의 슬라이드</string>
+    <string name="error_legacy_format">이전 PowerPoint 파일(.ppt)은 지원되지 않습니다. 파일을 .pptx로 저장한 후 다시 시도하세요.</string>
+    <string name="legacy_banner">이전 Word 형식(.doc)입니다. 저장하면 .docx 사본이 만들어집니다.</string>
+    <string name="legacy_banner_sheet">이전 Excel 형식(.xls)입니다. 저장하면 .xlsx 사본이 만들어지며 수식은 값으로 저장됩니다.</string>
+    <string name="error_password_legacy">이 파일은 암호로 보호되어 있습니다. Office에서 열어 암호를 해제한 후 다시 시도하세요.</string>
     <plurals name="pdf_results">
         <item quantity="other">일치 항목 %d개</item>
     </plurals>

@@ -103,6 +103,7 @@ import com.office.app.export.printPdf
 import com.office.app.ui.common.BackButton
 import com.office.app.ui.common.DraftBanner
 import com.office.app.ui.common.ErrorScreen
+import com.office.app.ui.common.InfoBanner
 import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.common.UndoRedoButtons
 import com.office.app.ui.common.UnsavedChangesDialog
@@ -169,7 +170,7 @@ fun SheetEditorScreen(
     }
 
     fun requestSave() {
-        if (vm.uri == null) saveAs.launch(vm.suggestedName(untitled)) else vm.save(::afterSave)
+        if (vm.uri == null || vm.isLegacy) saveAs.launch(vm.suggestedName(untitled)) else vm.save(::afterSave)
     }
 
     BackHandler(enabled = vm.dirty || vm.editing) {
@@ -205,7 +206,7 @@ fun SheetEditorScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = ::requestSave, enabled = !vm.saving && (vm.dirty || vm.uri == null)) {
+                    IconButton(onClick = ::requestSave, enabled = !vm.saving && (vm.dirty || vm.uri == null || vm.isLegacy)) {
                         Icon(Icons.Outlined.Save, stringResource(R.string.action_save))
                     }
                     Box {
@@ -271,6 +272,7 @@ fun SheetEditorScreen(
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             if (vm.saving) LinearProgressIndicator(Modifier.fillMaxWidth().height(2.dp))
             vm.recoverableDraft?.let { d -> DraftBanner(d.savedAt, onRestore = vm::restoreDraft, onDiscard = vm::discardDraft) }
+            if (vm.isLegacy) InfoBanner(stringResource(R.string.legacy_banner_sheet))
             FormulaBar(vm)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             FilterBar(vm)

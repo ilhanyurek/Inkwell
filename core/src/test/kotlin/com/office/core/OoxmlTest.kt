@@ -129,6 +129,8 @@ class OoxmlTest {
         assertEquals(FileKind.DOCUMENT, FileKind.detect("a.DOCX", null))
         assertEquals(FileKind.CSV, FileKind.detect(null, "text/csv"))
         assertEquals(FileKind.TEXT, FileKind.detect("x", "text/html"))
-        assertTrue(FileKind.isLegacyBinary("old.doc"))
+        assertTrue(FileKind.isLegacyBinary("old.ppt"))
+        assertEquals(FileKind.DOCUMENT, FileKind.detect("old.doc", null))
+        assertEquals(FileKind.SPREADSHEET, FileKind.detect(null, "application/vnd.ms-excel"))
     }
 }

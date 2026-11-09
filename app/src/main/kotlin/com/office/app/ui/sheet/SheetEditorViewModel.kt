@@ -10,6 +10,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.office.app.AppContainer
+import com.office.app.R
+import com.office.core.doc.EncryptedFileException
 import com.office.app.data.Draft
 import com.office.app.data.DraftAutosaver
 import com.office.app.data.DraftStore
@@ -30,6 +32,8 @@ import com.office.core.sheet.Workbook
 import com.office.core.xlsx.XlsxReader
 import com.office.core.xlsx.XlsxWriter
 import com.office.core.odf.Odf
+import com.office.core.odf.OfficeReaders
+import com.office.core.xls.XlsReader
 import com.office.core.odf.OdsReader
 import com.office.core.odf.OdsWriter
 import kotlinx.coroutines.Dispatchers
@@ -105,6 +109,13 @@ class SheetEditorViewModel(
     val sheet: Sheet get() = workbook.sheets[activeSheetIndex.coerceIn(0, workbook.sheets.lastIndex)]
     val isCsv get() = kind == FileKind.CSV
 
+    /** The file is an Excel 97-2003 (.xls) workbook. It is never overwritten: saving writes an .xlsx copy. */
+    var isLegacy by mutableStateOf(info?.name?.substringAfterLast('.', "")?.lowercase() == "xls")
+        private set
+
+    /** The .xls file this editor was opened with, which saving must not overwrite. */
+    private val initialLegacyUri: Uri? = initialUri
+
     /** The workbook is an OpenDocument spreadsheet (.ods); it is saved in the same format. */
     var isOdf by mutableStateOf(info?.name?.substringAfterLast('.', "")?.lowercase() == "ods")
         private set
@@ -118,7 +129,7 @@ class SheetEditorViewModel(
         writeDraft = { f -> f.writeBytes(withContext(Dispatchers.Default) { serialize(kind) }) },
         saveToFile = {
             val target = uri
-            if (target == null) false
+            if (target == null || isLegacy) false
             else {
                 container.files.writeBytes(target, withContext(Dispatchers.Default) { serialize(kind) })
                 dirty = false
@@ -143,6 +154,10 @@ class SheetEditorViewModel(
             val parsed = Csv.parse(bytes)
             csvDelimiter = parsed.delimiter
             Csv.toWorkbook(parsed, fileName?.substringBeforeLast('.')?.take(31) ?: "Sheet1")
+        } else if (OfficeReaders.isLegacy(bytes)) {
+            originalPackage = null
+            viewModelScope.launch { isLegacy = true }
+            XlsReader.read(bytes)
         } else {
             ZipPackage.read(ByteArrayInputStream(bytes)).also { originalPackage = it }.let { pkg ->
                 val odf = Odf.isOdf(pkg)
@@ -168,7 +183,7 @@ class SheetEditorViewModel(
                 apply(wb)
                 recoverableDraft = container.drafts.get(autosaver.key)
                 loadState = LoadState.Ready
-            }.onFailure { loadState = LoadState.Failed(it.message) }
+            }.onFailure { loadState = LoadState.Failed(if (it is EncryptedFileException) container.appContext.getString(R.string.error_password_legacy) else it.message) }
         }
     }
 
@@ -648,6 +663,7 @@ class SheetEditorViewModel(
                         container.recents.record(info.copy(kind = kind))
                     }
                     dirty = false
+                    if (isLegacy && target != initialLegacyUri) isLegacy = false
                     autosaver.discard()
                 }
             }

@@ -1,6 +1,6 @@
 # Inkwell
 
-Inkwell is an Android app that opens and edits DOCX, XLSX, CSV, PDF, PPTX and OpenDocument files. It is written in Kotlin
+Inkwell is an Android app that opens and edits DOCX, DOC, XLSX, XLS, CSV, PDF, PPTX and OpenDocument files. It is written in Kotlin
 with Jetpack Compose, and its own `core` module reads and writes the file formats without a third-party office library.
 
 ## Features
@@ -13,6 +13,7 @@ with Jetpack Compose, and its own `core` module reads and writes the file format
 | **CSV / TSV** | ✓ Detects the delimiter and encoding | Spreadsheet editor; typed dates, percentages and amounts become numbers | CSV, XLSX, PDF |
 | **PDF** | ✓ Including password-protected files | Highlights and notes you can delete later, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), rotate/delete/extract pages, merge, search, select and copy text, table of contents | PDF |
 | **PPTX** | ✓ Text boxes, images, layouts, speaker notes, presentation mode | Slide text; add, duplicate, move and delete slides; new presentations | PPTX, PDF |
+| **DOC / XLS** | ✓ Word and Excel 97-2003 files: text, formatting, headings, lists, tables, sheets and values | Same editors as DOCX and XLSX | DOCX, XLSX (a new copy), PDF |
 | **ODT / ODS / ODP** | ✓ | Same editors as DOCX and XLSX; ODP is view only | ODT, ODS, PDF |
 
 - **Tools tab** with 29 offline tools: merge, split, organize, rotate and delete pages; compress and repair;

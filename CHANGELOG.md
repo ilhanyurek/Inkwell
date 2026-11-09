@@ -2,6 +2,11 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.1] - 2026-11-09
+
+### Added
+- Open and edit old Word (.doc) and Excel (.xls) files. Saving creates a .docx or .xlsx copy and leaves the original file untouched; .xls formulas are kept as their values
+
 ## [1.3.0] - 2026-11-07
 
 ### Added

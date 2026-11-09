@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">Impossible de lire ce PDF.</string>
     <string name="error_cannot_read_presentation">Impossible de lire cette présentation.</string>
     <string name="error_cannot_read_sheet">Impossible de lire ce tableur.</string>
-    <string name="error_legacy_format">Les anciens formats Office (.doc, .xls, .ppt) ne sont pas pris en charge. Enregistrez le fichier en .docx, .xlsx ou .pptx et réessayez.</string>
     <string name="error_no_app">Aucune application ne peut ouvrir ce fichier.</string>
     <string name="error_pdf_merge">Impossible de fusionner les PDF.</string>
     <string name="error_save_failed">Échec de l\'enregistrement. Utilisez « Enregistrer sous » pour choisir un autre emplacement.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Déplacer à droite</string>
     <string name="new_presentation">Présentation</string>
     <string name="new_presentation_desc">Diapositives avec titre et contenu</string>
+    <string name="error_legacy_format">Les anciens fichiers PowerPoint (.ppt) ne sont pas pris en charge. Enregistrez le fichier en .pptx et réessayez.</string>
+    <string name="legacy_banner">Ancien format Word (.doc). L\'enregistrement crée une copie .docx.</string>
+    <string name="legacy_banner_sheet">Ancien format Excel (.xls). L\'enregistrement crée une copie .xlsx ; les formules sont conservées comme valeurs.</string>
+    <string name="error_password_legacy">Ce fichier est protégé par un mot de passe. Ouvrez-le dans Office, supprimez le mot de passe et réessayez.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d résultat</item>
         <item quantity="other">%d résultats</item>

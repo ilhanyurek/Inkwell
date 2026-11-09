@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">No se pudo leer el PDF.</string>
     <string name="error_cannot_read_presentation">No se pudo leer la presentación.</string>
     <string name="error_cannot_read_sheet">No se pudo leer la hoja de cálculo.</string>
-    <string name="error_legacy_format">Los formatos antiguos de Office (.doc, .xls, .ppt) no son compatibles. Guarda el archivo como .docx, .xlsx o .pptx e inténtalo de nuevo.</string>
     <string name="error_no_app">Ninguna aplicación puede abrir este archivo.</string>
     <string name="error_pdf_merge">No se pudieron combinar los PDF.</string>
     <string name="error_save_failed">No se pudo guardar. Prueba «Guardar como» para elegir otra ubicación.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">Mover a la derecha</string>
     <string name="new_presentation">Presentación</string>
     <string name="new_presentation_desc">Diapositivas con diseños de título y contenido</string>
+    <string name="error_legacy_format">Los archivos antiguos de PowerPoint (.ppt) no son compatibles. Guarda el archivo como .pptx e inténtalo de nuevo.</string>
+    <string name="legacy_banner">Formato antiguo de Word (.doc). Al guardar se crea una copia .docx.</string>
+    <string name="legacy_banner_sheet">Formato antiguo de Excel (.xls). Al guardar se crea una copia .xlsx; las fórmulas se guardan como valores.</string>
+    <string name="error_password_legacy">Este archivo está protegido con contraseña. Ábrelo en Office, quita la contraseña e inténtalo de nuevo.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d coincidencia</item>
         <item quantity="other">%d coincidencias</item>

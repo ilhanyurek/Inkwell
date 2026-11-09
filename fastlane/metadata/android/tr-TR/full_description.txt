@@ -1,12 +1,12 @@
 Inkwell ofis dosyalarını telefonunuzda açar ve düzenler. Kaydederken düzenleyemediği kısımlara, örneğin grafiklere ve denklemlere dokunmaz.
 
-<b>Belgeler (DOCX, ODT, TXT, Markdown)</b>
+<b>Belgeler (DOCX, DOC, ODT, TXT, Markdown)</b>
 • Kalın, italik, altı çizili, başlıklar, listeler, alıntılar, hizalama, bul ve değiştir
 • Tablolar ve resimler yerinde görünür; tabloları düzenleyin, yeni tablo ve resim ekleyin
 • Kaydederken bağlantılar, denklemler ve stiller korunur
 • PDF olarak dışa aktarma veya yazdırma
 
-<b>Tablolar (XLSX, ODS, CSV)</b>
+<b>Tablolar (XLSX, XLS, ODS, CSV)</b>
 • Hücre biçimlendirme: renkler, dolgu, kenarlıklar, hizalama, sayı ve tarih biçimleri
 • 50'den fazla formül: DÜŞEYARA, ÇAPRAZARA, İNDİS/KAÇINCI, ÇOKETOPLA, tarih işlevleri, METNEÇEVİR ve dahası
 • Sıralama, aşağı doldurma, satır ve sütun ekleme/silme, birden çok sayfa

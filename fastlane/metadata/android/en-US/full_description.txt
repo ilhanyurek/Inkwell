@@ -1,12 +1,12 @@
 Inkwell opens and edits office files on your phone. When you save, it keeps the parts it cannot edit, such as charts and equations.
 
-<b>Documents (DOCX, ODT, TXT, Markdown)</b>
+<b>Documents (DOCX, DOC, ODT, TXT, Markdown)</b>
 • Bold, italic, underline, headings, lists, quotes, alignment, find and replace
 • Tables and pictures appear in place; edit tables and insert new ones
 • Links, equations and styles are kept when you save
 • Export to PDF or print
 
-<b>Spreadsheets (XLSX, ODS, CSV)</b>
+<b>Spreadsheets (XLSX, XLS, ODS, CSV)</b>
 • Cell formatting: colours, fill, borders, alignment, number and date formats
 • 50+ formulas: VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates, TEXT and more
 • Sort, fill down, insert and delete rows and columns, multiple sheets

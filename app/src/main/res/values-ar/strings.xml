@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">تعذّرت قراءة ملف PDF هذا.</string>
     <string name="error_cannot_read_presentation">تعذّرت قراءة هذا العرض التقديمي.</string>
     <string name="error_cannot_read_sheet">تعذّرت قراءة جدول البيانات هذا.</string>
-    <string name="error_legacy_format">تنسيقات Office القديمة (.doc و.xls و.ppt) غير مدعومة. احفظ الملف بتنسيق .docx أو .xlsx أو .pptx ثم أعد المحاولة.</string>
     <string name="error_no_app">لا يوجد تطبيق يمكنه فتح هذا الملف.</string>
     <string name="error_pdf_merge">تعذّر دمج ملفات PDF.</string>
     <string name="error_save_failed">تعذّر الحفظ. جرّب «حفظ باسم» لاختيار مكان آخر.</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">نقل لليمين</string>
     <string name="new_presentation">عرض تقديمي</string>
     <string name="new_presentation_desc">شرائح بتخطيط عنوان ومحتوى</string>
+    <string name="error_legacy_format">ملفات PowerPoint القديمة (.ppt) غير مدعومة. احفظ الملف بتنسيق .pptx ثم أعد المحاولة.</string>
+    <string name="legacy_banner">تنسيق Word قديم (.doc). عند الحفظ تُنشأ نسخة .docx.</string>
+    <string name="legacy_banner_sheet">تنسيق Excel قديم (.xls). عند الحفظ تُنشأ نسخة .xlsx، وتبقى الصيغ كقيم.</string>
+    <string name="error_password_legacy">هذا الملف محمي بكلمة مرور. افتحه في Office وأزل كلمة المرور ثم أعد المحاولة.</string>
     <plurals name="pdf_results">
         <item quantity="zero">لا توجد نتائج (%d)</item>
         <item quantity="one">نتيجة واحدة (%d)</item>

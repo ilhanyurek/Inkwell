@@ -13,6 +13,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.office.app.AppContainer
+import com.office.app.R
+import com.office.core.doc.EncryptedFileException
 import com.office.app.data.Draft
 import com.office.app.data.DraftAutosaver
 import com.office.app.data.DraftStore
@@ -24,6 +26,8 @@ import com.office.core.docx.DocxReader
 import com.office.core.docx.DocxTable
 import com.office.core.docx.DocxWriter
 import com.office.core.odf.Odf
+import com.office.core.odf.OfficeReaders
+import com.office.core.doc.DocReader
 import com.office.core.odf.OdtReader
 import com.office.core.odf.OdtWriter
 import com.office.core.text.Embed
@@ -86,6 +90,9 @@ class DocumentEditorViewModel(
     /** The DOCX package the document came from, so saving keeps everything we do not edit. */
     private var originalPackage: ZipPackage? = null
 
+    /** The .doc file this editor was opened with, which saving must not overwrite. */
+    private val initialLegacyUri: Uri? = initialUri
+
     private val bitmaps = HashMap<Int, ImageBitmap?>()
 
     fun currentDocument(): TextDocument = model.toDocument(embeds = embeds)
@@ -106,6 +113,13 @@ class DocumentEditorViewModel(
     var isOdf by mutableStateOf(info?.name?.substringAfterLast('.', "")?.lowercase() == "odt")
         private set
 
+    /**
+     * The file is a Word 97-2003 (.doc) document. It is never overwritten: saving writes a .docx copy.
+     * Stays set after restoring a draft, since the draft itself is stored as .docx.
+     */
+    var isLegacy by mutableStateOf(info?.name?.substringAfterLast('.', "")?.lowercase() == "doc")
+        private set
+
     /** Inserting and editing tables and pictures works on Word documents. */
     val supportsBlockEditing get() = kind == FileKind.DOCUMENT && !isOdf
     val supportsMarkdownFormatting get() = kind == FileKind.MARKDOWN
@@ -120,7 +134,7 @@ class DocumentEditorViewModel(
         writeDraft = { f -> f.writeBytes(withContext(Dispatchers.Default) { serialize() }) },
         saveToFile = {
             val target = uri
-            if (target == null || lossyImport) false
+            if (target == null || lossyImport || isLegacy) false
             else {
                 container.files.writeBytes(target, withContext(Dispatchers.Default) { serialize() })
                 dirty = false
@@ -141,7 +155,11 @@ class DocumentEditorViewModel(
     }
 
     private fun parse(bytes: ByteArray): TextDocument = when (kind) {
-        FileKind.DOCUMENT -> ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
+        FileKind.DOCUMENT -> if (OfficeReaders.isLegacy(bytes)) {
+            originalPackage = null
+            viewModelScope.launch { isLegacy = true }
+            DocReader.read(bytes)
+        } else ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
             originalPackage = pkg
             val odf = Odf.isOdf(pkg)
             viewModelScope.launch { isOdf = odf }
@@ -170,7 +188,7 @@ class DocumentEditorViewModel(
                 recoverableDraft = container.drafts.get(autosaver.key)
                 loadState = LoadState.Ready
             }.onFailure {
-                loadState = LoadState.Failed(it.message)
+                loadState = LoadState.Failed(if (it is EncryptedFileException) container.appContext.getString(R.string.error_password_legacy) else it.message)
             }
         }
     }
@@ -463,6 +481,7 @@ class DocumentEditorViewModel(
                 }
                 dirty = false
                 lossyImport = false
+                if (isLegacy && target != initialLegacyUri) isLegacy = false
                 autosaver.discard()
             }
             onDone(result.exceptionOrNull())

@@ -44,7 +44,6 @@
     <string name="error_cannot_read_pdf">この PDF を読み込めませんでした。</string>
     <string name="error_cannot_read_presentation">このプレゼンテーションを読み込めませんでした。</string>
     <string name="error_cannot_read_sheet">このスプレッドシートを読み込めませんでした。</string>
-    <string name="error_legacy_format">古い Office 形式（.doc、.xls、.ppt）には対応していません。.docx、.xlsx、.pptx 形式で保存してからもう一度お試しください。</string>
     <string name="error_no_app">このファイルを開けるアプリがありません。</string>
     <string name="error_pdf_merge">PDF を結合できませんでした。</string>
     <string name="error_save_failed">保存できませんでした。「名前を付けて保存」で別の場所を選んでください。</string>
@@ -411,6 +410,10 @@
     <string name="slide_move_right">右へ移動</string>
     <string name="new_presentation">プレゼンテーション</string>
     <string name="new_presentation_desc">タイトルとコンテンツのレイアウトのスライド</string>
+    <string name="error_legacy_format">古い PowerPoint ファイル（.ppt）には対応していません。.pptx 形式で保存してからもう一度お試しください。</string>
+    <string name="legacy_banner">古い Word 形式（.doc）です。保存すると .docx のコピーが作成されます。</string>
+    <string name="legacy_banner_sheet">古い Excel 形式（.xls）です。保存すると .xlsx のコピーが作成され、数式は値として保存されます。</string>
+    <string name="error_password_legacy">このファイルはパスワードで保護されています。Office で開いてパスワードを解除してから、もう一度お試しください。</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 件一致</item>
     </plurals>
