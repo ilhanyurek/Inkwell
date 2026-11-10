@@ -105,6 +105,7 @@ class RichTextTransformation(
             }
 
             // Characters of this paragraph, grouped into style runs.
+            var maxFontSp = baseSize.value * headingFactor(attrs.style)
             var i = start
             while (i < end) {
                 val st = model.styles[i]
@@ -119,6 +120,7 @@ class RichTextTransformation(
                     i++
                     continue
                 }
+                runFontSp(st)?.let { if (it > maxFontSp) maxFontSp = it }
                 var j = i + 1
                 while (j < end && model.styles[j] == st) j++
                 val spanStart = out.length
@@ -141,7 +143,13 @@ class RichTextTransformation(
             // Paragraph styles must cover the newline that ends the paragraph to avoid overlaps.
             val paraStyleEnd = if (end < src.length) out.length else out.length
             if (paraStyleEnd > paraStartTrans) {
-                out.addStyle(paragraphStyle(attrs.style, attrs.list != ListType.NONE, attrs.alignment), paraStartTrans, paraStyleEnd)
+                // Line height follows the largest text in the paragraph; an em value would be relative to
+                // the body size and make the lines of a wrapped heading overlap.
+                val multiplier = if (attrs.style == DocParagraphStyle.NORMAL || attrs.style == DocParagraphStyle.QUOTE) 1.5f else 1.25f
+                out.addStyle(
+                    paragraphStyle(attrs.style, attrs.list != ListType.NONE, attrs.alignment, (maxFontSp * multiplier).sp),
+                    paraStartTrans, paraStyleEnd,
+                )
             }
         }
         transToOrig += src.length
@@ -174,27 +182,32 @@ class RichTextTransformation(
             fontWeight = if (st.bold) FontWeight.Bold else null,
             fontStyle = if (st.italic) FontStyle.Italic else null,
             textDecoration = if (decorations.isEmpty()) null else TextDecoration.combine(decorations),
-            fontSize = st.sizePt?.let { (it / 11f * baseSize.value).coerceIn(9f, 56f).sp } ?: TextUnit.Unspecified,
+            fontSize = runFontSp(st)?.sp ?: TextUnit.Unspecified,
         )
     }
 
+    /** Font size in sp of a run with an explicit size, or null for the paragraph's own size. */
+    private fun runFontSp(st: CharStyle): Float? = st.sizePt?.let { (it / 11f * baseSize.value).coerceIn(9f, 56f) }
+
+    private fun headingFactor(style: DocParagraphStyle): Float = when (style) {
+        DocParagraphStyle.TITLE -> 1.85f
+        DocParagraphStyle.HEADING1 -> 1.5f
+        DocParagraphStyle.HEADING2 -> 1.3f
+        DocParagraphStyle.HEADING3 -> 1.15f
+        DocParagraphStyle.QUOTE, DocParagraphStyle.NORMAL -> 1f
+    }
+
     private fun headingSpan(style: DocParagraphStyle): SpanStyle? {
-        val factor = when (style) {
-            DocParagraphStyle.TITLE -> 1.85f
-            DocParagraphStyle.HEADING1 -> 1.5f
-            DocParagraphStyle.HEADING2 -> 1.3f
-            DocParagraphStyle.HEADING3 -> 1.15f
-            DocParagraphStyle.QUOTE -> return SpanStyle(fontStyle = FontStyle.Italic, color = mutedColor)
-            DocParagraphStyle.NORMAL -> return null
-        }
+        if (style == DocParagraphStyle.QUOTE) return SpanStyle(fontStyle = FontStyle.Italic, color = mutedColor)
+        if (style == DocParagraphStyle.NORMAL) return null
         return SpanStyle(
-            fontSize = (baseSize.value * factor).sp,
+            fontSize = (baseSize.value * headingFactor(style)).sp,
             fontWeight = if (style == DocParagraphStyle.TITLE) FontWeight.Normal else FontWeight.SemiBold,
             letterSpacing = if (style == DocParagraphStyle.TITLE) (-0.02).em else TextUnit.Unspecified,
         )
     }
 
-    private fun paragraphStyle(style: DocParagraphStyle, list: Boolean, alignment: Alignment) = ParagraphStyle(
+    private fun paragraphStyle(style: DocParagraphStyle, list: Boolean, alignment: Alignment, lineHeight: TextUnit) = ParagraphStyle(
         textAlign = when (alignment) {
             Alignment.START -> TextAlign.Start
             Alignment.CENTER -> TextAlign.Center
@@ -206,9 +219,6 @@ class RichTextTransformation(
             style == DocParagraphStyle.QUOTE -> TextIndent(firstLine = 1.2.em, restLine = 1.2.em)
             else -> null
         },
-        lineHeight = when (style) {
-            DocParagraphStyle.NORMAL, DocParagraphStyle.QUOTE -> 1.5.em
-            else -> 1.25.em
-        },
+        lineHeight = lineHeight,
     )
 }

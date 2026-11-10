@@ -2,6 +2,11 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.2] - 2026-11-10
+
+### Fixed
+- Lines of a wrapped title or heading no longer overlap
+
 ## [1.3.1] - 2026-11-09
 
 ### Added
