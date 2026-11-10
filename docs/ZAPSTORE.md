@@ -24,8 +24,16 @@ Never put the keystore, its passwords, an `nsec` or a `.env` file in the reposit
 
 ## After that
 
-Every new GitHub release (the Release workflow) is picked up by Zapstore automatically. Its release notes come
-from the matching section of [`CHANGELOG.md`](../CHANGELOG.md), so add a section there before each release.
+The **Zapstore** workflow (`.github/workflows/zapstore.yml`) runs after every successful Release run and
+publishes the new release with `zsp publish -q`. Release notes come from the matching section of
+[`CHANGELOG.md`](../CHANGELOG.md), so add a section there before each release.
+
+The workflow signs with your Nostr key, which it reads from a repository secret. Add it once:
+**Settings → Secrets and variables → Actions → New repository secret**, name `ZAPSTORE_NSEC`, value your
+`nsec1…` key. Without the secret the workflow skips publishing. To stop automatic publishing, delete the secret.
+
+To publish again by hand, run **Actions → Zapstore → Run workflow**, or run `zsp publish` in a clone on your
+own computer.
 
 To refresh the screenshots, run **Actions → Store screenshots → Run workflow**. It takes them on an emulator and
 commits them to `fastlane/metadata/android/en-US/images/phoneScreenshots/`.

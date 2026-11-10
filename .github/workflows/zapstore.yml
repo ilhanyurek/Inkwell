@@ -1,0 +1,65 @@
+name: Zapstore
+
+# Publishes the latest GitHub release to Zapstore. Runs after every successful Release run and can
+# be started by hand. Needs the repository secret ZAPSTORE_NSEC (the owner's Nostr key); without it
+# the job does nothing.
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zapstore
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      ZSP_VERSION: v2.0.1
+    steps:
+      - name: Check for the signing secret
+        id: secret
+        env:
+          SIGN_WITH: ${{ secrets.ZAPSTORE_NSEC }}
+        run: |
+          if [ -z "$SIGN_WITH" ]; then
+            echo "ZAPSTORE_NSEC is not set, skipping."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secret.outputs.present == 'true'
+        with:
+          ref: main
+
+      - uses: actions/setup-go@v5
+        if: steps.secret.outputs.present == 'true'
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Install zsp
+        if: steps.secret.outputs.present == 'true'
+        run: go install "github.com/zapstore/zsp/v2/cmd/zsp@${ZSP_VERSION}"
+
+      - name: Publish to Zapstore
+        if: steps.secret.outputs.present == 'true'
+        env:
+          SIGN_WITH: ${{ secrets.ZAPSTORE_NSEC }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          "$(go env GOPATH)/bin/zsp" publish -q > result.json
+          code=$?
+          cat result.json
+          # A release that is already on Zapstore is not a failure.
+          if [ $code -ne 0 ] && grep -q "release_already_published" result.json; then exit 0; fi
+          exit $code

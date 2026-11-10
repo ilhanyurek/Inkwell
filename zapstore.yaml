@@ -5,21 +5,21 @@ release_filter: '^v[0-9]+\.[0-9]+\.[0-9]+$'
 match: '^Inkwell-.*\.apk$'
 
 name: Inkwell
-summary: Open and edit DOCX, XLSX, CSV, PDF and PPTX files on Android, offline.
+summary: Open and edit DOCX, XLSX, PPTX, PDF and OpenDocument files on Android, offline.
 description: |
   Inkwell opens and edits office files on your phone. When you save, it keeps the parts it cannot edit, such as charts and equations.
 
-  **Documents (DOCX, TXT, Markdown):** bold, italic, headings, lists, alignment, find and replace. Images, tables, links, equations and styles are kept when you save. Export to PDF or print.
+  **Documents (DOCX, DOC, ODT, TXT, Markdown):** bold, italic, headings, lists, alignment, find and replace. Tables and pictures appear in place; edit tables and insert new ones. Links, equations and styles are kept when you save. Export to PDF or print.
 
-  **Spreadsheets (XLSX, CSV):** cell formatting, number and date formats, 50+ formulas (VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates, TEXT…), sorting, multiple sheets. Charts and merged cells are kept.
+  **Spreadsheets (XLSX, XLS, ODS, CSV):** cell formatting, number and date formats, 50+ formulas (VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates, TEXT…), sorting, multiple sheets, charts, freeze panes and filters.
 
-  **PDF:** removable highlights and notes, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), rotate/delete/extract pages, merge, search, password-protected files.
+  **PDF:** removable highlights and notes, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), select and copy text, table of contents, rotate/delete/extract pages, merge, search, password-protected files.
 
-  **Presentations (PPTX):** view and present with speaker notes, edit slide text, export to PDF.
+  **Presentations (PPTX, ODP):** view and present with speaker notes, edit slide text, add, duplicate, move and delete slides, create new presentations, export to PDF.
 
   **Tools:** 29 offline tools: merge, split, organize, compress, repair; images, scans, Word, Excel, PowerPoint and text to PDF; PDF to images, Word, PowerPoint and text; watermark, page numbers, password protect/unlock, crop, flatten, properties, extract images and compare.
 
-  Undo and redo everywhere, autosaved drafts with crash recovery, folders, thumbnail grid, 22 languages, light and dark theme, an icon that follows your wallpaper. Free and open source, without ads or tracking.
+  Undo and redo everywhere, autosaved drafts with crash recovery, folders, thumbnail grid, launcher shortcuts, 22 languages, light and dark theme, an icon that follows your wallpaper. Free and open source, without ads or tracking.
 license: GPL-3.0-or-later
 website: https://github.com/ilhanyurek/Inkwell
 tags: [productivity, office, documents, pdf, spreadsheet]
