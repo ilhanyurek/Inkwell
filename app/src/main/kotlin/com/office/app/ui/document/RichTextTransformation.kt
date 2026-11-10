@@ -125,7 +125,7 @@ class RichTextTransformation(
                 while (j < end && model.styles[j] == st) j++
                 val spanStart = out.length
                 for (k in i until j) {
-                    origToTrans[k] = out.length
+                    origToTrans[k] = spanStart + (k - i)
                     transToOrig += k
                 }
                 out.append(src, i, j)

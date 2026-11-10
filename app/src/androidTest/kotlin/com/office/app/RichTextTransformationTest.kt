@@ -35,4 +35,26 @@ class RichTextTransformationTest {
         assertEquals(16f * 1.85f * 1.25f, paragraphs[0].item.lineHeight.value, 0.01f)
         assertEquals(24f, paragraphs[2].item.lineHeight.value, 0.01f)
     }
+
+    /** Every caret position must map to its own place on screen and back, or the caret sticks to run starts. */
+    @Test
+    fun caretOffsetsMapOneToOne() {
+        val text = "First paragraph here\nitem one\nlast line"
+        var rt = RichText.plain(text)
+        rt = rt.toggleInline(6, 15, com.office.core.text.InlineAttr.BOLD)
+        rt = rt.toggleList(21, 21, com.office.core.text.ListType.BULLET)
+        val result = RichTextTransformation(rt, 16.sp, Color.Gray, Color.Blue).filter(AnnotatedString(rt.text))
+        val map = result.offsetMapping
+        val shown = result.text.text
+        var previous = -1
+        for (o in 0..text.length) {
+            val t = map.originalToTransformed(o)
+            assertTrue("offset $o maps to $t after $previous", t > previous)
+            assertEquals(o, map.transformedToOriginal(t))
+            if (o < text.length) assertEquals(text[o], shown[t])
+            previous = t
+        }
+        // The bullet marker ("• ") shifts the list paragraph by two characters.
+        assertEquals(21 + 2, map.originalToTransformed(21))
+    }
 }

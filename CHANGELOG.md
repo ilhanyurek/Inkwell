@@ -5,6 +5,7 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 ## [1.3.2] - 2026-11-10
 
 ### Fixed
+- Documents: the cursor and selection handles now appear where you tap, so text can be edited and deleted anywhere in a paragraph
 - Lines of a wrapped title or heading no longer overlap
 
 ## [1.3.1] - 2026-11-09
