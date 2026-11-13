@@ -61,6 +61,76 @@ def make_docx(out: Path):
     d.save(out / "report.docx")
 
 
+def make_styled_docx(out: Path):
+    """A document with the formatting the editor must show and keep: fonts, colours, highlight, indents,
+    spacing, a multi-level list, a merged and shaded table, header/footer and a page break."""
+    from docx import Document
+    from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX, WD_UNDERLINE, WD_BREAK
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls
+    from docx.shared import Pt, RGBColor, Cm
+
+    d = Document()
+    d.sections[0].header.paragraphs[0].text = "Styled header"
+    d.sections[0].footer.paragraphs[0].text = "Styled footer"
+    d.add_heading("Styled Title", level=0)
+    h = d.add_heading("Heading with a ", level=1)
+    r = h.add_run("light"); r.bold = False
+    h.add_run(" word")
+
+    p = d.add_paragraph("Plain, ")
+    r = p.add_run("red"); r.font.color.rgb = RGBColor(0xC0, 0x00, 0x00)
+    p.add_run(", ")
+    r = p.add_run("highlighted"); r.font.highlight_color = WD_COLOR_INDEX.YELLOW
+    p.add_run(", ")
+    r = p.add_run("Times 14"); r.font.name = "Times New Roman"; r.font.size = Pt(14)
+    p.add_run(", ")
+    r = p.add_run("double"); r.font.underline = WD_UNDERLINE.DOUBLE
+    p.add_run(", x")
+    r = p.add_run("2"); r.font.superscript = True
+    p.add_run(" and ")
+    r = p.add_run("mono"); r.font.name = "Courier New"
+
+    p = d.add_paragraph("Indented paragraph with space around it and wider lines.")
+    p.paragraph_format.left_indent = Cm(1.5)
+    p.paragraph_format.first_line_indent = Cm(0.75)
+    p.paragraph_format.space_before = Pt(18)
+    p.paragraph_format.space_after = Pt(12)
+    p.paragraph_format.line_spacing = 1.5
+    p = d.add_paragraph("Right aligned line")
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+
+    # A real multi-level list: 1. / 1.1. / a)
+    numbering = d.part.numbering_part.element
+    numbering.insert(0, parse_xml(
+        '<w:abstractNum %s w:abstractNumId="90"><w:multiLevelType w:val="multilevel"/>'
+        '<w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%%1."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="360" w:hanging="360"/></w:pPr></w:lvl>'
+        '<w:lvl w:ilvl="1"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%%1.%%2."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="792" w:hanging="432"/></w:pPr></w:lvl>'
+        '<w:lvl w:ilvl="2"><w:start w:val="1"/><w:numFmt w:val="lowerLetter"/><w:lvlText w:val="%%3)"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="1224" w:hanging="504"/></w:pPr></w:lvl>'
+        '</w:abstractNum>' % nsdecls("w")))
+    numbering.append(parse_xml('<w:num %s w:numId="90"><w:abstractNumId w:val="90"/></w:num>' % nsdecls("w")))
+    for text, lvl in (("First", 0), ("First child", 1), ("Second child", 1), ("Deep a", 2), ("Deep b", 2), ("Second", 0), ("Second first child", 1)):
+        p = d.add_paragraph(text)
+        p._p.get_or_add_pPr().append(parse_xml(
+            '<w:numPr %s><w:ilvl w:val="%d"/><w:numId w:val="90"/></w:numPr>' % (nsdecls("w"), lvl)))
+    d.add_paragraph("Bullet from a style", style="List Bullet")
+    d.add_paragraph("Nested bullet from a style", style="List Bullet 2")
+
+    t = d.add_table(rows=3, cols=3)
+    t.style = "Table Grid"
+    t.cell(0, 0).merge(t.cell(0, 2)).text = "Merged header"
+    for i, row in enumerate((("A", "B", "C"), ("D", "E", "F")), start=1):
+        for j, v in enumerate(row):
+            t.cell(i, j).text = v
+    t.cell(0, 0)._tc.get_or_add_tcPr().append(parse_xml('<w:shd %s w:val="clear" w:color="auto" w:fill="2F5BC4"/>' % nsdecls("w")))
+    t.cell(1, 0).merge(t.cell(2, 0))
+
+    p = d.add_paragraph()
+    p.add_run().add_break(WD_BREAK.PAGE)
+    d.add_paragraph("Text on the second page.")
+    d.save(out / "styled.docx")
+
+
 def make_xlsx(out: Path):
     from openpyxl import Workbook
     from openpyxl.chart import BarChart, Reference
@@ -157,6 +227,7 @@ if __name__ == "__main__":
     target = Path(sys.argv[1] if len(sys.argv) > 1 else "core/src/test/resources/fixtures")
     target.mkdir(parents=True, exist_ok=True)
     make_docx(target)
+    make_styled_docx(target)
     make_xlsx(target)
     make_pptx(target)
     make_pdf(target)

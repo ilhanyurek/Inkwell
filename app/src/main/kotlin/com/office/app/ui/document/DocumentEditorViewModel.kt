@@ -21,7 +21,9 @@ import com.office.app.data.DraftStore
 import com.office.app.data.FileInfo
 import com.office.app.export.PdfExporter
 import com.office.core.FileKind
+import com.office.core.docx.DocxFormatting
 import com.office.core.docx.DocxImages
+import com.office.core.text.TextFormatting
 import com.office.core.docx.DocxReader
 import com.office.core.docx.DocxTable
 import com.office.core.docx.DocxWriter
@@ -95,6 +97,11 @@ class DocumentEditorViewModel(
 
     private val bitmaps = HashMap<Int, ImageBitmap?>()
 
+    /** The document's own fonts, colours, indents and list numbers, for display; null for plain rendering. */
+    var formatting by mutableStateOf<TextFormatting?>(null)
+        private set
+    private var parsedFormatting: TextFormatting? = null
+
     fun currentDocument(): TextDocument = model.toDocument(embeds = embeds)
 
     private data class Snapshot(val model: RichText, val selection: TextRange)
@@ -162,6 +169,7 @@ class DocumentEditorViewModel(
         } else ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
             originalPackage = pkg
             val odf = Odf.isOdf(pkg)
+            parsedFormatting = if (odf) null else runCatching { DocxFormatting(pkg) }.getOrNull()
             viewModelScope.launch { isOdf = odf }
             if (odf) OdtReader.read(pkg) else DocxReader.read(pkg)
         }
@@ -173,6 +181,7 @@ class DocumentEditorViewModel(
         model = RichText.fromDocument(doc)
         lossyImport = doc.lossyImport
         bitmaps.clear()
+        formatting = if (kind == FileKind.DOCUMENT && originalPackage != null) parsedFormatting else null
         embeds = doc.embeds
         value = TextFieldValue(model.text, TextRange(0))
     }

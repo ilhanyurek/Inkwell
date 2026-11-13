@@ -2,6 +2,17 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.0] - 2026-11-13
+
+### Added
+- Word documents look like the original: fonts (closest available family), sizes, text colours, highlight, superscript and subscript, style-based headings, indents, line and paragraph spacing
+- Lists show their real numbers and levels (1.1, a), i. and custom bullets)
+
+### Fixed
+- Saving no longer replaces a document's own heading styles with built-in ones
+- Text that is explicitly not bold or italic inside a bold or italic style stays that way after saving
+- Double, dotted and coloured underlines are kept when saving
+
 ## [1.3.2] - 2026-11-10
 
 ### Fixed

@@ -57,4 +57,36 @@ class RichTextTransformationTest {
         // The bullet marker ("• ") shifts the list paragraph by two characters.
         assertEquals(21 + 2, map.originalToTransformed(21))
     }
+
+    /** With a document's formatting: real list numbers, colours and sizes, and still a one-to-one caret mapping. */
+    @Test
+    fun showsDocumentFormatting() {
+        val pkg = com.office.core.zip.ZipPackage.read(Fixtures.asset("styled.docx").inputStream())
+        val rt = RichText.fromDocument(com.office.core.docx.DocxReader.read(pkg))
+        val formatting = com.office.core.docx.DocxFormatting(pkg)
+        val result = RichTextTransformation(rt, 16.sp, Color.Gray, Color.Blue, formatting = formatting, background = Color.White)
+            .filter(AnnotatedString(rt.text))
+        val shown = result.text.text
+        assertTrue(shown.contains("1.1.\u2002First child"))
+        assertTrue(shown.contains("1.2.\u2002Second child"))
+        assertTrue(shown.contains("a)\u2002Deep a"))
+        assertTrue(shown.contains("2.\u2002Second"))
+
+        fun spansAt(word: String) = shown.indexOf(word).let { at -> result.text.spanStyles.filter { it.start <= at && it.end > at }.map { it.item } }
+        assertTrue(spansAt("red,").any { it.color == Color(0xFFC00000) })
+        assertTrue(spansAt("highlighted").any { it.background == Color(0xFFFFFF00) })
+        assertTrue(spansAt("Times 14").any { it.fontSize.value > 20f && it.fontFamily == androidx.compose.ui.text.font.FontFamily.Serif })
+        assertTrue(spansAt("Styled Title").any { it.fontSize.value > 30f })
+        assertTrue(spansAt("light word").none { it.fontWeight == androidx.compose.ui.text.font.FontWeight.Bold })
+        assertTrue(spansAt("Heading with").any { it.fontWeight == androidx.compose.ui.text.font.FontWeight.Bold })
+
+        val map = result.offsetMapping
+        var previous = -1
+        for (o in 0..rt.text.length) {
+            val t = map.originalToTransformed(o)
+            assertTrue("offset $o maps to $t after $previous", t > previous)
+            assertEquals(o, map.transformedToOriginal(t))
+            previous = t
+        }
+    }
 }

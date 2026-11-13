@@ -142,6 +142,12 @@ class RealFilesTest {
         shot = "31_real_xls",
     )
 
+    @Test fun wordFormatting() = open(
+        "styled.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Styled Title", "Indented paragraph", "Second first child", "Merged header",
+        shot = "32_docx_formatted",
+    )
+
     @Test fun pdfForm() = open(
         "form.pdf", "application/pdf",
         str(R.string.pdf_page_of, 1, 2),

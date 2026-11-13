@@ -73,7 +73,8 @@ object DocxReader {
         val styleId = pPr?.child("pStyle")?.attr("val")
         val mapped = styleId?.let { ctx.headingStyles[it] ?: headingFromId(it) }
         val style = mapped ?: ParagraphStyle.NORMAL
-        val customStyle = if (mapped == null) styleId else null
+        // The source style id is always kept, so saving writes the document's own style back.
+        val customStyle = styleId
 
         val numPr = pPr?.child("numPr")
         var list = ListType.NONE
@@ -82,7 +83,7 @@ object DocxReader {
             val numId = numPr.child("numId")?.attr("val")
             list = if (numId == null || numId == "0") ListType.NONE else ctx.numbering[numId] ?: ListType.BULLET
             numXml = XmlWriter.write(numPr)
-        } else if (styleId != null && styleId.contains("List", ignoreCase = true) && customStyle != null) {
+        } else if (styleId != null && styleId.contains("List", ignoreCase = true) && mapped == null) {
             // Numbering comes from the paragraph style; no explicit numPr is needed to keep it.
             list = if (styleId.contains("Number", ignoreCase = true)) ListType.NUMBERED else ListType.BULLET
             numXml = ""
@@ -151,7 +152,16 @@ object DocxReader {
             }
         }
         if (sb.isEmpty()) return null
-        val extra = rPr?.elements?.filter { it.localName !in MODELED_RPR }?.joinToString("") { XmlWriter.write(it) }?.ifEmpty { null }
+        // Modelled properties are dropped from the raw part, except where the raw form says more than the
+        // model can: a toggle switched off against the style, or an underline that is not a plain single line.
+        val extra = rPr?.elements?.filter { e ->
+            when (e.localName) {
+                "b", "i", "strike" -> !flag(e.localName)
+                "u" -> e.attr("val") != "single" || e.attributes.size > 1
+                "sz" -> false
+                else -> true
+            }
+        }?.joinToString("") { XmlWriter.write(it) }?.ifEmpty { null }
         return TextRun(
             text = sb.toString(),
             bold = flag("b"),
@@ -220,7 +230,6 @@ object DocxReader {
     const val MARKER_LABEL = "\u0000marker"
 
     internal val MODELED_PPR = setOf("pStyle", "numPr", "jc")
-    internal val MODELED_RPR = setOf("b", "i", "u", "strike", "sz")
 }
 
 object DocxWriter {
@@ -234,8 +243,14 @@ object DocxWriter {
      * (images, headers, styles, comments…) is kept and only the main document part is replaced.
      */
     fun write(doc: TextDocument, output: OutputStream, original: ZipPackage? = null) {
+        formatting = DocxFormatting(original)
         if (original == null) writeNew(doc, output) else writeInto(doc, output, original)
     }
+
+    /** Style lookups of the document being written; set at the start of [write]. */
+    private var formatting = DocxFormatting(null)
+
+    private fun styleIdOf(p: Paragraph): String? = formatting.styleIdOf(p.style, p.customStyleId)
 
     // --- new documents ---------------------------------------------------------------------
 
@@ -365,7 +380,8 @@ object DocxWriter {
 
     /** Adds definitions for our heading/title/quote styles if the document uses them but lacks them. */
     private fun ensureStyles(pkg: ZipPackage, doc: TextDocument, replaced: MutableMap<String, ByteArray>) {
-        val used = doc.paragraphs.mapNotNull { styleIdFor(it.style) }.toSet()
+        // Only our own style definitions can be added; ids the document already uses are its own.
+        val used = doc.paragraphs.mapNotNull { p -> styleIdOf(p)?.takeIf { it == DocxFormatting.builtinId(p.style) } }.toSet()
         if (used.isEmpty()) return
         val bytes = pkg.bytes("word/styles.xml") ?: return
         val text = String(bytes, Charsets.UTF_8)
@@ -379,15 +395,6 @@ object DocxWriter {
     }
 
     // --- paragraphs ------------------------------------------------------------------------------
-
-    private fun styleIdFor(style: ParagraphStyle): String? = when (style) {
-        ParagraphStyle.NORMAL -> null
-        ParagraphStyle.TITLE -> "Title"
-        ParagraphStyle.HEADING1 -> "Heading1"
-        ParagraphStyle.HEADING2 -> "Heading2"
-        ParagraphStyle.HEADING3 -> "Heading3"
-        ParagraphStyle.QUOTE -> "Quote"
-    }
 
     private fun appendParagraph(sb: StringBuilder, p: Paragraph, doc: TextDocument, bulletId: Int, decimalId: Int) {
         // Block embeds (tables…) are written in place; any text around them becomes its own paragraph.
@@ -417,7 +424,7 @@ object DocxWriter {
 
     private fun appendPPr(sb: StringBuilder, p: Paragraph, bulletId: Int, decimalId: Int) {
         val parts = ArrayList<Pair<String, String>>()
-        val styleId = styleIdFor(p.style) ?: p.customStyleId
+        val styleId = styleIdOf(p)
         if (styleId != null) parts += "pStyle" to """<w:pStyle w:val="${xmlEscape(styleId)}"/>"""
         when {
             p.list != ListType.NONE && p.list == p.numType && p.numXml != null ->
@@ -455,7 +462,26 @@ object DocxWriter {
         if (r.strike) parts += "strike" to "<w:strike/>"
         if (r.underline) parts += "u" to """<w:u w:val="single"/>"""
         r.sizePt?.let { parts += "sz" to """<w:sz w:val="${(it * 2).toInt()}"/>""" }
-        r.extraXml?.let { parts += splitFragments(it) }
+        r.extraXml?.let { extra ->
+            val wrapper = runCatching { XmlParser.parse("<x>$extra</x>") }.getOrNull()
+            for (e in wrapper?.elements.orEmpty()) {
+                val v = e.attr("val")
+                val off = v == "0" || v == "false" || v == "none"
+                when (e.localName) {
+                    // A kept "off" toggle stays only while the property is still off.
+                    "b" -> if (!r.bold && off) parts += "b" to XmlWriter.write(e)
+                    "i" -> if (!r.italic && off) parts += "i" to XmlWriter.write(e)
+                    "strike" -> if (!r.strike && off) parts += "strike" to XmlWriter.write(e)
+                    // The original underline (kind, colour) replaces the plain one while it is still underlined.
+                    "u" -> if (r.underline != off) {
+                        parts.removeAll { it.first == "u" }
+                        parts += "u" to XmlWriter.write(e)
+                    }
+                    "szCs" -> parts += "szCs" to (r.sizePt?.let { """<w:szCs w:val="${(it * 2).toInt()}"/>""" } ?: XmlWriter.write(e))
+                    else -> parts += e.localName to XmlWriter.write(e)
+                }
+            }
+        }
         if (parts.isNotEmpty()) {
             sb.append("<w:rPr>")
             parts.sortedBy { RPR_ORDER.indexOf(it.first).let { i -> if (i < 0) RPR_ORDER.size else i } }.forEach { sb.append(it.second) }

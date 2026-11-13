@@ -276,8 +276,9 @@ fun DocumentEditorScreen(
                             if (vm.supportsRichFormatting) blockSizes(vm.embeds, contentWidth) else emptyMap()
                         }
                         val heights = remember(sizes, density) { with(density) { sizes.mapValues { it.value.toSp() } } }
-                        val transformation = remember(vm.model, baseSize, muted, accent, vm.embeds, chipBg, heights) {
-                            RichTextTransformation(vm.model, baseSize, muted, accent, vm.embeds, labeler, chipBg, heights)
+                        val pageColor = MaterialTheme.colorScheme.surface
+                        val transformation = remember(vm.model, baseSize, muted, accent, vm.embeds, chipBg, heights, vm.formatting, pageColor) {
+                            RichTextTransformation(vm.model, baseSize, muted, accent, vm.embeds, labeler, chipBg, heights, vm.formatting, pageColor)
                         }
                         var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
                         BasicTextField(
