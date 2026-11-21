@@ -414,6 +414,8 @@
     <string name="legacy_banner">پرانا Word فارمیٹ (.doc)۔ محفوظ کرنے پر .docx کاپی بنتی ہے۔</string>
     <string name="legacy_banner_sheet">پرانا Excel فارمیٹ (.xls)۔ محفوظ کرنے پر .xlsx کاپی بنتی ہے؛ فارمولے قدروں کی صورت میں رہتے ہیں۔</string>
     <string name="error_password_legacy">یہ فائل پاس ورڈ سے محفوظ ہے۔ اسے Office میں کھولیں، پاس ورڈ ہٹائیں اور دوبارہ کوشش کریں۔</string>
+    <string name="settings_white_paper">دستاویزات سفید صفحے پر دکھائیں</string>
+    <string name="settings_white_paper_desc">دستاویزات گہری تھیم میں بھی سفید صفحے پر اپنے رنگوں کے ساتھ دکھائی دیتی ہیں۔</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجہ</item>
         <item quantity="other">%d نتائج</item>

@@ -414,6 +414,8 @@
     <string name="legacy_banner">古い Word 形式（.doc）です。保存すると .docx のコピーが作成されます。</string>
     <string name="legacy_banner_sheet">古い Excel 形式（.xls）です。保存すると .xlsx のコピーが作成され、数式は値として保存されます。</string>
     <string name="error_password_legacy">このファイルはパスワードで保護されています。Office で開いてパスワードを解除してから、もう一度お試しください。</string>
+    <string name="settings_white_paper">文書を白い用紙に表示</string>
+    <string name="settings_white_paper_desc">ダークテーマでも、文書は白い用紙の上に元の色で表示されます。</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 件一致</item>
     </plurals>

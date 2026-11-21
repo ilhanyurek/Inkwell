@@ -414,6 +414,8 @@
     <string name="legacy_banner">పాత Word ఫార్మాట్ (.doc). సేవ్ చేస్తే .docx కాపీ తయారవుతుంది.</string>
     <string name="legacy_banner_sheet">పాత Excel ఫార్మాట్ (.xls). సేవ్ చేస్తే .xlsx కాపీ తయారవుతుంది; ఫార్ములాలు విలువలుగా ఉంటాయి.</string>
     <string name="error_password_legacy">ఈ ఫైల్‌కు పాస్‌వర్డ్ ఉంది. దాన్ని Officeలో తెరిచి, పాస్‌వర్డ్ తీసివేసి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="settings_white_paper">పత్రాలను తెల్ల పేజీపై చూపు</string>
+    <string name="settings_white_paper_desc">డార్క్ థీమ్‌లోనూ పత్రాలు తెల్ల పేజీపై వాటి రంగులతో కనిపిస్తాయి.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d సరిపోలిక</item>
         <item quantity="other">%d సరిపోలికలు</item>

@@ -414,6 +414,8 @@
     <string name="legacy_banner">قالب قدیمی Word ‏(.doc). با ذخیره، یک نسخه .docx ساخته می‌شود.</string>
     <string name="legacy_banner_sheet">قالب قدیمی Excel ‏(.xls). با ذخیره، یک نسخه .xlsx ساخته می‌شود و فرمول‌ها به صورت مقدار می‌مانند.</string>
     <string name="error_password_legacy">این فایل رمز دارد. آن را در Office باز کنید، رمز را بردارید و دوباره امتحان کنید.</string>
+    <string name="settings_white_paper">نمایش اسناد روی کاغذ سفید</string>
+    <string name="settings_white_paper_desc">اسناد حتی در پوسته تیره، با رنگ‌های خودشان روی برگه سفید نمایش داده می‌شوند.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجه</item>
         <item quantity="other">%d نتیجه</item>

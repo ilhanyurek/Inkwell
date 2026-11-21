@@ -414,6 +414,8 @@
     <string name="legacy_banner">Lumang format ng Word (.doc). Gagawa ng kopyang .docx kapag nag-save.</string>
     <string name="legacy_banner_sheet">Lumang format ng Excel (.xls). Gagawa ng kopyang .xlsx kapag nag-save; mananatiling halaga ang mga formula.</string>
     <string name="error_password_legacy">May password ang file na ito. Buksan ito sa Office, alisin ang password at subukang muli.</string>
+    <string name="settings_white_paper">Ipakita ang mga dokumento sa puting papel</string>
+    <string name="settings_white_paper_desc">Makikita ang mga dokumento sa puting pahina na may sarili nilang kulay, kahit sa dark theme.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d tugma</item>
         <item quantity="other">%d tugma</item>

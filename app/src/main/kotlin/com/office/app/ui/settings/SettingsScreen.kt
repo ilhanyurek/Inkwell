@@ -99,6 +99,13 @@ fun SettingsScreen(container: AppContainer, onBack: () -> Unit) {
             }
 
             SwitchRow(
+                title = stringResource(R.string.settings_white_paper),
+                subtitle = stringResource(R.string.settings_white_paper_desc),
+                checked = settings.whitePaper,
+                onChange = { v -> scope.launch { container.settings.setWhitePaper(v) } },
+            )
+
+            SwitchRow(
                 title = stringResource(R.string.settings_autosave),
                 subtitle = stringResource(R.string.settings_autosave_desc),
                 checked = settings.autoSaveToFile,

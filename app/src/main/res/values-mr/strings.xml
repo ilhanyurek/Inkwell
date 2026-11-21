@@ -414,6 +414,8 @@
     <string name="legacy_banner">जुना Word फॉरमॅट (.doc). सेव्ह केल्यावर .docx प्रत तयार होते.</string>
     <string name="legacy_banner_sheet">जुना Excel फॉरमॅट (.xls). सेव्ह केल्यावर .xlsx प्रत तयार होते; सूत्रे मूल्ये म्हणून राहतात.</string>
     <string name="error_password_legacy">ही फाइल पासवर्डने संरक्षित आहे. ती Office मध्ये उघडा, पासवर्ड काढा आणि पुन्हा प्रयत्न करा.</string>
+    <string name="settings_white_paper">दस्तऐवज पांढऱ्या पानावर दाखवा</string>
+    <string name="settings_white_paper_desc">डार्क थीममध्येही दस्तऐवज पांढऱ्या पानावर त्यांच्या रंगांसह दिसतात.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d जुळणी</item>
         <item quantity="other">%d जुळण्या</item>

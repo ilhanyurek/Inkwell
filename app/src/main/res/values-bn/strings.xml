@@ -414,6 +414,8 @@
     <string name="legacy_banner">পুরনো Word ফরম্যাট (.doc)। সেভ করলে একটি .docx কপি তৈরি হয়।</string>
     <string name="legacy_banner_sheet">পুরনো Excel ফরম্যাট (.xls)। সেভ করলে একটি .xlsx কপি তৈরি হয়; সূত্রগুলো মান হিসেবে থাকে।</string>
     <string name="error_password_legacy">এই ফাইলটি পাসওয়ার্ড দিয়ে সুরক্ষিত। Office-এ খুলে পাসওয়ার্ড সরিয়ে আবার চেষ্টা করুন।</string>
+    <string name="settings_white_paper">নথি সাদা পাতায় দেখান</string>
+    <string name="settings_white_paper_desc">ডার্ক থিমেও নথিগুলো সাদা পাতায় নিজের রঙে দেখায়।</string>
     <plurals name="pdf_results">
         <item quantity="one">%dটি মিল</item>
         <item quantity="other">%dটি মিল</item>

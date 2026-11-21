@@ -414,6 +414,8 @@
     <string name="legacy_banner">Định dạng Word cũ (.doc). Khi lưu sẽ tạo bản sao .docx.</string>
     <string name="legacy_banner_sheet">Định dạng Excel cũ (.xls). Khi lưu sẽ tạo bản sao .xlsx; công thức được giữ dưới dạng giá trị.</string>
     <string name="error_password_legacy">Tệp này có mật khẩu. Hãy mở trong Office, gỡ mật khẩu rồi thử lại.</string>
+    <string name="settings_white_paper">Hiển thị tài liệu trên giấy trắng</string>
+    <string name="settings_white_paper_desc">Tài liệu giữ màu gốc trên trang trắng, kể cả khi dùng giao diện tối.</string>
     <plurals name="pdf_results">
         <item quantity="other">%d kết quả</item>
     </plurals>

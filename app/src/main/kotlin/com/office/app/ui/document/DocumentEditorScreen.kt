@@ -100,6 +100,8 @@ import com.office.app.ui.common.BackButton
 import com.office.app.ui.common.DraftBanner
 import com.office.app.ui.common.ErrorScreen
 import com.office.app.ui.common.InfoBanner
+import com.office.app.ui.theme.PaperColorScheme
+import androidx.compose.ui.text.rememberTextMeasurer
 import com.office.app.ui.common.LoadingScreen
 import com.office.app.ui.common.UndoRedoButtons
 import com.office.app.ui.common.UnsavedChangesDialog
@@ -266,70 +268,111 @@ fun DocumentEditorScreen(
             val density = LocalDensity.current
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
                 val viewport = maxHeight
+                PaperTheme(enabled = settings.whitePaper && vm.supportsRichFormatting) {
                 Column(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     BoxWithConstraints(Modifier.widthIn(max = 760.dp).fillMaxWidth()) {
                         val contentWidth = maxWidth - 44.dp
-                        val sizes = remember(vm.embeds, contentWidth, vm.supportsRichFormatting) {
-                            if (vm.supportsRichFormatting) blockSizes(vm.embeds, contentWidth) else emptyMap()
+                        val contentPx = with(density) { contentWidth.toPx() }
+                        val pageColor = MaterialTheme.colorScheme.surface
+                        val inkColor = MaterialTheme.colorScheme.onSurface
+                        val measurer = rememberTextMeasurer()
+                        val measure = remember(measurer, density, baseSize, pageColor, inkColor) {
+                            LayoutMeasure(measurer, density, baseSize.value, inkColor, pageColor, inkColor.copy(alpha = 0.85f))
+                        }
+                        // Tables of Word documents, measured as laid out in the file.
+                        val measuredTables = remember(vm.embeds, vm.layout, contentPx, measure) {
+                            val engine = vm.layout ?: return@remember emptyMap<Int, MeasuredBlock>()
+                            vm.embeds.filter { it.value.kind == EmbedKind.TABLE }.mapNotNull { (id, e) ->
+                                runCatching { engine.table(e.xml)?.let { id to measure.table(it, contentPx) } }.getOrNull()
+                            }.toMap()
+                        }
+                        val sizes = remember<Map<Int, androidx.compose.ui.unit.Dp>>(vm.embeds, contentWidth, vm.supportsRichFormatting, measuredTables) {
+                            if (!vm.supportsRichFormatting) emptyMap() else {
+                                val base = blockSizes(vm.embeds, contentWidth).toMutableMap()
+                                measuredTables.forEach { (id, b) -> base[id] = with(density) { b.height.toDp() } + 6.dp }
+                                vm.embeds.forEach { (id, e) -> if (isPageBreak(e)) base[id] = PAGE_BREAK_HEIGHT.dp }
+                                base
+                            }
                         }
                         val heights = remember(sizes, density) { with(density) { sizes.mapValues { it.value.toSp() } } }
-                        val pageColor = MaterialTheme.colorScheme.surface
                         val transformation = remember(vm.model, baseSize, muted, accent, vm.embeds, chipBg, heights, vm.formatting, pageColor) {
                             RichTextTransformation(vm.model, baseSize, muted, accent, vm.embeds, labeler, chipBg, heights, vm.formatting, pageColor)
                         }
-                        var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
-                        BasicTextField(
-                            value = vm.value,
-                            onValueChange = vm::onValueChange,
-                            visualTransformation = transformation,
-                            onTextLayout = { layout = it },
-                            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = baseSize,
-                            ),
-                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                            modifier = Modifier.fillMaxWidth().heightIn(min = viewport).testTag("document_text"),
-                            decorationBox = { inner ->
-                                Box(Modifier.padding(horizontal = 22.dp, vertical = 18.dp)) {
-                                    if (vm.value.text.isEmpty()) {
-                                        Text(
-                                            stringResource(R.string.document_placeholder),
-                                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = baseSize),
-                                            color = MaterialTheme.colorScheme.outline,
-                                        )
-                                    }
-                                    inner()
-                                }
-                            },
-                        )
-                        val l = layout
-                        if (l != null) {
-                            var tables = 0
-                            var images = 0
-                            transformation.blockAnchors.forEach { a ->
-                                if (a.transformedOffset > l.layoutInput.text.length) return@forEach
-                                val embed = vm.embeds[a.embedId] ?: return@forEach
-                                val top = with(density) { l.getLineTop(l.getLineForOffset(a.transformedOffset)).toDp() }
-                                val place = Modifier.offset(x = 22.dp, y = 18.dp + top)
-                                key(a.offset, a.embedId) {
-                                    if (embed.kind == EmbedKind.TABLE) {
-                                        TableBlock(embed, contentWidth, onClick = { if (vm.supportsBlockEditing) editingBlock = a.offset to a.embedId }, modifier = place.testTag("doc_table_${tables++}"))
-                                    } else {
-                                        ImageBlock(
-                                            rememberEmbedBitmap(vm, a.embedId),
-                                            imageSize(embed, contentWidth),
-                                            onClick = { editingBlock = a.offset to a.embedId },
-                                            modifier = place.testTag("doc_image_${images++}"),
-                                        )
+                        val (headerItems, footerItems) = vm.headerFooter
+                        Column {
+                            headerItems?.let { items ->
+                                val block = remember(items, contentPx, measure) { measure.items(items, contentPx) }
+                                HeaderFooterBlock(block, inkColor.copy(alpha = 0.25f), ruleBelow = true, modifier = Modifier.padding(start = 22.dp, end = 22.dp, top = 14.dp).testTag("doc_header"))
+                            }
+                            Box {
+                                var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+                                BasicTextField(
+                                    value = vm.value,
+                                    onValueChange = vm::onValueChange,
+                                    visualTransformation = transformation,
+                                    onTextLayout = { layout = it },
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = baseSize,
+                                    ),
+                                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = if (headerItems == null && footerItems == null) viewport else 0.dp).testTag("document_text"),
+                                    decorationBox = { inner ->
+                                        Box(Modifier.padding(horizontal = 22.dp, vertical = 18.dp)) {
+                                            if (vm.value.text.isEmpty()) {
+                                                Text(
+                                                    stringResource(R.string.document_placeholder),
+                                                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = baseSize),
+                                                    color = MaterialTheme.colorScheme.outline,
+                                                )
+                                            }
+                                            inner()
+                                        }
+                                    },
+                                )
+                                val l = layout
+                                if (l != null) {
+                                    var tables = 0
+                                    var images = 0
+                                    transformation.blockAnchors.forEach { a ->
+                                        if (a.transformedOffset > l.layoutInput.text.length) return@forEach
+                                        val embed = vm.embeds[a.embedId] ?: return@forEach
+                                        val top = with(density) { l.getLineTop(l.getLineForOffset(a.transformedOffset)).toDp() }
+                                        val place = Modifier.offset(x = 22.dp, y = 18.dp + top)
+                                        key(a.offset, a.embedId) {
+                                            val measured = measuredTables[a.embedId]
+                                            when {
+                                                isPageBreak(embed) -> PageBreakBlock(contentWidth, inkColor.copy(alpha = 0.35f), place)
+                                                embed.kind == EmbedKind.TABLE && measured != null -> MeasuredBlockView(
+                                                    measured,
+                                                    modifier = place.padding(top = 3.dp).testTag("doc_table_${tables++}"),
+                                                    onClick = { if (vm.supportsBlockEditing) editingBlock = a.offset to a.embedId },
+                                                )
+                                                embed.kind == EmbedKind.TABLE -> TableBlock(embed, contentWidth, onClick = { if (vm.supportsBlockEditing) editingBlock = a.offset to a.embedId }, modifier = place.testTag("doc_table_${tables++}"))
+                                                else -> ImageBlock(
+                                                    rememberEmbedBitmap(vm, a.embedId),
+                                                    imageSize(embed, contentWidth),
+                                                    onClick = { editingBlock = a.offset to a.embedId },
+                                                    modifier = place.testTag("doc_image_${images++}"),
+                                                    fallbackText = embed.label,
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
+                            footerItems?.let { items ->
+                                val block = remember(items, contentPx, measure) { measure.items(items, contentPx) }
+                                HeaderFooterBlock(block, inkColor.copy(alpha = 0.25f), ruleBelow = false, modifier = Modifier.padding(start = 22.dp, end = 22.dp, bottom = 24.dp).testTag("doc_footer"))
+                            }
+                            if (headerItems != null || footerItems != null) Spacer(Modifier.height(viewport / 3))
                         }
                     }
+                }
                 }
             }
             EmbedBar(vm) { o, id -> editingBlock = o to id }
@@ -681,6 +724,22 @@ private fun EmbedBar(vm: DocumentEditorViewModel, onEdit: (offset: Int, id: Int)
                 modifier = Modifier.weight(1f),
             )
             TextButton(onClick = { onEdit(hit, id) }) { Text(stringResource(R.string.table_edit)) }
+        }
+    }
+}
+
+/** A run that only holds a page break, drawn as a dashed line. */
+internal fun isPageBreak(e: Embed): Boolean =
+    e.kind == EmbedKind.FIELD && e.wrapper == null && e.xml.startsWith("<w:r") && e.label.isEmpty() &&
+        Regex("""<w:br\b[^>]*w:type="page"""").containsMatchIn(e.xml)
+
+/** Draws [content] as a white sheet with the light colours, whatever the app theme. */
+@Composable
+private fun PaperTheme(enabled: Boolean, content: @Composable () -> Unit) {
+    if (!enabled) return content()
+    MaterialTheme(colorScheme = PaperColorScheme.copy(surface = androidx.compose.ui.graphics.Color.White), typography = MaterialTheme.typography, shapes = MaterialTheme.shapes) {
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+            content()
         }
     }
 }

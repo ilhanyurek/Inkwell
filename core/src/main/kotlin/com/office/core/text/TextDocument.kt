@@ -39,7 +39,14 @@ data class Embed(
     val tableRows: List<List<String>> = emptyList(),
     /** Picture data for an image inserted in this session, written as a new package part on save. */
     val media: EmbedMedia? = null,
+    /**
+     * For the two invisible halves of an unwrapped container (a content control): [xml] is its opening or
+     * closing markup, written back around the content between them.
+     */
+    val wrapper: Wrapper? = null,
 )
+
+enum class Wrapper { OPEN_BLOCK, CLOSE_BLOCK, OPEN_INLINE, CLOSE_INLINE }
 
 /** A picture part to add to the package: [relId] is referenced from the embed's XML. */
 class EmbedMedia(val relId: String, val fileName: String, val bytes: ByteArray, val contentType: String)

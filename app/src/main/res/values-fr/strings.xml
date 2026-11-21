@@ -414,6 +414,8 @@
     <string name="legacy_banner">Ancien format Word (.doc). L\'enregistrement crée une copie .docx.</string>
     <string name="legacy_banner_sheet">Ancien format Excel (.xls). L\'enregistrement crée une copie .xlsx ; les formules sont conservées comme valeurs.</string>
     <string name="error_password_legacy">Ce fichier est protégé par un mot de passe. Ouvrez-le dans Office, supprimez le mot de passe et réessayez.</string>
+    <string name="settings_white_paper">Afficher les documents sur papier blanc</string>
+    <string name="settings_white_paper_desc">Les documents gardent leurs couleurs sur une feuille blanche, même avec le thème sombre.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d résultat</item>
         <item quantity="other">%d résultats</item>

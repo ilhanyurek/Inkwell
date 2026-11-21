@@ -20,7 +20,7 @@ import com.office.core.zip.ZipPackage
  */
 class DocxFormatting(pkg: ZipPackage?) : TextFormatting {
 
-    private class Style(val id: String, val type: String, val basedOn: String?, val pPr: XmlElement?, val rPr: XmlElement?)
+    private class Style(val id: String, val type: String, val basedOn: String?, val pPr: XmlElement?, val rPr: XmlElement?, val tblPr: XmlElement?)
 
     private val styles = HashMap<String, Style>()
     private var defaultParagraphStyle: String? = null
@@ -41,7 +41,7 @@ class DocxFormatting(pkg: ZipPackage?) : TextFormatting {
             for (s in root.children("style")) {
                 val id = s.attr("styleId") ?: continue
                 val type = s.attr("type") ?: "paragraph"
-                styles[id] = Style(id, type, s.child("basedOn")?.attr("val"), s.child("pPr"), s.child("rPr"))
+                styles[id] = Style(id, type, s.child("basedOn")?.attr("val"), s.child("pPr"), s.child("rPr"), s.child("tblPr"))
                 if (type == "paragraph" && s.attr("default").let { it == "1" || it == "true" }) defaultParagraphStyle = id
                 if (type != "paragraph") continue
                 val name = s.child("name")?.attr("val")?.lowercase().orEmpty()
@@ -85,6 +85,10 @@ class DocxFormatting(pkg: ZipPackage?) : TextFormatting {
     fun mappedStyle(styleId: String): ParagraphStyle? = mapped[styleId] ?: DocxReader.headingFromId(styleId)
 
     fun hasStyle(id: String) = id in styles
+
+    /** A table property (`tblBorders`, `tblCellMar`…) from a table style and the styles it is based on. */
+    fun tableStyleProperty(styleId: String?, name: String): XmlElement? =
+        chain(styleId).asReversed().firstNotNullOfOrNull { it.tblPr?.child(name) }
 
     private fun chain(id: String?): List<Style> {
         val out = ArrayList<Style>()

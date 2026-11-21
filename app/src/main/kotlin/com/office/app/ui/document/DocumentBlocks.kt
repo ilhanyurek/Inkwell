@@ -149,7 +149,7 @@ internal fun TableBlock(embed: Embed, width: Dp, onClick: () -> Unit, modifier: 
 
 /** A picture drawn in place in the document. */
 @Composable
-internal fun ImageBlock(bitmap: ImageBitmap?, size: Pair<Dp, Dp>, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ImageBlock(bitmap: ImageBitmap?, size: Pair<Dp, Dp>, onClick: () -> Unit, modifier: Modifier = Modifier, fallbackText: String = "") {
     Box(
         modifier
             .padding(vertical = 4.dp)
@@ -161,7 +161,12 @@ internal fun ImageBlock(bitmap: ImageBitmap?, size: Pair<Dp, Dp>, onClick: () ->
             Image(bitmap, contentDescription = stringResource(R.string.embed_image), contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
         } else {
             Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Image, contentDescription = stringResource(R.string.embed_image), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                // A text box or shape: show its text rather than an empty frame.
+                if (fallbackText.isNotBlank()) {
+                    Text(fallbackText, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(6.dp), overflow = TextOverflow.Ellipsis)
+                } else {
+                    Icon(Icons.Outlined.Image, contentDescription = stringResource(R.string.embed_image), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }

@@ -414,6 +414,8 @@
     <string name="legacy_banner">Muundo wa zamani wa Word (.doc). Kuhifadhi huunda nakala ya .docx.</string>
     <string name="legacy_banner_sheet">Muundo wa zamani wa Excel (.xls). Kuhifadhi huunda nakala ya .xlsx; fomula hubaki kama thamani.</string>
     <string name="error_password_legacy">Faili hii inalindwa na nenosiri. Ifungue katika Office, ondoa nenosiri kisha ujaribu tena.</string>
+    <string name="settings_white_paper">Onyesha hati kwenye karatasi nyeupe</string>
+    <string name="settings_white_paper_desc">Hati huonekana kwa rangi zake kwenye karatasi nyeupe, hata katika mandhari meusi.</string>
     <plurals name="pdf_results">
         <item quantity="one">Kinacholingana %d</item>
         <item quantity="other">Vinavyolingana %d</item>

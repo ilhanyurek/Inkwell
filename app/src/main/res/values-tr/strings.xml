@@ -437,4 +437,6 @@
     <string name="legacy_banner">Eski Word biçimi (.doc). Kaydedince .docx kopyası oluşturulur.</string>
     <string name="legacy_banner_sheet">Eski Excel biçimi (.xls). Kaydedince .xlsx kopyası oluşturulur; formüller değer olarak kalır.</string>
     <string name="error_password_legacy">Bu dosya parolalı. Office\'te açıp parolayı kaldırın ve yeniden deneyin.</string>
+    <string name="settings_white_paper">Belgeleri beyaz sayfada göster</string>
+    <string name="settings_white_paper_desc">Belgeler koyu temada da beyaz bir sayfada, kendi renkleriyle görünür.</string>
 </resources>

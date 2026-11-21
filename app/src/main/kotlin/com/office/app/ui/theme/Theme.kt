@@ -112,6 +112,9 @@ private val AppShapes = Shapes(
     extraLarge = RoundedCornerShape(20.dp),
 )
 
+/** Colours used for a document drawn as a white sheet, whatever the app theme. */
+val PaperColorScheme get() = LightColors
+
 /** Monospace style used for cell references and formulas. */
 val MonoStyle = TextStyle(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontSize = 13.sp)
 

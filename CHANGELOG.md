@@ -2,6 +2,18 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.1] - 2026-11-21
+
+### Added
+- Documents are shown on a white sheet with their own colours, also in the dark theme (can be turned off in Settings)
+- Tables look like the original: column widths, merged cells, borders, cell colours and formatted, aligned text, with rows as tall as their content
+- The header and footer of the first page (for example a title block with logos) are shown above and below the text
+- Page breaks are shown as a dashed line
+
+### Fixed
+- Text inside content controls (common in forms) is shown and can be edited; the controls are kept when saving
+- Text boxes show their text instead of an empty frame
+
 ## [1.4.0] - 2026-11-13
 
 ### Added

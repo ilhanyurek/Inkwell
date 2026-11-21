@@ -414,6 +414,8 @@
     <string name="legacy_banner">Formato antigo do Word (.doc). Ao salvar, é criada uma cópia .docx.</string>
     <string name="legacy_banner_sheet">Formato antigo do Excel (.xls). Ao salvar, é criada uma cópia .xlsx; as fórmulas ficam como valores.</string>
     <string name="error_password_legacy">Este arquivo está protegido por senha. Abra-o no Office, remova a senha e tente novamente.</string>
+    <string name="settings_white_paper">Mostrar documentos em papel branco</string>
+    <string name="settings_white_paper_desc">Os documentos mantêm as próprias cores numa folha branca, também no tema escuro.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>

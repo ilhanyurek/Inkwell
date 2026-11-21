@@ -80,7 +80,9 @@ class RichTextTransformation(
             val attrs = model.paras[p]
             val start = starts[p]
             val end = if (p + 1 < starts.size) starts[p + 1] - 1 else src.length
-            val isBlock = model.styles.getOrNull(start)?.embedId?.let { end == start + 1 && it in blockHeights } == true
+            // A paragraph that holds one drawn block (table, picture, page break) and nothing else visible.
+            val block = blockIn(start, end)
+            val isBlock = block != null
             val look = if (isBlock) null else formatting?.let { f -> runCatching { f.paraLook(attrs) }.getOrNull() }
 
             // Space between paragraphs: an empty, very small line of that height, mapped to the paragraph start.
@@ -105,13 +107,16 @@ class RichTextTransformation(
             previousLook = look
             val paraStartTrans = out.length
 
-            val blockId = model.styles.getOrNull(start)?.embedId?.takeIf { end == start + 1 && it in blockHeights }
-            if (blockId != null) {
+            if (block != null) {
+                val (blockOffset, blockId) = block
                 number = 0
-                anchors += BlockAnchor(start, out.length, blockId)
-                origToTrans[start] = out.length
-                transToOrig += start
-                out.append("\u200B")
+                anchors += BlockAnchor(blockOffset, out.length, blockId)
+                // One invisible character per model character keeps the caret mapping one-to-one.
+                for (k in start until end) {
+                    origToTrans[k] = out.length
+                    transToOrig += k
+                    out.append("\u200B")
+                }
                 origToTrans[end] = out.length
                 if (end < src.length) {
                     transToOrig += end
@@ -234,75 +239,28 @@ class RichTextTransformation(
         )
     }
 
+    /** Offset and id of the single drawn block in a paragraph whose other characters are invisible markers. */
+    private fun blockIn(start: Int, end: Int): Pair<Int, Int>? {
+        if (end <= start) return null
+        var found: Pair<Int, Int>? = null
+        for (k in start until end) {
+            val id = model.styles[k].embedId ?: return null
+            if (id in blockHeights) {
+                if (found != null) return null
+                found = k to id
+            } else {
+                val e = embeds[id] ?: return null
+                if (e.wrapper == null && embedLabel(e).isNotEmpty()) return null
+            }
+        }
+        return found
+    }
+
     // --- rendering with the document's own formatting ------------------------------------------
 
-    /** Points on paper → sp on screen: an 11pt body is shown at the editor's base size. */
-    private fun lookFontSp(look: RunLook): Float {
-        val sp = ((look.sizePt ?: 11f) / 11f * baseSize.value).coerceIn(7f, 72f)
-        return if (look.vertical != 0) sp * 0.65f else sp
-    }
+    private fun lookFontSp(look: RunLook): Float = lookFontSp(look, baseSize.value)
 
-    private fun lookSpan(look: RunLook): SpanStyle {
-        val highlight = look.highlight?.let { Color(it) }
-        val color = when {
-            look.color != null && highlight != null -> Color(look.color!!)
-            look.color != null -> readable(Color(look.color!!))
-            highlight != null -> if (highlight.luminance() > 0.5f) Color(0xFF1B1C1E) else Color(0xFFF5F5F5)
-            else -> Color.Unspecified
-        }
-        val decorations = buildList {
-            if (look.underline) add(TextDecoration.Underline)
-            if (look.strike) add(TextDecoration.LineThrough)
-        }
-        return SpanStyle(
-            color = color,
-            background = highlight ?: Color.Unspecified,
-            fontSize = lookFontSp(look).sp,
-            fontWeight = if (look.bold) FontWeight.Bold else FontWeight.Normal,
-            fontStyle = if (look.italic) FontStyle.Italic else FontStyle.Normal,
-            fontFamily = fontFamily(look.font),
-            textDecoration = if (decorations.isEmpty()) null else TextDecoration.combine(decorations),
-            baselineShift = when (look.vertical) {
-                1 -> BaselineShift.Superscript
-                -1 -> BaselineShift.Subscript
-                else -> null
-            },
-            fontFeatureSettings = if (look.smallCaps) "smcp" else null,
-        )
-    }
-
-    /** The phone has no Word fonts: pick the closest generic family, or keep the app font for sans-serif. */
-    private fun fontFamily(name: String?): FontFamily? {
-        val n = name?.lowercase() ?: return null
-        return when {
-            listOf("courier", "consolas", "mono", "menlo", "lucida console").any { it in n } -> FontFamily.Monospace
-            listOf("comic", "script", "brush", "segoe print", "handwriting").any { it in n } -> FontFamily.Cursive
-            "sans" in n -> null
-            listOf("times", "georgia", "garamond", "cambria", "serif", "antiqua", "palatino", "constantia", "minion", "bookman", "century").any { it in n } -> FontFamily.Serif
-            else -> null
-        }
-    }
-
-    /** A document colour that would vanish against the page (black text in the dark theme) is mirrored in lightness. */
-    private fun readable(color: Color): Color {
-        if (background == Color.Unspecified) return color
-        val bg = background.luminance()
-        val fg = color.luminance()
-        val contrast = (maxOf(bg, fg) + 0.05f) / (minOf(bg, fg) + 0.05f)
-        if (contrast >= 3f) return color
-        val max = maxOf(color.red, color.green, color.blue)
-        val min = minOf(color.red, color.green, color.blue)
-        val lightness = (max + min) / 2f
-        val target = (1f - lightness).let { if (bg < 0.5f) it.coerceAtLeast(0.72f) else it.coerceAtMost(0.3f) }
-        // Scale towards white or black while keeping the hue.
-        return if (target > lightness) {
-            val t = if (lightness >= 1f) 1f else (target - lightness) / (1f - lightness)
-            Color(color.red + (1f - color.red) * t, color.green + (1f - color.green) * t, color.blue + (1f - color.blue) * t)
-        } else {
-            val t = if (lightness <= 0f) 0f else target / lightness
-            Color(color.red * t, color.green * t, color.blue * t)
-        }
-    }
+    private fun lookSpan(look: RunLook): SpanStyle = lookSpanStyle(look, baseSize.value, background)
 
     private fun lookParagraphStyle(look: ParaLook, attrs: ParaAttrs, maxFontSp: Float, hasLabel: Boolean): ParagraphStyle {
         // Indents are scaled down: the screen is much narrower than a page.

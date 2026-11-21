@@ -414,6 +414,8 @@
     <string name="legacy_banner">பழைய Word வடிவம் (.doc). சேமித்தால் .docx நகல் உருவாகும்.</string>
     <string name="legacy_banner_sheet">பழைய Excel வடிவம் (.xls). சேமித்தால் .xlsx நகல் உருவாகும்; சூத்திரங்கள் மதிப்புகளாக இருக்கும்.</string>
     <string name="error_password_legacy">இந்தக் கோப்பு கடவுச்சொல்லால் பாதுகாக்கப்பட்டுள்ளது. Office-இல் திறந்து கடவுச்சொல்லை நீக்கி மீண்டும் முயலவும்.</string>
+    <string name="settings_white_paper">ஆவணங்களை வெள்ளைத் தாளில் காட்டு</string>
+    <string name="settings_white_paper_desc">இருண்ட தீமிலும் ஆவணங்கள் வெள்ளைத் தாளில் அவற்றின் நிறங்களுடன் தெரியும்.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d பொருத்தம்</item>
         <item quantity="other">%d பொருத்தங்கள்</item>

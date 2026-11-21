@@ -414,6 +414,8 @@
     <string name="legacy_banner">Format Word lama (.doc). Menyimpan akan membuat salinan .docx.</string>
     <string name="legacy_banner_sheet">Format Excel lama (.xls). Menyimpan akan membuat salinan .xlsx; rumus disimpan sebagai nilai.</string>
     <string name="error_password_legacy">File ini dilindungi kata sandi. Buka di Office, hapus kata sandinya, lalu coba lagi.</string>
+    <string name="settings_white_paper">Tampilkan dokumen di kertas putih</string>
+    <string name="settings_white_paper_desc">Dokumen tampil dengan warnanya sendiri di lembar putih, juga dalam tema gelap.</string>
     <plurals name="pdf_results">
         <item quantity="other">%d hasil</item>
     </plurals>

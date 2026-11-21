@@ -148,6 +148,13 @@ class RealFilesTest {
         shot = "32_docx_formatted",
     )
 
+    @Test fun wordFormWithHeaderTablesAndContentControls() = open(
+        "form.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "TASARIM ÇALIŞMASI ÖNERİ FORMU", "Öğretim Yılı", "Öğretim üyelerinin", "Çalışmanın Adı: Seramik Bal Peteği",
+        "Çalışmada incelenecek", "Sosyal ve politik sorunlar", "UYGUNDUR", "Ek sayfa",
+        shot = "35_docx_form",
+    )
+
     @Test fun pdfForm() = open(
         "form.pdf", "application/pdf",
         str(R.string.pdf_page_of, 1, 2),

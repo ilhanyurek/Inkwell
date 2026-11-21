@@ -414,6 +414,8 @@
     <string name="legacy_banner">पुराना Word फ़ॉर्मैट (.doc)। सेव करने पर .docx कॉपी बनती है।</string>
     <string name="legacy_banner_sheet">पुराना Excel फ़ॉर्मैट (.xls)। सेव करने पर .xlsx कॉपी बनती है; फ़ॉर्मूले मानों के रूप में रहते हैं।</string>
     <string name="error_password_legacy">यह फ़ाइल पासवर्ड से सुरक्षित है। इसे Office में खोलें, पासवर्ड हटाएं और फिर से कोशिश करें।</string>
+    <string name="settings_white_paper">दस्तावेज़ सफ़ेद पेज पर दिखाएं</string>
+    <string name="settings_white_paper_desc">डार्क थीम में भी दस्तावेज़ सफ़ेद पेज पर अपने रंगों के साथ दिखते हैं।</string>
     <plurals name="pdf_results">
         <item quantity="one">%d नतीजा</item>
         <item quantity="other">%d नतीजे</item>

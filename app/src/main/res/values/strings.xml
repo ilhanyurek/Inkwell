@@ -437,4 +437,6 @@
     <string name="legacy_banner">Old Word format (.doc). Saving creates a .docx copy.</string>
     <string name="legacy_banner_sheet">Old Excel format (.xls). Saving creates an .xlsx copy; formulas are kept as values.</string>
     <string name="error_password_legacy">This file is password protected. Open it in Office, remove the password and try again.</string>
+    <string name="settings_white_paper">Show documents on white paper</string>
+    <string name="settings_white_paper_desc">Documents keep their own colours on a white sheet, also in the dark theme.</string>
 </resources>

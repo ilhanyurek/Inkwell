@@ -414,6 +414,8 @@
     <string name="legacy_banner">Formato antiguo de Word (.doc). Al guardar se crea una copia .docx.</string>
     <string name="legacy_banner_sheet">Formato antiguo de Excel (.xls). Al guardar se crea una copia .xlsx; las fórmulas se guardan como valores.</string>
     <string name="error_password_legacy">Este archivo está protegido con contraseña. Ábrelo en Office, quita la contraseña e inténtalo de nuevo.</string>
+    <string name="settings_white_paper">Mostrar documentos en papel blanco</string>
+    <string name="settings_white_paper_desc">Los documentos conservan sus colores sobre una hoja blanca, también con el tema oscuro.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d coincidencia</item>
         <item quantity="other">%d coincidencias</item>

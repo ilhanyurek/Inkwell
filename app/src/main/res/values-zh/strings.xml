@@ -414,6 +414,8 @@
     <string name="legacy_banner">旧版 Word 格式（.doc）。保存时会创建 .docx 副本。</string>
     <string name="legacy_banner_sheet">旧版 Excel 格式（.xls）。保存时会创建 .xlsx 副本，公式将保留为数值。</string>
     <string name="error_password_legacy">此文件受密码保护。请在 Office 中打开并移除密码后重试。</string>
+    <string name="settings_white_paper">在白纸上显示文档</string>
+    <string name="settings_white_paper_desc">即使在深色主题下，文档也以原有颜色显示在白色页面上。</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 个匹配项</item>
     </plurals>

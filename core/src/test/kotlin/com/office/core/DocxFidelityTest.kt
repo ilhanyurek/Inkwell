@@ -32,6 +32,10 @@ class DocxFidelityTest {
 
     /** A paragraph or other body element in a form that ignores differences Word also ignores. */
     private fun canon(el: XmlElement): String {
+        if (el.localName == "sdt") {
+            return "SDT[" + el.elements.filter { it.localName != "sdtContent" }.joinToString("") { XmlWriter.write(it) } + "]{" +
+                el.child("sdtContent")?.elements.orEmpty().joinToString("|") { canon(it) } + "}"
+        }
         if (el.localName != "p") return XmlWriter.write(el)
         val sb = StringBuilder("P[")
         el.child("pPr")?.let { sb.append(props(it)) }
@@ -41,6 +45,7 @@ class DocxFidelityTest {
             for (c in container.elements) {
                 when (c.localName) {
                     "pPr", "proofErr", "bookmarkStart", "bookmarkEnd" -> {}
+                    "sdt" -> { sb.append("|SDT[").append(c.elements.filter { it.localName != "sdtContent" }.joinToString("") { XmlWriter.write(it) }).append("]{"); lastProps = null; c.child("sdtContent")?.let { walk(it) }; sb.append("}"); lastProps = null }
                     "r" -> {
                         val text = c.elements.filter { it.localName != "rPr" && it.localName != "lastRenderedPageBreak" }.joinToString("") {
                             if (it.localName == "t") it.text() else XmlWriter.write(it)
@@ -69,7 +74,7 @@ class DocxFidelityTest {
             .map(::canon)
 
     @Test fun savingWithoutEditsChangesNothing() {
-        for (name in listOf("styled.docx", "report.docx")) {
+        for (name in listOf("styled.docx", "report.docx", "form.docx")) {
             val src = fixture(name)
             val doc = DocxReader.read(src)
             val viaEditor = RichText.fromDocument(doc).toDocument(embeds = doc.embeds)
@@ -177,5 +182,73 @@ class DocxFidelityTest {
         val f = DocxFormatting(src)
         assertEquals("Heading2", f.styleIdOf(ParagraphStyle.HEADING2, null))
         assertTrue(f.runLook(rt.paras[rt.lineIndexAt(at)], CharStyle.PLAIN).bold)
+    }
+
+    // --- forms: content controls, tables, header ------------------------------------------------
+
+    @Test fun contentControlsAreUnwrappedAndKept() {
+        val src = fixture("form.docx")
+        val doc = DocxReader.read(src)
+        val text = doc.paragraphs.joinToString("\n") { it.text }
+        // Text in block and inline content controls is ordinary, editable text now.
+        assertTrue(text.contains("Çalışmada incelenecek gerçekçi koşullar"))
+        val tableXml = doc.embeds.values.filter { it.kind == com.office.core.text.EmbedKind.TABLE }.map { it.xml }
+        assertTrue(tableXml.any { it.contains("Seramik Bal Peteği") })
+
+        // An edit inside the control keeps the control around it.
+        var rt = RichText.fromDocument(doc)
+        val at = rt.text.indexOf("Çalışmada incelenecek")
+        rt = rt.replace(at, at, "Yeni: ", rt.styleAt(at))
+        val out = ByteArrayOutputStream()
+        DocxWriter.write(rt.toDocument(embeds = doc.embeds), out, src)
+        val xml = String(ZipPackage.read(ByteArrayInputStream(out.toByteArray())).bytes("word/document.xml")!!)
+        XmlParser.parse(xml)
+        val sdt = Regex("<w:sdt>.*?</w:sdt>", RegexOption.DOT_MATCHES_ALL).findAll(xml).map { it.value }.first { "incelenecek" in it }
+        assertTrue(sdt.contains("Yeni: Çalışmada"))
+
+        // Deleting the whole paragraph (and so one half of the control) still writes a valid file.
+        val start = rt.lineRange(rt.lineIndexAt(at))
+        val cut = rt.replace(start.first, start.last + 2, "", CharStyle.PLAIN)
+        val out2 = ByteArrayOutputStream()
+        DocxWriter.write(cut.toDocument(embeds = doc.embeds), out2, src)
+        XmlParser.parse(String(ZipPackage.read(ByteArrayInputStream(out2.toByteArray())).bytes("word/document.xml")!!))
+    }
+
+    @Test fun tableLayoutsAndHeader() {
+        val src = fixture("form.docx")
+        val doc = DocxReader.read(src)
+        val layout = com.office.core.docx.DocxLayout(src)
+        val tables = doc.embeds.values.filter { it.kind == com.office.core.text.EmbedKind.TABLE }.map { layout.table(it.xml)!! }
+
+        val students = tables.first { it.text.contains("Öğrenci No") }
+        assertEquals(7, students.columnsPt.size)
+        assertEquals(15f, students.columnsPt[3], 0.1f)
+        val head = students.rows[0].cells[0]
+        assertTrue(head.top != null && head.left != null)
+        val label = (head.items[0] as com.office.core.docx.LayoutItem.Para)
+        assertTrue(label.runs.all { it.look.bold })
+        assertEquals(Alignment.CENTER, label.alignment)
+        assertEquals("Times New Roman", label.runs[0].look.font)
+
+        val study = tables.first { it.text.contains("Çalışmanın Adı") }
+        val adi = study.rows[0].cells[0].items[0] as com.office.core.docx.LayoutItem.Para
+        assertEquals("Çalışmanın Adı: Seramik Bal Peteği Yapıların Tasarımı ve Optimizasyonu", adi.text)
+        assertTrue(adi.runs.first().look.bold && !adi.runs.last().look.bold)
+
+        val approval = tables.first { it.text.contains("UYGUNDUR") }
+        assertEquals(2, approval.rows[0].cells[0].rowSpan)
+        assertEquals(0, approval.rows[1].cells[0].rowSpan)
+        assertEquals(3, approval.rows[2].cells[0].span)
+
+        val checks = tables.first { it.text.contains("Ekonomi") }
+        assertTrue(checks.text.contains("☒") && checks.text.contains("☐"))
+
+        val (header, footer) = layout.headerFooter()
+        val headerTable = (header!!.first { it is com.office.core.docx.LayoutItem.Table } as com.office.core.docx.LayoutItem.Table).layout
+        assertTrue(headerTable.text.contains("TASARIM ÇALIŞMASI ÖNERİ FORMU"))
+        val pictures = headerTable.rows[0].cells.flatMap { it.items }.filterIsInstance<com.office.core.docx.LayoutItem.Picture>()
+        assertEquals(2, pictures.size)
+        assertTrue(pictures.all { it.bytes != null && it.widthPt > 30f })
+        assertEquals(null, footer)
     }
 }

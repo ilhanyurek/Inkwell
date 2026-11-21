@@ -131,6 +131,143 @@ def make_styled_docx(out: Path):
     d.save(out / "styled.docx")
 
 
+def make_form_docx(out: Path):
+    """A university form laid out the way such forms usually are: the title block with logos in the page
+    header, small tables with bold labels and merged cells, text inside content controls, checkbox content
+    controls, a checkbox grid nested in a table cell and a page break."""
+    from docx import Document
+    from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls, qn
+    from docx.shared import Pt, Cm
+
+    W14 = 'xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"'
+    d = Document()
+    sec = d.sections[0]
+    sec.page_width, sec.page_height = Cm(21), Cm(29.7)
+    normal = d.styles["Normal"]
+    normal.font.name = "Times New Roman"
+    normal.font.size = Pt(11)
+    normal.paragraph_format.space_after = Pt(0)
+
+    def borders(table):
+        table.style = "Table Grid"
+
+    def bold_cell(cell, text, align=None):
+        cell.text = ""
+        p = cell.paragraphs[0]
+        r = p.add_run(text)
+        r.bold = True
+        if align is not None:
+            p.alignment = align
+
+    # Title block with two logos, in the header (repeats on every page).
+    header = sec.header
+    ht = header.add_table(rows=1, cols=3, width=Cm(17))
+    borders(ht)
+    logo = io.BytesIO(png(60, 60, (30, 70, 160)))
+    ht.cell(0, 0).paragraphs[0].add_run().add_picture(logo, width=Cm(1.6))
+    logo.seek(0)
+    ht.cell(0, 2).paragraphs[0].add_run().add_picture(logo, width=Cm(1.6))
+    mid = ht.cell(0, 1)
+    lines = ["Örnek Üniversitesi", "Mühendislik Fakültesi", "Malzeme Mühendisliği Bölümü", "TASARIM ÇALIŞMASI ÖNERİ FORMU"]
+    mid.text = ""
+    for i, line in enumerate(lines):
+        p = mid.paragraphs[0] if i == 0 else mid.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run(line).bold = True
+    header.paragraphs[0].text = ""
+
+    d.add_paragraph()
+    t1 = d.add_table(rows=2, cols=4)
+    borders(t1)
+    bold_cell(t1.cell(0, 0), "Öğretim Yılı")
+    t1.cell(0, 1).text = "20... - 20... GÜZ/BAHAR"
+    bold_cell(t1.cell(0, 2), "Tarih", WD_ALIGN_PARAGRAPH.RIGHT)
+    t1.cell(0, 3).text = "…/…/20….."
+    bold_cell(t1.cell(1, 0), "Danışman")
+    bold_cell(t1.cell(1, 2), "Danışman İmza", WD_ALIGN_PARAGRAPH.RIGHT)
+    d.add_paragraph()
+
+    t2 = d.add_table(rows=4, cols=7)
+    borders(t2)
+    for j, h in enumerate(["Öğrenci No", "Adı Soyadı", "İmza", "", "Öğrenci No", "Adı Soyadı", "İmza"]):
+        if h:
+            bold_cell(t2.cell(0, j), h, WD_ALIGN_PARAGRAPH.CENTER)
+    # A narrow spacer column, like the original.
+    grid = t2._tbl.tblGrid
+    for j, w in enumerate([2000, 2000, 1100, 300, 2000, 2000, 1100]):
+        grid.gridCol_lst[j].set(qn("w:w"), str(w))
+    d.add_paragraph()
+
+    p = d.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    p.add_run("Öğretim üyelerinin, öğrencilerin önceki derslerde edindikleri bilgi ve becerileri kullanacakları, ")
+    r = p.add_run("gerçekçi koşulları/kısıtları"); r.bold = True; r.underline = True
+    r = p.add_run(" (Maliyet analiz, ekonomi, çevre sorunları, sürdürülebilirlik, etik, sağlık, güvenlik gibi)"); r.bold = True
+    p.add_run(" ve ")
+    r = p.add_run("mühendislik standartlarını"); r.bold = True; r.underline = True
+    p.add_run(" içerecek bir ana tasarım deneyimiyle mühendislik uygulamasına hazır hale getirilmesi hususunu dikkate alarak konu tercihinde bulunmaları gerekmektedir.")
+
+    # The study box: each cell holds a bold label and text inside content controls.
+    t3 = d.add_table(rows=3, cols=1)
+    borders(t3)
+    labels = [("Çalışmanın Adı: ", "Seramik Bal Peteği Yapıların Tasarımı ve Optimizasyonu"),
+              ("Çalışmanın Amacı: ", "Gövde malzemesi olarak kordiyerit (2MgO·2Al2O3·5SiO2) üzerinde karar kılınmıştır."),
+              ("Çalışmanın Yöntemi: ", "Çalışma, literatür taraması ve buna dayalı malzeme ve süreç seçimi üzerine kurulmuştur.")]
+    for i, (label, text) in enumerate(labels):
+        c = t3.cell(i, 0)
+        c.text = ""
+        para = c.paragraphs[0]
+        para.add_run(label).bold = True
+        # Inline content control holding the answer text.
+        sdt = parse_xml(
+            '<w:sdt %s><w:sdtPr><w:alias w:val="Cevap %d"/><w:id w:val="%d"/></w:sdtPr><w:sdtContent>'
+            '<w:r><w:t xml:space="preserve">%s</w:t></w:r></w:sdtContent></w:sdt>' % (nsdecls("w"), i + 1, 100 + i, text))
+        para._p.append(sdt)
+    # A subscript in the formula, as in the original.
+    d.add_paragraph()
+
+    # Block-level content control around a paragraph and a table with a checkbox grid.
+    box = parse_xml(
+        '<w:sdt %s><w:sdtPr><w:id w:val="200"/></w:sdtPr><w:sdtContent>'
+        '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Çalışmada incelenecek gerçekçi koşullar/kısıtlar (en az 3 adet işaretleyiniz):</w:t></w:r></w:p>'
+        '</w:sdtContent></w:sdt>' % nsdecls("w"))
+    d.element.body.insert(len(d.element.body) - 1, box)
+    grid_t = d.add_table(rows=3, cols=6)
+    borders(grid_t)
+    items = [["Ekonomi", "Maliyet analizi", "Çevre sorunları"], ["Sürdürülebilirlik", "Üretilebilirlik", "Etik"], ["Sağlık", "Güvenlik", "Sosyal ve politik sorunlar"]]
+    for r_i, row in enumerate(items):
+        for k, label in enumerate(row):
+            mark = grid_t.cell(r_i, k * 2).paragraphs[0]
+            mark._p.append(parse_xml(
+                '<w:sdt %s %s><w:sdtPr><w:id w:val="%d"/><w14:checkbox><w14:checked w14:val="%d"/>'
+                '<w14:checkedState w14:val="2612" w14:font="MS Gothic"/><w14:uncheckedState w14:val="2610" w14:font="MS Gothic"/></w14:checkbox></w:sdtPr>'
+                '<w:sdtContent><w:r><w:rPr><w:rFonts w:ascii="MS Gothic" w:hAnsi="MS Gothic"/></w:rPr><w:t>%s</w:t></w:r></w:sdtContent></w:sdt>'
+                % (nsdecls("w"), W14, 300 + r_i * 3 + k, 1 if k == 0 else 0, "☒" if k == 0 else "☐")))
+            grid_t.cell(r_i, k * 2 + 1).text = label
+    d.add_paragraph()
+    for line in ("☒ Ekonomi / Maliyet Analizi: ham madde ve enerji maliyetlerinin karşılaştırılması.",
+                 "☒ Çevre sorunları: yüksek sinterleme sıcaklığının enerji tüketimi."):
+        d.add_paragraph(line)
+
+    # Approval table with a vertically merged cell.
+    t4 = d.add_table(rows=3, cols=3)
+    borders(t4)
+    a = t4.cell(0, 0).merge(t4.cell(1, 0))
+    a.text = "Önerilen çalışma MÜDEK değerlendirme kriterlerine uygundur."
+    bold_cell(t4.cell(0, 2), "UYGUNDUR")
+    bold_cell(t4.cell(1, 2), "UYGUN DEĞİLDİR")
+    last = t4.cell(2, 0).merge(t4.cell(2, 2))
+    last.text = "Malzeme Mühendisliği Bölüm Başkanlığı"
+    last.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    p = d.add_paragraph()
+    p.add_run().add_break(WD_BREAK.PAGE)
+    d.add_paragraph("Ek sayfa: bulgular tasarım ölçütleri halinde derlenip raporlanacaktır.")
+    d.save(out / "form.docx")
+
+
 def make_xlsx(out: Path):
     from openpyxl import Workbook
     from openpyxl.chart import BarChart, Reference
@@ -228,6 +365,7 @@ if __name__ == "__main__":
     target.mkdir(parents=True, exist_ok=True)
     make_docx(target)
     make_styled_docx(target)
+    make_form_docx(target)
     make_xlsx(target)
     make_pptx(target)
     make_pdf(target)

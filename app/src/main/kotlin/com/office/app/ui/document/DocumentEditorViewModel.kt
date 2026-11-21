@@ -22,6 +22,8 @@ import com.office.app.data.FileInfo
 import com.office.app.export.PdfExporter
 import com.office.core.FileKind
 import com.office.core.docx.DocxFormatting
+import com.office.core.docx.DocxLayout
+import com.office.core.docx.LayoutItem
 import com.office.core.docx.DocxImages
 import com.office.core.text.TextFormatting
 import com.office.core.docx.DocxReader
@@ -102,6 +104,16 @@ class DocumentEditorViewModel(
         private set
     private var parsedFormatting: TextFormatting? = null
 
+    /** Draws tables, headers and footers of a Word document as they are laid out in the file. */
+    var layout by mutableStateOf<DocxLayout?>(null)
+        private set
+    private var parsedLayout: DocxLayout? = null
+
+    /** Header and footer of the first page, for display only. */
+    var headerFooter by mutableStateOf<Pair<List<LayoutItem>?, List<LayoutItem>?>>(null to null)
+        private set
+    private var parsedHeaderFooter: Pair<List<LayoutItem>?, List<LayoutItem>?> = null to null
+
     fun currentDocument(): TextDocument = model.toDocument(embeds = embeds)
 
     private data class Snapshot(val model: RichText, val selection: TextRange)
@@ -169,7 +181,10 @@ class DocumentEditorViewModel(
         } else ZipPackage.read(ByteArrayInputStream(bytes)).let { pkg ->
             originalPackage = pkg
             val odf = Odf.isOdf(pkg)
-            parsedFormatting = if (odf) null else runCatching { DocxFormatting(pkg) }.getOrNull()
+            val f = if (odf) null else runCatching { DocxFormatting(pkg) }.getOrNull()
+            parsedFormatting = f
+            parsedLayout = f?.let { DocxLayout(pkg, it) }
+            parsedHeaderFooter = parsedLayout?.let { runCatching { it.headerFooter() }.getOrNull() } ?: (null to null)
             viewModelScope.launch { isOdf = odf }
             if (odf) OdtReader.read(pkg) else DocxReader.read(pkg)
         }
@@ -182,6 +197,8 @@ class DocumentEditorViewModel(
         lossyImport = doc.lossyImport
         bitmaps.clear()
         formatting = if (kind == FileKind.DOCUMENT && originalPackage != null) parsedFormatting else null
+        layout = if (formatting != null) parsedLayout else null
+        headerFooter = if (formatting != null) parsedHeaderFooter else (null to null)
         embeds = doc.embeds
         value = TextFieldValue(model.text, TextRange(0))
     }

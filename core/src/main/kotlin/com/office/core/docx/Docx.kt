@@ -10,6 +10,7 @@ import com.office.core.text.Paragraph
 import com.office.core.text.ParagraphStyle
 import com.office.core.text.TextDocument
 import com.office.core.text.TextRun
+import com.office.core.text.Wrapper
 import com.office.core.xml.XmlElement
 import com.office.core.xml.XmlParser
 import com.office.core.xml.XmlWriter
@@ -34,17 +35,63 @@ object DocxReader {
         val body = document.child("body") ?: return TextDocument.empty()
 
         val paragraphs = ArrayList<Paragraph>()
-        for (el in body.elements) {
-            when (el.localName) {
-                "p" -> paragraphs += readParagraph(el, ctx)
-                "sectPr" -> {} // copied from the original package on save
-                "bookmarkStart", "bookmarkEnd", "proofErr" -> {}
-                "tbl" -> paragraphs += blockParagraph(ctx, tableEmbed(el))
-                else -> paragraphs += blockParagraph(ctx, Embed(EmbedKind.BLOCK, XmlWriter.write(el), block = true, label = el.text().trim().take(60)))
-            }
-        }
+        for (el in body.elements) readBodyElement(el, ctx, paragraphs)
         if (paragraphs.isEmpty()) paragraphs += Paragraph(emptyList())
         return TextDocument(paragraphs, lossyImport = false, embeds = ctx.embeds)
+    }
+
+    private fun readBodyElement(el: XmlElement, ctx: Ctx, paragraphs: MutableList<Paragraph>) {
+        when (el.localName) {
+            "p" -> paragraphs += readParagraph(el, ctx)
+            "sectPr" -> {} // copied from the original package on save
+            "bookmarkStart", "bookmarkEnd", "proofErr" -> {}
+            "tbl" -> paragraphs += blockParagraph(ctx, tableEmbed(el))
+            // Content controls and similar wrappers: their content is shown and edited like any other,
+            // and the wrapper is written back around it.
+            "sdt", "customXml" -> {
+                val content = if (el.localName == "sdt") el.child("sdtContent") else el
+                val inner = content?.elements?.filter { it.localName != "customXmlPr" }.orEmpty()
+                val before = paragraphs.size
+                inner.forEach { readBodyElement(it, ctx, paragraphs) }
+                if (paragraphs.size == before) {
+                    paragraphs += blockParagraph(ctx, Embed(EmbedKind.BLOCK, XmlWriter.write(el), block = true, label = el.text().trim().take(60)))
+                    return
+                }
+                val (open, close) = wrapperParts(el)
+                val first = paragraphs[before]
+                paragraphs[before] = first.copy(runs = listOf(embedRun(ctx, Embed(EmbedKind.FIELD, open, label = MARKER_LABEL, wrapper = Wrapper.OPEN_BLOCK))) + first.runs)
+                val last = paragraphs.last()
+                paragraphs[paragraphs.size - 1] = last.copy(runs = last.runs + embedRun(ctx, Embed(EmbedKind.FIELD, close, label = MARKER_LABEL, wrapper = Wrapper.CLOSE_BLOCK)))
+            }
+            else -> paragraphs += blockParagraph(ctx, Embed(EmbedKind.BLOCK, XmlWriter.write(el), block = true, label = el.text().trim().take(60)))
+        }
+    }
+
+    /** Opening markup (up to and including `sdtContent`) and closing markup of a wrapper element. */
+    private fun wrapperParts(el: XmlElement): Pair<String, String> {
+        val sb = StringBuilder()
+        sb.append('<').append(el.name)
+        for ((k, v) in el.attributes) sb.append(' ').append(k).append("=\"").append(xmlEscape(v)).append('"')
+        sb.append('>')
+        if (el.localName == "sdt") {
+            el.elements.filter { it.localName != "sdtContent" }.forEach { XmlWriter.append(sb, it) }
+            val content = el.child("sdtContent")
+            sb.append('<').append(content?.name ?: el.name.replace("sdt", "sdtContent")).append('>')
+            return sb.toString() to "</${content?.name ?: el.name.replace("sdt", "sdtContent")}></${el.name}>"
+        }
+        el.child("customXmlPr")?.let { XmlWriter.append(sb, it) }
+        return sb.toString() to "</${el.name}>"
+    }
+
+    /**
+     * Reads the paragraphs of a container outside the main text (a table cell, a header) into the same model,
+     * with their own embeds. Used to draw those parts with their formatting.
+     */
+    fun readParagraphs(container: XmlElement, pkg: ZipPackage?): TextDocument {
+        val ctx = Ctx(pkg?.let { readHeadingStyles(it) } ?: emptyMap(), pkg?.let { readNumbering(it) } ?: emptyMap())
+        val paragraphs = ArrayList<Paragraph>()
+        for (el in container.elements) if (el.localName == "p" || el.localName == "sdt" || el.localName == "customXml") readBodyElement(el, ctx, paragraphs)
+        return TextDocument(paragraphs, embeds = ctx.embeds)
     }
 
     internal fun mainPart(pkg: ZipPackage): String =
@@ -107,7 +154,19 @@ object DocxReader {
                 "pPr" -> {}
                 "r" -> if (isEditableRun(el)) readRun(el)?.let { out += it }
                 else out += embedRun(ctx, Embed(runKind(el), XmlWriter.write(el), label = el.descendants("t").joinToString("") { it.text() }))
-                "ins", "smartTag", "dir", "bdo" -> collectRuns(el, ctx, out)
+                "ins", "dir", "bdo" -> collectRuns(el, ctx, out)
+                "sdt", "smartTag", "customXml" -> {
+                    val content = if (el.localName == "sdt") el.child("sdtContent") else el
+                    if (content == null || content.elements.none { it.localName in setOf("r", "hyperlink", "fldSimple", "ins", "sdt", "smartTag") }) {
+                        out += embedRun(ctx, Embed(EmbedKind.OBJECT, XmlWriter.write(el), label = el.text().take(60)))
+                    } else {
+                        val (open, close) = wrapperParts(el)
+                        out += embedRun(ctx, Embed(EmbedKind.FIELD, open, label = MARKER_LABEL, wrapper = Wrapper.OPEN_INLINE))
+                        val inner = if (el.localName == "sdt") content else XmlElement(el.name, emptyMap(), el.children.filter { it !is XmlElement || it.localName !in setOf("smartTagPr", "customXmlPr") })
+                        collectRuns(inner, ctx, out)
+                        out += embedRun(ctx, Embed(EmbedKind.FIELD, close, label = MARKER_LABEL, wrapper = Wrapper.CLOSE_INLINE))
+                    }
+                }
                 "proofErr" -> {}
                 "hyperlink" -> out += embedRun(ctx, Embed(EmbedKind.LINK, XmlWriter.write(el), label = el.descendants("t").joinToString("") { it.text() }))
                 "fldSimple" -> out += embedRun(ctx, Embed(EmbedKind.FIELD, XmlWriter.write(el), label = el.text()))
@@ -256,7 +315,8 @@ object DocxWriter {
 
     private fun writeNew(doc: TextDocument, output: OutputStream) {
         val body = StringBuilder()
-        for (p in doc.paragraphs) appendParagraph(body, p, doc, 1, 2)
+        val blockWrappers = balancedBlockWrappers(doc)
+        for (p in doc.paragraphs) appendParagraph(body, p, doc, 1, 2, blockWrappers)
         body.append("""<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>""")
         body.append("""<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>""")
         val document = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="$W" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>$body</w:body></w:document>"""
@@ -293,7 +353,8 @@ object DocxWriter {
         for (c in root.elements) {
             if (c.localName != "body") { XmlWriter.append(sb, c); continue }
             sb.append('<').append(c.name).append('>')
-            for (p in doc.paragraphs) appendParagraph(sb, p, doc, OUR_BULLET, OUR_DECIMAL)
+            val blockWrappers = balancedBlockWrappers(doc)
+            for (p in doc.paragraphs) appendParagraph(sb, p, doc, OUR_BULLET, OUR_DECIMAL, blockWrappers)
             c.child("sectPr")?.let { XmlWriter.append(sb, it) }
             sb.append("</").append(c.name).append('>')
         }
@@ -396,21 +457,61 @@ object DocxWriter {
 
     // --- paragraphs ------------------------------------------------------------------------------
 
-    private fun appendParagraph(sb: StringBuilder, p: Paragraph, doc: TextDocument, bulletId: Int, decimalId: Int) {
+    /**
+     * Whether the block-level wrappers (content controls around paragraphs) still pair up in order. After
+     * edits that removed one half, none are written, so the file stays valid; the content itself is kept.
+     */
+    private fun balancedBlockWrappers(doc: TextDocument): Boolean {
+        var depth = 0
+        for (p in doc.paragraphs) for (r in p.runs) {
+            when (r.embedId?.let { doc.embeds[it]?.wrapper }) {
+                Wrapper.OPEN_BLOCK -> depth++
+                Wrapper.CLOSE_BLOCK -> if (--depth < 0) return false
+                else -> {}
+            }
+        }
+        return depth == 0
+    }
+
+    /** Inline wrappers must pair up inside the paragraph that holds them. */
+    private fun balancedInline(runs: List<TextRun>, doc: TextDocument): Boolean {
+        var depth = 0
+        for (r in runs) {
+            when (r.embedId?.let { doc.embeds[it]?.wrapper }) {
+                Wrapper.OPEN_INLINE -> depth++
+                Wrapper.CLOSE_INLINE -> if (--depth < 0) return false
+                else -> {}
+            }
+        }
+        return depth == 0
+    }
+
+    private fun appendParagraph(sb: StringBuilder, p: Paragraph, doc: TextDocument, bulletId: Int, decimalId: Int, blockWrappers: Boolean) {
         // Block embeds (tables…) are written in place; any text around them becomes its own paragraph.
         val pending = ArrayList<TextRun>()
         var wroteAny = false
         fun flushParagraph(force: Boolean) {
             if (pending.isEmpty() && !force) return
+            val inlineOk = balancedInline(pending, doc)
             sb.append("<w:p>")
             appendPPr(sb, p, bulletId, decimalId)
-            for (r in pending) appendRun(sb, r, doc)
+            for (r in pending) {
+                val w = r.embedId?.let { doc.embeds[it]?.wrapper }
+                if (w != null && !inlineOk) continue
+                appendRun(sb, r, doc)
+            }
             sb.append("</w:p>")
             pending.clear()
             wroteAny = true
         }
         for (r in p.runs) {
             val embed = r.embedId?.let { doc.embeds[it] }
+            if (embed?.wrapper == Wrapper.OPEN_BLOCK || embed?.wrapper == Wrapper.CLOSE_BLOCK) {
+                // Content before the closing half belongs inside the wrapper.
+                if (embed.wrapper == Wrapper.CLOSE_BLOCK) flushParagraph(force = !wroteAny) else flushParagraph(force = false)
+                if (blockWrappers) sb.append(embed.xml)
+                continue
+            }
             if (embed != null && embed.block) {
                 flushParagraph(force = false)
                 sb.append(embed.xml)

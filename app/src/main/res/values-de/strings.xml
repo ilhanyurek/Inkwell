@@ -414,6 +414,8 @@
     <string name="legacy_banner">Altes Word-Format (.doc). Beim Speichern entsteht eine .docx-Kopie.</string>
     <string name="legacy_banner_sheet">Altes Excel-Format (.xls). Beim Speichern entsteht eine .xlsx-Kopie; Formeln bleiben als Werte erhalten.</string>
     <string name="error_password_legacy">Diese Datei ist kennwortgeschützt. Öffnen Sie sie in Office, entfernen Sie das Kennwort und versuchen Sie es erneut.</string>
+    <string name="settings_white_paper">Dokumente auf weißem Papier zeigen</string>
+    <string name="settings_white_paper_desc">Dokumente behalten ihre eigenen Farben auf einem weißen Blatt, auch im dunklen Design.</string>
     <plurals name="pdf_results">
         <item quantity="one">%d Treffer</item>
         <item quantity="other">%d Treffer</item>

@@ -414,6 +414,8 @@
     <string name="legacy_banner">이전 Word 형식(.doc)입니다. 저장하면 .docx 사본이 만들어집니다.</string>
     <string name="legacy_banner_sheet">이전 Excel 형식(.xls)입니다. 저장하면 .xlsx 사본이 만들어지며 수식은 값으로 저장됩니다.</string>
     <string name="error_password_legacy">이 파일은 암호로 보호되어 있습니다. Office에서 열어 암호를 해제한 후 다시 시도하세요.</string>
+    <string name="settings_white_paper">문서를 흰 종이에 표시</string>
+    <string name="settings_white_paper_desc">어두운 테마에서도 문서는 흰 종이 위에 원래 색으로 표시됩니다.</string>
     <plurals name="pdf_results">
         <item quantity="other">일치 항목 %d개</item>
     </plurals>
