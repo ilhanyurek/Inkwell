@@ -13,7 +13,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Several files open as tabs; each keeps its unsaved text while another one is shown. */
+/** Several files open as tabs; each keeps its unsaved text while another one or Home is shown. */
 @RunWith(AndroidJUnit4::class)
 class TabsTest {
 
@@ -38,16 +38,42 @@ class TabsTest {
             rule.waitUntil(10_000) { tabs.tabs.size == 2 }
             rule.screenshot("40_tabs")
 
-            // Back to the first tab: the unsaved edit is still there and the tab shows it as changed.
+            // Home on top of the open files and back again: the unsaved edit is kept.
+            rule.onNodeWithTag("tab_home").performClick()
+            rule.waitForTag("open_tabs")
+            rule.screenshot("41_home_over_tabs")
+            rule.onNodeWithTag("open_tabs").performClick()
+            rule.waitForTag("tab_$first")
             rule.onNodeWithTag("tab_$first").performClick()
             rule.waitForText("Edited")
             assertEquals(true, tabs.isDirty(first))
+
+            // The overview lists every open file.
+            rule.onNodeWithTag("tab_count").performClick()
+            rule.waitForTag("tab_overview")
+            rule.screenshot("42_tab_overview")
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            rule.waitUntil(5_000) { rule.onAllNodes(hasTestTag("tab_overview")).fetchSemanticsNodes().isEmpty() }
 
             // Closing the clean second tab leaves the first one.
             val second = tabs.tabs.first { it.id != first }.id
             rule.onNodeWithTag("tab_close_$second").performClick()
             rule.waitUntil(5_000) { tabs.tabs.size == 1 }
-            rule.waitUntil(5_000) { rule.onAllNodes(hasTestTag("tab_$first")).fetchSemanticsNodes().isNotEmpty() }
+
+            // Closing the edited tab asks first: Cancel keeps it, Discard closes it and returns Home.
+            rule.onNodeWithTag("tab_close_$first").performClick()
+            rule.waitForTag("unsaved_cancel")
+            rule.onNodeWithTag("unsaved_cancel").performClick()
+            rule.waitForIdle()
+            assertEquals(1, tabs.tabs.size)
+            rule.onNodeWithTag("tab_close_$first").performClick()
+            rule.waitForTag("unsaved_discard")
+            rule.onNodeWithTag("unsaved_discard").performClick()
+            rule.waitUntil(5_000) { tabs.tabs.isEmpty() }
+            rule.waitForTag("new_button")
         }
     }
 }
+
+private fun androidx.compose.ui.test.junit4.ComposeTestRule.waitForTag(tag: String) =
+    waitUntil(10_000) { onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty() }

@@ -27,6 +27,9 @@ object Routes {
     const val FOLDER = "folder?uri={uri}&name={name}"
     const val WORKSPACE = "workspace"
 
+    /** Home shown on top of the open files, which stay open underneath. */
+    const val HOME_OVER = "home_over"
+
     fun open(uri: Uri, tool: String? = null) = "open?uri=" + Uri.encode(uri.toString()) + (tool?.let { "&tool=$it" } ?: "")
     fun tool(id: com.office.app.ui.tools.ToolId) = "tool/${id.name}"
     fun new(kind: FileKind) = "new/${kind.name}"
@@ -49,11 +52,14 @@ fun AppNavHost(
     LaunchedEffect(incomingShortcut) {
         when (incomingShortcut) {
             null -> return@LaunchedEffect
-            "new_document" -> nav.navigate(Routes.new(FileKind.DOCUMENT)) { popUpTo(Routes.HOME) }
-            "new_sheet" -> nav.navigate(Routes.new(FileKind.SPREADSHEET)) { popUpTo(Routes.HOME) }
-            "scan" -> nav.navigate(Routes.tool(com.office.app.ui.tools.ToolId.SCAN)) { popUpTo(Routes.HOME) }
+            // Open files stay open: new files join them as tabs, Home is shown on top of them.
+            "new_document" -> nav.navigate(Routes.new(FileKind.DOCUMENT))
+            "new_sheet" -> nav.navigate(Routes.new(FileKind.SPREADSHEET))
+            "scan" -> nav.navigate(Routes.tool(com.office.app.ui.tools.ToolId.SCAN))
             "tools" -> {
-                nav.popBackStack(Routes.HOME, inclusive = false)
+                val workspaceOpen = runCatching { nav.getBackStackEntry(Routes.WORKSPACE) }.isSuccess
+                if (workspaceOpen) nav.navigate(Routes.HOME_OVER) { launchSingleTop = true }
+                else nav.popBackStack(Routes.HOME, inclusive = false)
                 requestedHomeTab = 2
             }
         }
@@ -77,6 +83,21 @@ fun AppNavHost(
                 onOpenDraft = { nav.navigate(Routes.draft(it)) },
                 onOpenFolder = { uri, name -> nav.navigate(Routes.folder(uri, name)) },
                 onTool = { nav.navigate(Routes.tool(it)) },
+                onOpenTabs = { toWorkspace(nav, null) },
+                requestedTab = requestedHomeTab,
+                onTabRequestHandled = { requestedHomeTab = null },
+            )
+        }
+        composable(Routes.HOME_OVER) {
+            HomeScreen(
+                container = container,
+                onOpen = { nav.navigate(Routes.open(it)) },
+                onNew = { nav.navigate(Routes.new(it)) },
+                onSettings = { nav.navigate(Routes.SETTINGS) },
+                onOpenDraft = { nav.navigate(Routes.draft(it)) },
+                onOpenFolder = { uri, name -> nav.navigate(Routes.folder(uri, name)) },
+                onTool = { nav.navigate(Routes.tool(it)) },
+                onOpenTabs = { toWorkspace(nav, null) },
                 requestedTab = requestedHomeTab,
                 onTabRequestHandled = { requestedHomeTab = null },
             )
@@ -148,6 +169,7 @@ fun AppNavHost(
             com.office.app.ui.tabs.Workspace(
                 container = container,
                 onAllClosed = { nav.popBackStack(Routes.WORKSPACE, inclusive = true) },
+                onHome = { nav.navigate(Routes.HOME_OVER) { launchSingleTop = true } },
             )
         }
     }
@@ -157,13 +179,13 @@ fun AppNavHost(
  * Shows the workspace in place of the route that asked for a file. The workspace entry is reused when it is
  * already on the back stack, so the other open files keep their state.
  */
-private fun toWorkspace(nav: androidx.navigation.NavHostController, from: String) {
+private fun toWorkspace(nav: androidx.navigation.NavHostController, from: String?) {
     val inStack = runCatching { nav.getBackStackEntry(Routes.WORKSPACE) }.isSuccess
     if (inStack) {
         nav.popBackStack(Routes.WORKSPACE, inclusive = false)
     } else {
         nav.navigate(Routes.WORKSPACE) {
-            popUpTo(from) { inclusive = true }
+            if (from != null) popUpTo(from) { inclusive = true }
             launchSingleTop = true
         }
     }

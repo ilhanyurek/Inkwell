@@ -4,9 +4,17 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 
 ## Unreleased
 
+### Changed
+- New look across the app: a deep navy accent on a light grey page, white rounded cards, large bold titles, pill-shaped switches between Recent, Folders and Tools, and the Figtree typeface
+- Editor tool bars float as rounded cards above the bottom edge
+- Theme is picked with one control: System, Light, Dark or Black
+
 ### Added
-- Black (AMOLED) theme next to Light and Dark
-- Several files open at once as tabs, with a "+" to open or create another
+- Black (AMOLED) theme with a true black page and outlined cards
+- Several files open at once as tabs: a Home button, the number of open files (opens an overview of them all) and "+" to open or create another
+- Closing a tab with unsaved changes asks whether to save, discard or keep it open
+- Home can be shown over the open files without closing them; an "Open files" card leads back
+- Open tabs come back after the app is restarted
 
 ## [1.4.1] - 2026-11-21
 

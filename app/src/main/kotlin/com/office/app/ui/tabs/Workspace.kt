@@ -1,5 +1,6 @@
 package com.office.app.ui.tabs
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -14,9 +15,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.office.app.AppContainer
 import com.office.app.ui.EditorHost
@@ -27,31 +31,34 @@ import com.office.core.FileKind
  * are kept per file, so switching tabs keeps undo history and unsaved text of every tab.
  */
 @Composable
-fun Workspace(container: AppContainer, onAllClosed: () -> Unit) {
+fun Workspace(container: AppContainer, onAllClosed: () -> Unit, onHome: () -> Unit) {
     val tabs = container.tabs
-    val titles = remember { TabTitles() }
     val selected = tabs.selected
     LaunchedEffect(selected == null) { if (selected == null) onAllClosed() }
     if (selected == null) return
 
+    var overview by rememberSaveable { mutableStateOf(false) }
+    // Back closes the file in front (editors with unsaved changes ask first); the last one returns Home.
+    BackHandler { if (tabs.close(selected.id)) onAllClosed() }
     val openFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) tabs.open(uri)
     }
     // Keeps each tab's scroll positions and other saved UI state while another tab is shown.
     val saveable = rememberSaveableStateHolder()
-    Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
+    Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             TabStrip(
                 container = container,
-                titles = titles,
+                onHome = onHome,
                 onNew = { tabs.openNew(it) },
                 onOpenFile = { openFile.launch(FileKind.openableMimeTypes + "*/*") },
+                onOverview = { overview = true },
                 modifier = Modifier.statusBarsPadding(),
             )
             Box(Modifier.fillMaxWidth().weight(1f).consumeWindowInsets(WindowInsets.statusBars)) {
                 key(selected.id) {
                     saveable.SaveableStateProvider(selected.id) {
-                        ProvideTab(container, selected, titles) {
+                        ProvideTab(container, selected) {
                             EditorHost(
                                 container = container,
                                 uri = selected.uri,
@@ -71,4 +78,5 @@ fun Workspace(container: AppContainer, onAllClosed: () -> Unit) {
             }
         }
     }
+    if (overview) TabOverview(container, onDismiss = { overview = false })
 }
