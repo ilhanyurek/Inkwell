@@ -5,6 +5,7 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -47,8 +48,8 @@ class TabsTest {
             rule.waitUntil(5_000) { rule.onAllNodes(hasTestTag("tab_count") and hasText("2")).fetchSemanticsNodes().isNotEmpty() }
             rule.screenshot("40_open_files")
 
-            // Back goes Home; both files are still open.
-            pressBack()
+            // The editor's back arrow goes Home; both files are still open.
+            rule.onNodeWithContentDescription(str(R.string.action_back)).performClick()
             rule.waitForTag("open_tabs")
             assertEquals(2, tabs.tabs.size)
             rule.screenshot("41_home_with_open_files")
