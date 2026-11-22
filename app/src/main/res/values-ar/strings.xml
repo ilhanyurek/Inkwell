@@ -420,6 +420,13 @@
     <string name="tab_close">إغلاق علامة التبويب</string>
     <string name="tab_close_others">إغلاق علامات التبويب الأخرى</string>
     <string name="tab_new">فتح ملف أو إنشاؤه</string>
+    <string name="theme_short_system">النظام</string>
+    <string name="theme_short_black">أسود</string>
+    <string name="home_open_tabs">الملفات المفتوحة (%1$d)</string>
+    <string name="tabs_overview">عرض كل الملفات المفتوحة</string>
+    <string name="tabs_close_saved">إغلاق كل الملفات المحفوظة</string>
+    <string name="tabs_home">الرئيسية</string>
+    <string name="tabs_unsaved">تغييرات غير محفوظة</string>
     <plurals name="pdf_results">
         <item quantity="zero">لا توجد نتائج (%d)</item>
         <item quantity="one">نتيجة واحدة (%d)</item>

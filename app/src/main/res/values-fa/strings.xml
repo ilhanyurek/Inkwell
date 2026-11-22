@@ -420,6 +420,13 @@
     <string name="tab_close">بستن زبانه</string>
     <string name="tab_close_others">بستن زبانه‌های دیگر</string>
     <string name="tab_new">باز کردن یا ساختن فایل</string>
+    <string name="theme_short_system">سیستم</string>
+    <string name="theme_short_black">مشکی</string>
+    <string name="home_open_tabs">فایل‌های باز (%1$d)</string>
+    <string name="tabs_overview">نمایش همه فایل‌های باز</string>
+    <string name="tabs_close_saved">بستن همه فایل‌های ذخیره‌شده</string>
+    <string name="tabs_home">خانه</string>
+    <string name="tabs_unsaved">تغییرات ذخیره‌نشده</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجه</item>
         <item quantity="other">%d نتیجه</item>

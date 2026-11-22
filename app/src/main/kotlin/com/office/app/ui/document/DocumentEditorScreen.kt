@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -179,6 +180,7 @@ fun DocumentEditorScreen(
         if (picked != null) vm.insertImage(picked) { e -> if (e != null) toast(context, context.getString(R.string.image_unsupported)) }
     }
 
+    com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
     BackHandler(enabled = vm.dirty) { showUnsaved = true }
 
     when (val state = vm.loadState) {
@@ -262,22 +264,23 @@ fun DocumentEditorScreen(
             if (showFind) FindBar(vm, onClose = { showFind = false })
 
             val baseSize = (16f * settings.editorTextScale).sp
-            val muted = MaterialTheme.colorScheme.onSurfaceVariant
-            val accent = MaterialTheme.colorScheme.primary
-            val chipBg = MaterialTheme.colorScheme.primaryContainer
             val labeler = embedLabeler()
             val density = LocalDensity.current
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
                 val viewport = maxHeight
                 PaperTheme(enabled = settings.whitePaper && vm.supportsRichFormatting) {
                 Column(
-                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).verticalScroll(rememberScrollState()),
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLowest).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     BoxWithConstraints(Modifier.widthIn(max = 760.dp).fillMaxWidth()) {
                         val contentWidth = maxWidth - 44.dp
                         val contentPx = with(density) { contentWidth.toPx() }
-                        val pageColor = MaterialTheme.colorScheme.surface
+                        val pageColor = MaterialTheme.colorScheme.surfaceContainerLowest
+                        // Read inside the paper theme so list markers and chips suit the sheet they are drawn on.
+                        val muted = MaterialTheme.colorScheme.onSurfaceVariant
+                        val accent = MaterialTheme.colorScheme.primary
+                        val chipBg = MaterialTheme.colorScheme.primaryContainer
                         val inkColor = MaterialTheme.colorScheme.onSurface
                         val measurer = rememberTextMeasurer()
                         val measure = remember(measurer, density, baseSize, pageColor, inkColor) {
@@ -456,7 +459,12 @@ private fun StatRow(label: String, value: Int) {
 private fun LossyBanner() {
     var visible by remember { mutableStateOf(true) }
     if (!visible) return
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(16.dp),
+        border = com.office.app.ui.design.cardBorder(),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -553,9 +561,8 @@ private fun FormattingToolbar(vm: DocumentEditorViewModel, showFormatting: Boole
     val style = vm.caretStyle
     val para = vm.caretParagraph
     val rich = vm.supportsRichFormatting
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+    com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding()) {
         Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(verticalAlignment = Alignment.CenterVertically) {
             // Undo/redo stay pinned at the start; the formatting tools scroll beside them.
             UndoRedoButtons(vm.canUndo, vm.canRedo, vm::undo, vm::redo, modifier = Modifier.padding(start = 4.dp))

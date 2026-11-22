@@ -420,6 +420,13 @@
     <string name="tab_close">ট্যাব বন্ধ করুন</string>
     <string name="tab_close_others">অন্য ট্যাবগুলো বন্ধ করুন</string>
     <string name="tab_new">ফাইল খুলুন বা তৈরি করুন</string>
+    <string name="theme_short_system">সিস্টেম</string>
+    <string name="theme_short_black">কালো</string>
+    <string name="home_open_tabs">খোলা ফাইল (%1$d)</string>
+    <string name="tabs_overview">সব খোলা ফাইল দেখান</string>
+    <string name="tabs_close_saved">সংরক্ষিত সব ফাইল বন্ধ করুন</string>
+    <string name="tabs_home">হোম</string>
+    <string name="tabs_unsaved">অসংরক্ষিত পরিবর্তন</string>
     <plurals name="pdf_results">
         <item quantity="one">%dটি মিল</item>
         <item quantity="other">%dটি মিল</item>

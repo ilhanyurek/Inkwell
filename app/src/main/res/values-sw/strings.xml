@@ -420,6 +420,13 @@
     <string name="tab_close">Funga kichupo</string>
     <string name="tab_close_others">Funga vichupo vingine</string>
     <string name="tab_new">Fungua au unda faili</string>
+    <string name="theme_short_system">Mfumo</string>
+    <string name="theme_short_black">Nyeusi</string>
+    <string name="home_open_tabs">Faili zilizo wazi (%1$d)</string>
+    <string name="tabs_overview">Onyesha faili zote zilizo wazi</string>
+    <string name="tabs_close_saved">Funga faili zote zilizohifadhiwa</string>
+    <string name="tabs_home">Mwanzo</string>
+    <string name="tabs_unsaved">Mabadiliko ambayo hayajahifadhiwa</string>
     <plurals name="pdf_results">
         <item quantity="one">Kinacholingana %d</item>
         <item quantity="other">Vinavyolingana %d</item>

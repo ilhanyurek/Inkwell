@@ -443,4 +443,11 @@
     <string name="tab_close">Sekmeyi kapat</string>
     <string name="tab_close_others">Diğer sekmeleri kapat</string>
     <string name="tab_new">Dosya aç veya oluştur</string>
+    <string name="theme_short_system">Sistem</string>
+    <string name="theme_short_black">Siyah</string>
+    <string name="home_open_tabs">Açık dosyalar (%1$d)</string>
+    <string name="tabs_overview">Tüm açık dosyaları göster</string>
+    <string name="tabs_close_saved">Kaydedilmiş dosyaların hepsini kapat</string>
+    <string name="tabs_home">Ana sayfa</string>
+    <string name="tabs_unsaved">Kaydedilmemiş değişiklikler</string>
 </resources>

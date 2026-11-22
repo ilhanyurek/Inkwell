@@ -209,6 +209,7 @@ fun PdfViewerScreen(
         else saveAs.launch(vm.fileName)
     }
 
+    com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
     BackHandler(enabled = vm.dirty || searching || tool != Tool.VIEW) {
         when {
             searching -> { searching = false; vm.clearSearch() }
@@ -357,7 +358,7 @@ fun PdfViewerScreen(
             BoxWithConstraints(
                 Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .pointerInput(Unit) {
                         // Two-finger pinch zoom; single-finger gestures fall through to scrolling.
                         awaitEachGesture {
@@ -716,9 +717,8 @@ private fun AnnotationLayer(annotations: List<AnnotationInfo>, pageWidthPt: Floa
 
 @Composable
 private fun ToolBar(vm: PdfViewerViewModel, tool: Tool, onTool: (Tool) -> Unit, color: Int, onColor: (Int) -> Unit, scale: Float, onZoom: (Float) -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+    com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding()) {
         Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 4.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -925,7 +925,7 @@ private fun AddTextDialog(onDismiss: () -> Unit, onConfirm: (String, Float) -> U
 
 @Composable
 private fun PlacementBar(width: Float, onWidth: (Float) -> Unit, onCancel: () -> Unit, onConfirm: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+    com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
             Text(stringResource(R.string.pdf_signature_place_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1034,7 +1034,7 @@ private fun AnnotationsDialog(list: List<AnnotationInfo>, onGoTo: (AnnotationInf
 
 @Composable
 private fun RedactBar(mode: RedactMode, onMode: (RedactMode) -> Unit, count: Int, onClear: () -> Unit, onCancel: () -> Unit, onApply: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+    com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding()) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
             Text(stringResource(R.string.pdf_redact_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1069,7 +1069,7 @@ private fun nearestWord(words: List<PdfWord>, p: PagePoint): Int {
 
 @Composable
 private fun SelectionBar(count: Int, onCopy: () -> Unit, onSelectAll: () -> Unit, onClose: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+    com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding()) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,

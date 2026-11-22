@@ -420,6 +420,13 @@
     <string name="tab_close">Cerrar pestaña</string>
     <string name="tab_close_others">Cerrar las demás pestañas</string>
     <string name="tab_new">Abrir o crear un archivo</string>
+    <string name="theme_short_system">Sistema</string>
+    <string name="theme_short_black">Negro</string>
+    <string name="home_open_tabs">Archivos abiertos (%1$d)</string>
+    <string name="tabs_overview">Mostrar todos los archivos abiertos</string>
+    <string name="tabs_close_saved">Cerrar todos los archivos guardados</string>
+    <string name="tabs_home">Inicio</string>
+    <string name="tabs_unsaved">Cambios sin guardar</string>
     <plurals name="pdf_results">
         <item quantity="one">%d coincidencia</item>
         <item quantity="other">%d coincidencias</item>

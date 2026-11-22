@@ -287,6 +287,7 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
     fun requestSave() {
         if (container.files.canWrite(uri)) vm.save(onDone = ::afterSave) else saveAs.launch(info.name)
     }
+    com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
     BackHandler(enabled = vm.dirty) { showUnsaved = true }
 
     LaunchedEffect(pager.currentPage) { thumbs.animateScrollToItem((pager.currentPage - 1).coerceAtLeast(0)) }
@@ -342,7 +343,7 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
             )
         },
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
+        Column(Modifier.fillMaxSize().padding(padding).background(MaterialTheme.colorScheme.surfaceVariant)) {
             HorizontalPager(
                 state = pager,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -376,9 +377,8 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                     }
                 }
             }
-            Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+            com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding()) {
                 Column {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     LazyRow(
                         state = thumbs,
                         contentPadding = PaddingValues(12.dp),

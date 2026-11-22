@@ -112,7 +112,7 @@ internal fun TableBlock(embed: Embed, width: Dp, onClick: () -> Unit, modifier: 
                 Modifier
                     .fillMaxWidth()
                     .height(TABLE_ROW_HEIGHT.dp)
-                    .background(if (r == 0) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface),
+                    .background(if (r == 0) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface),
             ) {
                 for (c in 0 until cols) {
                     Box(
@@ -160,7 +160,7 @@ internal fun ImageBlock(bitmap: ImageBitmap?, size: Pair<Dp, Dp>, onClick: () ->
         if (bitmap != null) {
             Image(bitmap, contentDescription = stringResource(R.string.embed_image), contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
         } else {
-            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
                 // A text box or shape: show its text rather than an empty frame.
                 if (fallbackText.isNotBlank()) {
                     Text(fallbackText, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(6.dp), overflow = TextOverflow.Ellipsis)
@@ -268,7 +268,7 @@ internal fun TableEditorDialog(embed: Embed, onSave: (Embed) -> Unit, onDelete: 
                                         .width(140.dp)
                                         .heightIn(min = 44.dp)
                                         .border(0.5.dp, line)
-                                        .background(if (r == 0) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface)
+                                        .background(if (r == 0) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface)
                                         .padding(8.dp)
                                         .testTag("table_cell_${r}_$c"),
                                 )

@@ -420,6 +420,13 @@
     <string name="tab_close">Isara ang tab</string>
     <string name="tab_close_others">Isara ang ibang tab</string>
     <string name="tab_new">Magbukas o gumawa ng file</string>
+    <string name="theme_short_system">System</string>
+    <string name="theme_short_black">Itim</string>
+    <string name="home_open_tabs">Mga bukas na file (%1$d)</string>
+    <string name="tabs_overview">Ipakita ang lahat ng bukas na file</string>
+    <string name="tabs_close_saved">Isara ang lahat ng naka-save na file</string>
+    <string name="tabs_home">Home</string>
+    <string name="tabs_unsaved">Mga hindi naka-save na pagbabago</string>
     <plurals name="pdf_results">
         <item quantity="one">%d tugma</item>
         <item quantity="other">%d tugma</item>

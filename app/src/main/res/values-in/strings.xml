@@ -420,6 +420,13 @@
     <string name="tab_close">Tutup tab</string>
     <string name="tab_close_others">Tutup tab lainnya</string>
     <string name="tab_new">Buka atau buat file</string>
+    <string name="theme_short_system">Sistem</string>
+    <string name="theme_short_black">Hitam</string>
+    <string name="home_open_tabs">File terbuka (%1$d)</string>
+    <string name="tabs_overview">Tampilkan semua file terbuka</string>
+    <string name="tabs_close_saved">Tutup semua file yang tersimpan</string>
+    <string name="tabs_home">Beranda</string>
+    <string name="tabs_unsaved">Perubahan belum disimpan</string>
     <plurals name="pdf_results">
         <item quantity="other">%d hasil</item>
     </plurals>

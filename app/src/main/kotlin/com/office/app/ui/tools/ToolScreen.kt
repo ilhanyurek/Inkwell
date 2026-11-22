@@ -341,10 +341,7 @@ fun ToolScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(tool.title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = { BackButton(onBack) },
-            )
+            com.office.app.ui.design.PageTitleBar(title = stringResource(tool.title), onBack = onBack)
         },
     ) { padding ->
         when (val ph = phase) {
@@ -389,7 +386,7 @@ fun ToolScreen(
                     }
                     error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                 }
-                Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.navigationBarsPadding()) {
+                com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding()) {
                     Column(Modifier.fillMaxWidth().padding(16.dp)) {
                         if (phase == Phase.Running) {
                             LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -738,7 +735,7 @@ private fun OrganizeGrid(o: Options, thumbs: Map<Int, Bitmap>) {
             var menu by remember { mutableStateOf(false) }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
-                    Modifier.fillMaxWidth().aspectRatio(0.72f).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    Modifier.fillMaxWidth().aspectRatio(0.72f).background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center,
                 ) {
                     val bmp = if (spec.isBlank) null else thumbs[spec.source]

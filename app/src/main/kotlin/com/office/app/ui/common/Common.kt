@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,7 +66,7 @@ fun KindBadge(kind: FileKind, size: Dp = 40.dp) {
     Box(
         modifier = Modifier
             .size(size)
-            .background(color.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+            .background(color.copy(alpha = 0.14f), RoundedCornerShape(size * 0.3f)),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -73,7 +74,8 @@ fun KindBadge(kind: FileKind, size: Dp = 40.dp) {
             color = color,
             fontSize = (size.value * 0.27f).sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 0.5.sp,
+            fontFamily = com.office.app.ui.theme.Figtree,
+            letterSpacing = 0.3.sp,
         )
     }
 }
@@ -125,9 +127,7 @@ fun ErrorScreen(message: String, onBack: () -> Unit, detail: String? = null) {
 
 @Composable
 fun BackButton(onBack: () -> Unit) {
-    IconButton(onClick = onBack) {
-        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
-    }
+    com.office.app.ui.design.BackChevron(onBack)
 }
 
 @Composable
@@ -136,10 +136,17 @@ fun UnsavedChangesDialog(onSave: () -> Unit, onDiscard: () -> Unit, onDismiss: (
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.unsaved_title)) },
         text = { Text(stringResource(R.string.unsaved_message)) },
-        confirmButton = { TextButton(onClick = onSave) { Text(stringResource(R.string.action_save)) } },
+        confirmButton = {
+            androidx.compose.material3.Button(onClick = onSave, modifier = Modifier.testTag("unsaved_save")) {
+                Text(stringResource(R.string.action_save))
+            }
+        },
         dismissButton = {
-            TextButton(onClick = onDiscard) {
-                Text(stringResource(R.string.action_discard), color = MaterialTheme.colorScheme.error)
+            Row {
+                TextButton(onClick = onDismiss, modifier = Modifier.testTag("unsaved_cancel")) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = onDiscard, modifier = Modifier.testTag("unsaved_discard")) {
+                    Text(stringResource(R.string.action_discard), color = MaterialTheme.colorScheme.error)
+                }
             }
         },
     )
@@ -194,7 +201,11 @@ fun UndoRedoButtons(canUndo: Boolean, canRedo: Boolean, onUndo: () -> Unit, onRe
 /** Offers to bring back unsaved changes found from an earlier session. */
 @Composable
 fun DraftBanner(savedAt: Long, onRestore: () -> Unit, onDiscard: () -> Unit) {
-    androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.primaryContainer) {
+    androidx.compose.material3.Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,

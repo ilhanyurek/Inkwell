@@ -420,6 +420,13 @@
     <string name="tab_close">टैब बंद करें</string>
     <string name="tab_close_others">दूसरे टैब बंद करें</string>
     <string name="tab_new">फ़ाइल खोलें या बनाएं</string>
+    <string name="theme_short_system">सिस्टम</string>
+    <string name="theme_short_black">काला</string>
+    <string name="home_open_tabs">खुली फ़ाइलें (%1$d)</string>
+    <string name="tabs_overview">सभी खुली फ़ाइलें दिखाएँ</string>
+    <string name="tabs_close_saved">सहेजी गई सभी फ़ाइलें बंद करें</string>
+    <string name="tabs_home">होम</string>
+    <string name="tabs_unsaved">बिना सहेजे बदलाव</string>
     <plurals name="pdf_results">
         <item quantity="one">%d नतीजा</item>
         <item quantity="other">%d नतीजे</item>

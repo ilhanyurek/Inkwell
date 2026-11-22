@@ -25,15 +25,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +55,8 @@ import com.office.app.ui.common.formatRelative
 import com.office.app.ui.common.formatSize
 import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
+import com.office.app.ui.design.cardSegment
+import androidx.compose.foundation.lazy.itemsIndexed
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,38 +83,42 @@ fun FolderScreen(
         entries = runCatching { container.folders.list(folder) }.getOrDefault(emptyList())
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                navigationIcon = { BackButton(onBack) },
-                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                actions = {
-                    IconButton(onClick = { newFolder = true }) { Icon(Icons.Default.CreateNewFolder, stringResource(R.string.folder_new)) }
-                },
-            )
+    com.office.app.ui.design.PageScaffold(
+        title = title,
+        onBack = onBack,
+        actions = {
+            IconButton(onClick = { newFolder = true }) { Icon(Icons.Default.CreateNewFolder, stringResource(R.string.folder_new)) }
         },
     ) { padding ->
         val list = entries
         Column(Modifier.fillMaxSize().padding(padding)) {
             Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                FilterChip(selected = supportedOnly, onClick = { supportedOnly = !supportedOnly }, label = { Text(stringResource(R.string.folder_supported_only)) })
+                com.office.app.ui.design.PillChip(
+                    label = stringResource(R.string.folder_supported_only),
+                    selected = supportedOnly,
+                    onClick = { supportedOnly = !supportedOnly },
+                )
             }
             when {
                 list == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 list.isEmpty() -> Text(
                     stringResource(R.string.folder_empty),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 24.dp),
                 )
-                else -> LazyColumn {
-                    items(list.filter { !supportedOnly || it.isDirectory || it.kind != null }, key = { it.uri.toString() }) { e ->
-                        EntryRow(
-                            e,
-                            onClick = { if (e.isDirectory) onOpenFolder(e.uri, e.name) else if (e.kind != null) onOpenFile(e.uri) },
-                            onRename = { renaming = e },
-                            onDelete = { deleting = e },
-                            onShare = { shareUri(context, e.uri, e.kind?.primaryMime ?: "*/*", context.getString(R.string.action_share)) },
-                        )
+                else -> {
+                    val shown = list.filter { !supportedOnly || it.isDirectory || it.kind != null }
+                    LazyColumn(contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = 32.dp)) {
+                        itemsIndexed(shown, key = { _, e -> e.uri.toString() }) { i, e ->
+                            EntryRow(
+                                e,
+                                modifier = Modifier.cardSegment(i, shown.size),
+                                onClick = { if (e.isDirectory) onOpenFolder(e.uri, e.name) else if (e.kind != null) onOpenFile(e.uri) },
+                                onRename = { renaming = e },
+                                onDelete = { deleting = e },
+                                onShare = { shareUri(context, e.uri, e.kind?.primaryMime ?: "*/*", context.getString(R.string.action_share)) },
+                            )
+                        }
                     }
                 }
             }
@@ -166,11 +169,11 @@ fun FolderScreen(
 }
 
 @Composable
-private fun EntryRow(e: FolderEntry, onClick: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit, onShare: () -> Unit) {
+private fun EntryRow(e: FolderEntry, modifier: Modifier, onClick: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit, onShare: () -> Unit) {
     val context = LocalContext.current
     var menu by remember { mutableStateOf(false) }
     Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+        modifier.fillMaxWidth().clickable(onClick = onClick).padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when {
@@ -209,7 +212,7 @@ private fun EntryRow(e: FolderEntry, onClick: () -> Unit, onRename: () -> Unit, 
 @Composable
 private fun IconBox(content: @Composable () -> Unit) {
     Box(
-        Modifier.size(40.dp).background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(8.dp)),
+        Modifier.size(40.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center,
     ) { content() }
 }

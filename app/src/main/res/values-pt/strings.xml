@@ -420,6 +420,13 @@
     <string name="tab_close">Fechar aba</string>
     <string name="tab_close_others">Fechar as outras abas</string>
     <string name="tab_new">Abrir ou criar um arquivo</string>
+    <string name="theme_short_system">Sistema</string>
+    <string name="theme_short_black">Preto</string>
+    <string name="home_open_tabs">Arquivos abertos (%1$d)</string>
+    <string name="tabs_overview">Mostrar todos os arquivos abertos</string>
+    <string name="tabs_close_saved">Fechar todos os arquivos salvos</string>
+    <string name="tabs_home">Início</string>
+    <string name="tabs_unsaved">Alterações não salvas</string>
     <plurals name="pdf_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>

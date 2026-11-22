@@ -81,7 +81,7 @@ class HomeAndEditorTest {
     fun settingsOpen() {
         rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
         rule.onNodeWithText(str(R.string.settings_title)).performClick()
-        rule.waitForText(str(R.string.settings_appearance))
+        rule.waitForText(str(R.string.settings_appearance).uppercase())
         rule.screenshot("04_settings")
     }
 

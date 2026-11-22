@@ -1,21 +1,11 @@
 package com.office.app.ui.tools
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.Notes
@@ -47,18 +37,17 @@ import androidx.compose.material.icons.outlined.ViewModule
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.office.app.R
+import com.office.app.ui.design.IconTile
+import com.office.app.ui.design.ListRow
+import com.office.app.ui.design.SectionHeader
+import com.office.app.ui.design.cardSegment
 
 enum class ToolCategory(val title: Int) {
     ORGANIZE(R.string.tools_cat_organize),
@@ -115,46 +104,30 @@ enum class ToolId(val title: Int, val desc: Int, val icon: ImageVector, val cate
 
 @Composable
 fun ToolsTab(onTool: (ToolId) -> Unit) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(160.dp),
+    LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("tools_grid"),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         for (cat in ToolCategory.entries) {
-            item(key = "h_$cat", span = { GridItemSpan(maxLineSpan) }) {
-                Text(
-                    stringResource(cat.title),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(top = 12.dp, bottom = 2.dp),
+            val tools = ToolId.entries.filter { it.category == cat }
+            item(key = "h_$cat") { SectionHeader(stringResource(cat.title)) }
+            itemsIndexed(tools, key = { _, t -> t.name }) { i, tool ->
+                ListRow(
+                    title = stringResource(tool.title),
+                    subtitle = stringResource(tool.desc),
+                    leading = { IconTile(tool.icon, tint = MaterialTheme.colorScheme.primary, container = MaterialTheme.colorScheme.primaryContainer) },
+                    trailing = {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                    },
+                    onClick = { onTool(tool) },
+                    modifier = Modifier.cardSegment(i, tools.size).testTag("tool_${tool.name}"),
                 )
             }
-            items(ToolId.entries.filter { it.category == cat }, key = { it.name }) { tool -> ToolCard(tool) { onTool(tool) } }
-        }
-    }
-}
-
-@Composable
-private fun ToolCard(tool: ToolId, onClick: () -> Unit) {
-    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth().height(132.dp).testTag("tool_${tool.name}")) {
-        Column(Modifier.padding(14.dp)) {
-            Box(
-                Modifier.size(40.dp).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(tool.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(22.dp))
-            }
-            Spacer(Modifier.height(10.dp))
-            Text(stringResource(tool.title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                stringResource(tool.desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
     }
 }

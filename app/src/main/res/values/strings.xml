@@ -443,4 +443,12 @@
     <string name="tab_close">Close tab</string>
     <string name="tab_close_others">Close other tabs</string>
     <string name="tab_new">Open or create a file</string>
+    <string name="theme_short_system">System</string>
+    <string name="theme_short_black">Black</string>
+    <string name="home_open_tabs">Open files (%1$d)</string>
+    <string name="tabs_overview">Show all open files</string>
+    <string name="tabs_close_saved">Close all saved files</string>
+    <string name="tabs_home">Home</string>
+    <string name="tabs_unsaved">Unsaved changes</string>
+    <string name="settings_font_license" translatable="false">Figtree typeface, SIL Open Font License 1.1</string>
 </resources>

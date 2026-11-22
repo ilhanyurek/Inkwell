@@ -31,7 +31,12 @@ import com.office.app.R
 fun InfoBanner(text: String, modifier: Modifier = Modifier) {
     var visible by remember { mutableStateOf(true) }
     if (!visible) return
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = modifier) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        border = com.office.app.ui.design.cardBorder(),
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,

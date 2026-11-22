@@ -88,7 +88,7 @@ class StoreScreenshotsTest {
             // File cards have their own "more" buttons; the app bar's comes first.
             rule.onAllNodesWithContentDescription(str(R.string.action_more))[0].performClick()
             rule.onNodeWithText(str(R.string.settings_title)).performClick()
-            rule.waitForText(str(R.string.settings_appearance))
+            rule.waitForText(str(R.string.settings_appearance).uppercase())
             rule.screenshot("store_6_settings")
         }
     }

@@ -84,3 +84,4 @@ app/    Android app: Compose UI, file access (SAF), PDF (PdfRenderer + PdfBox-An
 
 Inkwell is free software under the [GNU General Public License v3.0 or later](LICENSE).
 It uses PdfBox-Android (Apache License 2.0) and AndroidX libraries.
+The interface uses the Figtree typeface by Erik Kennedy (SIL Open Font License 1.1, see [docs/licenses](docs/licenses/Figtree-OFL.txt)).

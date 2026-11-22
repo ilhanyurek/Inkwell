@@ -420,6 +420,13 @@
     <string name="tab_close">タブを閉じる</string>
     <string name="tab_close_others">他のタブを閉じる</string>
     <string name="tab_new">ファイルを開くか作成</string>
+    <string name="theme_short_system">システム</string>
+    <string name="theme_short_black">ブラック</string>
+    <string name="home_open_tabs">開いているファイル (%1$d)</string>
+    <string name="tabs_overview">開いているファイルをすべて表示</string>
+    <string name="tabs_close_saved">保存済みのファイルをすべて閉じる</string>
+    <string name="tabs_home">ホーム</string>
+    <string name="tabs_unsaved">未保存の変更</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 件一致</item>
     </plurals>

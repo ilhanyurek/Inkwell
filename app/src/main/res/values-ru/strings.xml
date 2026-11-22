@@ -420,6 +420,13 @@
     <string name="tab_close">Закрыть вкладку</string>
     <string name="tab_close_others">Закрыть другие вкладки</string>
     <string name="tab_new">Открыть или создать файл</string>
+    <string name="theme_short_system">Системная</string>
+    <string name="theme_short_black">Чёрная</string>
+    <string name="home_open_tabs">Открытые файлы (%1$d)</string>
+    <string name="tabs_overview">Показать все открытые файлы</string>
+    <string name="tabs_close_saved">Закрыть все сохранённые файлы</string>
+    <string name="tabs_home">Главная</string>
+    <string name="tabs_unsaved">Несохранённые изменения</string>
     <plurals name="pdf_results">
         <item quantity="one">%d совпадение</item>
         <item quantity="few">%d совпадения</item>

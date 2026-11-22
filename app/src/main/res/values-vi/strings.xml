@@ -420,6 +420,13 @@
     <string name="tab_close">Đóng thẻ</string>
     <string name="tab_close_others">Đóng các thẻ khác</string>
     <string name="tab_new">Mở hoặc tạo tệp</string>
+    <string name="theme_short_system">Hệ thống</string>
+    <string name="theme_short_black">Đen</string>
+    <string name="home_open_tabs">Tệp đang mở (%1$d)</string>
+    <string name="tabs_overview">Hiện tất cả tệp đang mở</string>
+    <string name="tabs_close_saved">Đóng tất cả tệp đã lưu</string>
+    <string name="tabs_home">Trang chủ</string>
+    <string name="tabs_unsaved">Thay đổi chưa lưu</string>
     <plurals name="pdf_results">
         <item quantity="other">%d kết quả</item>
     </plurals>

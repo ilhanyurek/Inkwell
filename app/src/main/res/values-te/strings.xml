@@ -420,6 +420,13 @@
     <string name="tab_close">ట్యాబ్ మూసివేయి</string>
     <string name="tab_close_others">ఇతర ట్యాబ్‌లు మూసివేయి</string>
     <string name="tab_new">ఫైల్ తెరువు లేదా సృష్టించు</string>
+    <string name="theme_short_system">సిస్టమ్</string>
+    <string name="theme_short_black">నలుపు</string>
+    <string name="home_open_tabs">తెరిచిన ఫైళ్లు (%1$d)</string>
+    <string name="tabs_overview">తెరిచిన అన్ని ఫైళ్లు చూపించు</string>
+    <string name="tabs_close_saved">సేవ్ చేసిన అన్ని ఫైళ్లు మూసివేయి</string>
+    <string name="tabs_home">హోమ్</string>
+    <string name="tabs_unsaved">సేవ్ చేయని మార్పులు</string>
     <plurals name="pdf_results">
         <item quantity="one">%d సరిపోలిక</item>
         <item quantity="other">%d సరిపోలికలు</item>

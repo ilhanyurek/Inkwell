@@ -174,6 +174,7 @@ fun SheetEditorScreen(
         if (vm.uri == null || vm.isLegacy) saveAs.launch(vm.suggestedName(untitled)) else vm.save(::afterSave)
     }
 
+    com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
     BackHandler(enabled = vm.dirty || vm.editing) {
         if (vm.editing) vm.cancelEdit() else showUnsaved = true
     }
@@ -277,7 +278,7 @@ fun SheetEditorScreen(
             FormulaBar(vm)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             FilterBar(vm)
-            Box(Modifier.weight(1f).fillMaxWidth()) {
+            Box(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
                 Grid(vm)
             }
             SelectionStats(vm)
@@ -426,7 +427,7 @@ private fun Grid(vm: SheetEditorViewModel) {
 
     val colors = GridColors(
         gridLine = MaterialTheme.colorScheme.outlineVariant,
-        headerBg = MaterialTheme.colorScheme.surfaceContainer,
+        headerBg = MaterialTheme.colorScheme.surfaceVariant,
         selectionBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
         headerSelBg = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
         focus = MaterialTheme.colorScheme.primary,
@@ -650,9 +651,8 @@ private fun StatText(label: String, value: String) {
 private fun ActionBar(vm: SheetEditorViewModel, onSort: () -> Unit, onFormat: () -> Unit) {
     val context = LocalContext.current
     val clipboard = remember { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
+    com.office.app.ui.design.FloatingBar {
         Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(verticalAlignment = Alignment.CenterVertically) {
             UndoRedoButtons(vm.canUndo, vm.canRedo, vm::undo, vm::redo, modifier = Modifier.padding(start = 4.dp))
             Sep()
@@ -712,7 +712,7 @@ private fun SheetTabs(vm: SheetEditorViewModel) {
     var menuFor by remember { mutableStateOf<Int?>(null) }
     var renaming by remember { mutableStateOf<Int?>(null) }
     val baseName = stringResource(R.string.sheet_default_name)
-    Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.navigationBarsPadding()) {
+    Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
             LazyRow(Modifier.weight(1f)) {
                 itemsIndexed(vm.sheets) { i, s ->

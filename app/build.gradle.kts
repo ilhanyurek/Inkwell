@@ -55,7 +55,7 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".preview"
-            versionNameSuffix = "-preview"
+            versionNameSuffix = "-" + ((findProperty("previewLabel") as String?) ?: "preview")
             matchingFallbacks += "release"
             signingConfig = signingConfigs.findByName("preview") ?: signingConfigs.getByName("debug")
         }
@@ -72,6 +72,17 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.systemProperty("robolectric.graphicsMode", "NATIVE")
+                it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
+                it.maxHeapSize = "3g"
+            }
+        }
     }
 
     androidResources {
@@ -112,6 +123,13 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Screen previews rendered on the JVM (./gradlew :app:testDebugUnitTest --tests '*ScreensPreview*').
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.ui.test.junit4)
+    testImplementation(libs.androidx.test.ext.junit)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)

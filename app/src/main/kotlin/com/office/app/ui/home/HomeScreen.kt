@@ -3,13 +3,15 @@ package com.office.app.ui.home
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,68 +21,67 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.runtime.produceState
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Tab
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.CreateNewFolder
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.PushPin
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,6 +94,20 @@ import com.office.app.ui.common.formatRelative
 import com.office.app.ui.common.formatSize
 import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
+import com.office.app.ui.design.CardDivider
+import com.office.app.ui.design.CardGroup
+import com.office.app.ui.design.CardRadius
+import com.office.app.ui.design.IconTile
+import com.office.app.ui.design.ListRow
+import com.office.app.ui.design.PageScaffold
+import com.office.app.ui.design.PageTitleBar
+import com.office.app.ui.design.PillChip
+import com.office.app.ui.design.PrimaryPillButton
+import com.office.app.ui.design.SectionHeader
+import com.office.app.ui.design.SegmentedPills
+import com.office.app.ui.design.cardBorder
+import com.office.app.ui.design.cardColor
+import com.office.app.ui.design.cardSegment
 import com.office.app.ui.pdf.PdfTools
 import com.office.core.FileKind
 import kotlinx.coroutines.launch
@@ -115,6 +130,7 @@ fun HomeScreen(
     onOpenDraft: (String) -> Unit = {},
     onOpenFolder: (Uri, String) -> Unit = { _, _ -> },
     onTool: (com.office.app.ui.tools.ToolId) -> Unit = {},
+    onOpenTabs: () -> Unit = {},
     requestedTab: Int? = null,
     onTabRequestHandled: () -> Unit = {},
 ) {
@@ -159,146 +175,87 @@ fun HomeScreen(
         }
     }
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val openTabs = container.tabs.tabs
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    PageScaffold(
+        title = stringResource(R.string.home_title),
         topBar = {
             if (searching) {
                 SearchBar(query, onQuery = { query = it }, onClose = { searching = false; query = "" })
             } else {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineSmall) },
-                    scrollBehavior = scrollBehavior,
-                    actions = {
-                        IconButton(onClick = { grid = !grid }) {
-                            Icon(
-                                if (grid) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                                contentDescription = stringResource(if (grid) R.string.home_list_view else R.string.home_grid_view),
+                PageTitleBar(title = stringResource(R.string.home_title)) {
+                    IconButton(onClick = { searching = true }) {
+                        Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.action_search))
+                    }
+                    IconButton(onClick = { openLauncher.launch(FileKind.openableMimeTypes + "*/*") }) {
+                        Icon(Icons.Outlined.FolderOpen, contentDescription = stringResource(R.string.action_open_file))
+                    }
+                    Box {
+                        IconButton(onClick = { menuOpen = true }) {
+                            Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.action_more))
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.pdf_merge)) },
+                                onClick = { menuOpen = false; mergePicker.launch(arrayOf("application/pdf")) },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.home_clear_recents)) },
+                                onClick = { menuOpen = false; scope.launch { container.recents.clear() } },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.settings_title)) },
+                                onClick = { menuOpen = false; onSettings() },
                             )
                         }
-                        IconButton(onClick = { searching = true }) {
-                            Icon(Icons.Default.Search, contentDescription = stringResource(R.string.action_search))
-                        }
-                        IconButton(onClick = { openLauncher.launch(FileKind.openableMimeTypes + "*/*") }) {
-                            Icon(Icons.Outlined.FolderOpen, contentDescription = stringResource(R.string.action_open_file))
-                        }
-                        Box {
-                            IconButton(onClick = { menuOpen = true }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more))
-                            }
-                            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.pdf_merge)) },
-                                    onClick = { menuOpen = false; mergePicker.launch(arrayOf("application/pdf")) },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_clear_recents)) },
-                                    onClick = { menuOpen = false; scope.launch { container.recents.clear() } },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.settings_title)) },
-                                    onClick = { menuOpen = false; onSettings() },
-                                )
-                            }
-                        }
-                    },
-                )
-            }
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showNewSheet = true },
-                modifier = Modifier.testTag("new_button"),
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text(stringResource(R.string.action_new)) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            )
-        },
-    ) { padding ->
-        val all = recents
-        if (all == null) {
-            Box(Modifier.fillMaxSize().padding(padding))
-            return@Scaffold
-        }
-        val filtered = all.filter { f ->
-            (filter.kinds == null || f.kind in filter.kinds!!) &&
-                (query.isBlank() || f.name.contains(query.trim(), ignoreCase = true))
-        }
-        val pinned = filtered.filter { it.pinned }
-        val others = filtered.filterNot { it.pinned }
-
-        Column(Modifier.fillMaxSize().padding(padding)) {
-        TabRow(selectedTabIndex = tab, containerColor = MaterialTheme.colorScheme.surface) {
-            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.home_recent)) })
-            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.home_folders)) })
-            Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text(stringResource(R.string.home_tools)) }, modifier = Modifier.testTag("tab_tools"))
-        }
-        if (tab == 2) {
-            com.office.app.ui.tools.ToolsTab(onTool = onTool)
-        } else if (tab == 1) {
-            FoldersTab(container, onOpenFolder = onOpenFolder, onAdd = { treeLauncher.launch(null) })
-        } else if (grid) {
-            RecentGrid(
-                container = container,
-                files = pinned + others,
-                header = { FilterRow(filter) { filter = it } },
-                onOpen = onOpen,
-            )
-        } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 96.dp),
-        ) {
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(Filter.entries.toList()) { f ->
-                        FilterChip(
-                            selected = filter == f,
-                            onClick = { filter = f },
-                            label = { Text(stringResource(f.label)) },
-                        )
                     }
                 }
             }
-            if (all.isEmpty()) {
-                item { EmptyState(onOpenFile = { openLauncher.launch(FileKind.openableMimeTypes + "*/*") }) }
-            } else if (filtered.isEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.home_no_matches),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(24.dp),
-                    )
-                }
+        },
+        floatingActionButton = {
+            if (tab == 0) {
+                PrimaryPillButton(
+                    text = stringResource(R.string.action_new),
+                    icon = Icons.Rounded.Add,
+                    onClick = { showNewSheet = true },
+                    modifier = Modifier.testTag("new_button"),
+                )
             }
-            if (drafts.isNotEmpty() && query.isBlank()) {
-                item { SectionHeader(stringResource(R.string.home_drafts)) }
-                items(drafts, key = { "d" + it.key }) { d ->
-                    DraftRow(d, onOpen = { onOpenDraft(d.key) }, onDiscard = { container.drafts.delete(d.key) })
-                }
+        },
+    ) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding)) {
+            SegmentedPills(
+                options = listOf(
+                    stringResource(R.string.home_recent),
+                    stringResource(R.string.home_folders),
+                    stringResource(R.string.home_tools),
+                ),
+                selected = tab,
+                onSelect = { tab = it },
+                testTags = listOf("tab_recent", "tab_folders", "tab_tools"),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+            )
+            if (openTabs.isNotEmpty()) {
+                val untitled = stringResource(R.string.untitled)
+                OpenTabsCard(openTabs.size, openTabs.joinToString(", ") { container.tabs.title(it.id) ?: it.uri?.lastPathSegment?.substringAfterLast('/') ?: untitled }, onOpenTabs)
             }
-            if (pinned.isNotEmpty()) {
-                item { SectionHeader(stringResource(R.string.home_pinned)) }
-                items(pinned, key = { "p" + it.uri }) { f ->
-                    FileRow(f, onOpen, onPin = { scope.launch { container.recents.setPinned(f.uri, !f.pinned) } },
-                        onRemove = { scope.launch { container.recents.remove(f.uri) } })
-                }
+            when (tab) {
+                2 -> com.office.app.ui.tools.ToolsTab(onTool = onTool)
+                1 -> FoldersTab(container, onOpenFolder = onOpenFolder, onAdd = { treeLauncher.launch(null) })
+                else -> RecentList(
+                    container = container,
+                    recents = recents,
+                    drafts = drafts,
+                    filter = filter,
+                    onFilter = { filter = it },
+                    query = query,
+                    grid = grid,
+                    onToggleGrid = { grid = !grid },
+                    onOpen = onOpen,
+                    onOpenDraft = onOpenDraft,
+                    onOpenFile = { openLauncher.launch(FileKind.openableMimeTypes + "*/*") },
+                )
             }
-            if (others.isNotEmpty()) {
-                item { SectionHeader(stringResource(R.string.home_recent)) }
-                items(others, key = { "r" + it.uri }) { f ->
-                    FileRow(f, onOpen, onPin = { scope.launch { container.recents.setPinned(f.uri, !f.pinned) } },
-                        onRemove = { scope.launch { container.recents.remove(f.uri) } })
-                }
-            }
-        }
-        }
         }
     }
 
@@ -310,12 +267,111 @@ fun HomeScreen(
     }
 }
 
+@Composable
+private fun OpenTabsCard(count: Int, names: String, onClick: () -> Unit) {
+    CardGroup(Modifier.padding(bottom = 4.dp)) {
+        ListRow(
+            title = stringResource(R.string.home_open_tabs, count),
+            subtitle = names,
+            leading = { IconTile(Icons.Outlined.Tab, selected = true) },
+            trailing = {
+                Icon(
+                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(end = 8.dp),
+                )
+            },
+            onClick = onClick,
+            modifier = Modifier.testTag("open_tabs"),
+        )
+    }
+}
+
+@Composable
+private fun RecentList(
+    container: AppContainer,
+    recents: List<RecentFile>?,
+    drafts: List<Draft>,
+    filter: Filter,
+    onFilter: (Filter) -> Unit,
+    query: String,
+    grid: Boolean,
+    onToggleGrid: () -> Unit,
+    onOpen: (Uri) -> Unit,
+    onOpenDraft: (String) -> Unit,
+    onOpenFile: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val all = recents ?: run {
+        Box(Modifier.fillMaxSize())
+        return
+    }
+    val filtered = all.filter { f ->
+        (filter.kinds == null || f.kind in filter.kinds) &&
+            (query.isBlank() || f.name.contains(query.trim(), ignoreCase = true))
+    }
+    val pinned = filtered.filter { it.pinned }
+    val others = filtered.filterNot { it.pinned }
+    val header: @Composable () -> Unit = { FilterRow(filter, onFilter, grid, onToggleGrid) }
+
+    if (grid) {
+        RecentGrid(container = container, files = pinned + others, header = header, onOpen = onOpen)
+        return
+    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 112.dp),
+    ) {
+        item { header() }
+        if (all.isEmpty()) {
+            item { EmptyState(onOpenFile = onOpenFile) }
+        } else if (filtered.isEmpty()) {
+            item {
+                Text(
+                    stringResource(R.string.home_no_matches),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 24.dp),
+                )
+            }
+        }
+        if (drafts.isNotEmpty() && query.isBlank()) {
+            item { SectionHeader(stringResource(R.string.home_drafts)) }
+            itemsIndexed(drafts, key = { _, d -> "d" + d.key }) { i, d ->
+                DraftRow(d, Modifier.cardSegment(i, drafts.size), onOpen = { onOpenDraft(d.key) }, onDiscard = { container.drafts.delete(d.key) })
+            }
+        }
+        if (pinned.isNotEmpty()) {
+            item { SectionHeader(stringResource(R.string.home_pinned)) }
+            itemsIndexed(pinned, key = { _, f -> "p" + f.uri }) { i, f ->
+                FileRow(
+                    f, Modifier.cardSegment(i, pinned.size), onOpen,
+                    onPin = { scope.launch { container.recents.setPinned(f.uri, !f.pinned) } },
+                    onRemove = { scope.launch { container.recents.remove(f.uri) } },
+                )
+            }
+        }
+        if (others.isNotEmpty()) {
+            item { SectionHeader(stringResource(R.string.home_recent)) }
+            itemsIndexed(others, key = { _, f -> "r" + f.uri }) { i, f ->
+                FileRow(
+                    f, Modifier.cardSegment(i, others.size), onOpen,
+                    onPin = { scope.launch { container.recents.setPinned(f.uri, !f.pinned) } },
+                    onRemove = { scope.launch { container.recents.remove(f.uri) } },
+                )
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchBar(query: String, onQuery: (String) -> Unit, onClose: () -> Unit) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         title = {
             TextField(
                 value = query,
@@ -339,17 +395,7 @@ private fun SearchBar(query: String, onQuery: (String) -> Unit, onClose: () -> U
 }
 
 @Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 6.dp),
-    )
-}
-
-@Composable
-private fun FileRow(file: RecentFile, onOpen: (Uri) -> Unit, onPin: () -> Unit, onRemove: () -> Unit) {
+private fun FileRow(file: RecentFile, modifier: Modifier, onOpen: (Uri) -> Unit, onPin: () -> Unit, onRemove: () -> Unit) {
     val context = LocalContext.current
     var menu by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf(false) }
@@ -373,92 +419,73 @@ private fun FileRow(file: RecentFile, onOpen: (Uri) -> Unit, onPin: () -> Unit, 
             },
         )
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onOpen(file.uri) }
-            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        KindBadge(file.kind)
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
+    val meta = listOf(formatRelative(file.lastOpened), formatSize(context, file.size)).filter { it.isNotEmpty() }
+    ListRow(
+        title = file.name,
+        subtitle = meta.joinToString("  ·  "),
+        modifier = modifier,
+        leading = { KindBadge(file.kind) },
+        onClick = { onOpen(file.uri) },
+        onLongClick = { menu = true },
+        trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    file.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
                 if (file.pinned) {
                     Icon(
-                        Icons.Default.PushPin,
+                        Icons.Rounded.PushPin,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 6.dp).size(14.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp),
                     )
                 }
+                Box {
+                    IconButton(onClick = { menu = true }) {
+                        Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.action_more), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(if (file.pinned) R.string.action_unpin else R.string.action_pin)) },
+                            onClick = { menu = false; onPin() },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.action_share)) },
+                            onClick = {
+                                menu = false
+                                shareUri(context, file.uri, file.kind.primaryMime, context.getString(R.string.action_share))
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.action_rename)) },
+                            onClick = { menu = false; renaming = true },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.action_remove_from_list)) },
+                            onClick = { menu = false; onRemove() },
+                        )
+                    }
+                }
             }
-            val meta = listOf(formatRelative(file.lastOpened), formatSize(context, file.size)).filter { it.isNotEmpty() }
-            Text(
-                meta.joinToString("  ·  "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-            )
-        }
-        Box {
-            IconButton(onClick = { menu = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(if (file.pinned) R.string.action_unpin else R.string.action_pin)) },
-                    onClick = { menu = false; onPin() },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_share)) },
-                    onClick = {
-                        menu = false
-                        shareUri(context, file.uri, file.kind.primaryMime, context.getString(R.string.action_share))
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_rename)) },
-                    onClick = { menu = false; renaming = true },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_remove_from_list)) },
-                    onClick = { menu = false; onRemove() },
-                )
-            }
-        }
-    }
+        },
+    )
 }
 
 @Composable
 private fun EmptyState(onOpenFile: () -> Unit) {
     Column(
-        Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 72.dp),
+        Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 56.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            Icons.AutoMirrored.Outlined.InsertDriveFile,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.size(40.dp),
-        )
-        Spacer(Modifier.height(16.dp))
-        Text(stringResource(R.string.home_empty_title), style = MaterialTheme.typography.titleMedium)
+        IconTile(Icons.AutoMirrored.Outlined.InsertDriveFile, size = 64.dp, selected = true)
+        Spacer(Modifier.height(20.dp))
+        Text(stringResource(R.string.home_empty_title), style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(6.dp))
         Text(
             stringResource(R.string.home_empty_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(20.dp))
-        OutlinedButton(onClick = onOpenFile) { Text(stringResource(R.string.action_open_file)) }
+        OutlinedButton(onClick = onOpenFile, shape = CircleShape) { Text(stringResource(R.string.action_open_file)) }
     }
 }
 
@@ -466,117 +493,141 @@ private fun EmptyState(onOpenFile: () -> Unit) {
 @Composable
 private fun NewFileSheet(onDismiss: () -> Unit, onPick: (FileKind) -> Unit) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = state,
+        containerColor = MaterialTheme.colorScheme.background,
+    ) {
         Column(Modifier.navigationBarsPadding().padding(bottom = 16.dp)) {
             Text(
                 stringResource(R.string.new_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(start = 28.dp, end = 28.dp, bottom = 12.dp),
             )
-            NewRow(FileKind.DOCUMENT, R.string.new_document, R.string.new_document_desc, onPick)
-            NewRow(FileKind.SPREADSHEET, R.string.new_sheet, R.string.new_sheet_desc, onPick)
-            NewRow(FileKind.CSV, R.string.new_csv, R.string.new_csv_desc, onPick)
-            NewRow(FileKind.PRESENTATION, R.string.new_presentation, R.string.new_presentation_desc, onPick)
-            HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 24.dp), color = MaterialTheme.colorScheme.outlineVariant)
-            NewRow(FileKind.MARKDOWN, R.string.new_note, R.string.new_note_desc, onPick)
-            NewRow(FileKind.TEXT, R.string.new_text, R.string.new_text_desc, onPick)
+            CardGroup {
+                NewRow(FileKind.DOCUMENT, R.string.new_document, R.string.new_document_desc, onPick)
+                CardDivider()
+                NewRow(FileKind.SPREADSHEET, R.string.new_sheet, R.string.new_sheet_desc, onPick)
+                CardDivider()
+                NewRow(FileKind.CSV, R.string.new_csv, R.string.new_csv_desc, onPick)
+                CardDivider()
+                NewRow(FileKind.PRESENTATION, R.string.new_presentation, R.string.new_presentation_desc, onPick)
+            }
+            Spacer(Modifier.height(12.dp))
+            CardGroup {
+                NewRow(FileKind.MARKDOWN, R.string.new_note, R.string.new_note_desc, onPick)
+                CardDivider()
+                NewRow(FileKind.TEXT, R.string.new_text, R.string.new_text_desc, onPick)
+            }
         }
     }
 }
 
 @Composable
 private fun NewRow(kind: FileKind, title: Int, desc: Int, onPick: (FileKind) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().clickable { onPick(kind) }.padding(horizontal = 24.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        KindBadge(kind, size = 36.dp)
-        Spacer(Modifier.width(16.dp))
-        Column {
-            Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
-            Text(stringResource(desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
+    ListRow(
+        title = stringResource(title),
+        subtitle = stringResource(desc),
+        leading = { KindBadge(kind) },
+        onClick = { onPick(kind) },
+    )
 }
 
 @Composable
-private fun DraftRow(draft: Draft, onOpen: () -> Unit, onDiscard: () -> Unit) {
+private fun DraftRow(draft: Draft, modifier: Modifier, onOpen: () -> Unit, onDiscard: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpen)
-            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        KindBadge(draft.kind)
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text(draft.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                stringResource(R.string.draft_unsaved, formatRelative(draft.savedAt)),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-            )
-        }
-        Box {
-            IconButton(onClick = { menu = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    ListRow(
+        title = draft.name,
+        subtitle = stringResource(R.string.draft_unsaved, formatRelative(draft.savedAt)),
+        subtitleColor = MaterialTheme.colorScheme.primary,
+        modifier = modifier,
+        leading = { KindBadge(draft.kind) },
+        onClick = onOpen,
+        trailing = {
+            Box {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.action_more), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.draft_discard)) }, onClick = { menu = false; onDiscard() })
+                }
             }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.draft_discard)) }, onClick = { menu = false; onDiscard() })
-            }
-        }
-    }
+        },
+    )
 }
 
 @Composable
 private fun FoldersTab(container: AppContainer, onOpenFolder: (Uri, String) -> Unit, onAdd: () -> Unit) {
     val folders by container.folders.folders.collectAsStateWithLifecycle(initialValue = emptyList())
     val scope = rememberCoroutineScope()
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 4.dp, bottom = 112.dp)) {
         if (folders.isEmpty()) {
             item {
                 Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stringResource(R.string.folders_empty_title), style = MaterialTheme.typography.titleMedium)
+                    IconTile(Icons.Outlined.FolderOpen, size = 64.dp, selected = true)
+                    Spacer(Modifier.height(20.dp))
+                    Text(stringResource(R.string.folders_empty_title), style = MaterialTheme.typography.headlineSmall)
                     Spacer(Modifier.height(6.dp))
-                    Text(stringResource(R.string.folders_empty_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        stringResource(R.string.folders_empty_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
+        } else {
+            item { SectionHeader(stringResource(R.string.home_folders)) }
         }
-        items(folders, key = { it.toString() }) { uri ->
+        itemsIndexed(folders, key = { _, u -> u.toString() }) { i, uri ->
             val name = remember(uri) { container.folders.displayName(uri) }
             var menu by remember { mutableStateOf(false) }
-            Row(
-                Modifier.fillMaxWidth().clickable { onOpenFolder(uri, name) }.padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Outlined.FolderOpen, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
-                Spacer(Modifier.width(16.dp))
-                Text(name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Box {
-                    IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.action_more)) }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(text = { Text(stringResource(R.string.action_remove_from_list)) }, onClick = { menu = false; scope.launch { container.folders.remove(uri) } })
+            ListRow(
+                title = name,
+                modifier = Modifier.cardSegment(i, folders.size),
+                leading = { IconTile(Icons.Outlined.Folder) },
+                onClick = { onOpenFolder(uri, name) },
+                trailing = {
+                    Box {
+                        IconButton(onClick = { menu = true }) {
+                            Icon(Icons.Rounded.MoreVert, stringResource(R.string.action_more), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_remove_from_list)) },
+                                onClick = { menu = false; scope.launch { container.folders.remove(uri) } },
+                            )
+                        }
                     }
-                }
-            }
+                },
+            )
         }
         item {
-            OutlinedButton(onClick = onAdd, modifier = Modifier.padding(16.dp)) { Text(stringResource(R.string.folders_add)) }
+            Box(Modifier.fillMaxWidth().padding(top = 20.dp), contentAlignment = Alignment.Center) {
+                PrimaryPillButton(text = stringResource(R.string.folders_add), icon = Icons.Rounded.CreateNewFolder, onClick = onAdd)
+            }
         }
     }
 }
 
 @Composable
-private fun FilterRow(filter: Filter, onFilter: (Filter) -> Unit) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(Filter.entries.toList()) { f ->
-            FilterChip(selected = filter == f, onClick = { onFilter(f) }, label = { Text(stringResource(f.label)) })
+private fun FilterRow(filter: Filter, onFilter: (Filter) -> Unit, grid: Boolean, onToggleGrid: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        LazyRow(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(Filter.entries.toList()) { f ->
+                PillChip(label = stringResource(f.label), selected = filter == f, onClick = { onFilter(f) })
+            }
+        }
+        IconButton(onClick = onToggleGrid, modifier = Modifier.padding(end = 8.dp)) {
+            Icon(
+                if (grid) Icons.AutoMirrored.Rounded.ViewList else Icons.Rounded.GridView,
+                contentDescription = stringResource(if (grid) R.string.home_list_view else R.string.home_grid_view),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -586,11 +637,20 @@ private fun RecentGrid(container: AppContainer, files: List<RecentFile>, header:
     LazyVerticalGrid(
         columns = GridCells.Adaptive(150.dp),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 96.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 112.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item(span = { GridItemSpan(maxLineSpan) }) { header() }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            // The filter row spans the full width, past the grid's side padding.
+            Box(
+                Modifier.layout { m, c ->
+                    val p = 16.dp.roundToPx()
+                    val placeable = m.measure(c.copy(minWidth = c.minWidth + 2 * p, maxWidth = c.maxWidth + 2 * p))
+                    layout(c.maxWidth, placeable.height) { placeable.place(-p, 0) }
+                },
+            ) { header() }
+        }
         gridItems(files, key = { "g" + it.uri }) { f -> ThumbCard(container, f, onOpen) }
     }
 }
@@ -598,38 +658,47 @@ private fun RecentGrid(container: AppContainer, files: List<RecentFile>, header:
 @Composable
 private fun ThumbCard(container: AppContainer, file: RecentFile, onOpen: (Uri) -> Unit) {
     val thumb by produceState<android.graphics.Bitmap?>(null, file.uri, file.lastOpened) { value = container.thumbnails.get(file) }
-    Column(Modifier.clickable { onOpen(file.uri) }) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(0.78f)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium),
-            contentAlignment = Alignment.Center,
-        ) {
-            val t = thumb
-            if (t != null) {
-                // Slides are landscape: show them whole instead of cropping the sides off.
-                val landscape = t.width > t.height
-                Image(
-                    t.asImageBitmap(),
-                    contentDescription = null,
-                    contentScale = if (landscape) ContentScale.Fit else ContentScale.Crop,
-                    alignment = if (landscape) Alignment.Center else Alignment.TopCenter,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                KindBadge(file.kind, size = 44.dp)
+    Surface(
+        onClick = { onOpen(file.uri) },
+        shape = RoundedCornerShape(CardRadius),
+        color = cardColor(),
+        border = cardBorder(),
+    ) {
+        Column(Modifier.padding(8.dp)) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(0.8f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center,
+            ) {
+                val t = thumb
+                if (t != null) {
+                    // Slides are landscape: show them whole instead of cropping the sides off.
+                    val landscape = t.width > t.height
+                    Image(
+                        t.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = if (landscape) ContentScale.Fit else ContentScale.Crop,
+                        alignment = if (landscape) Alignment.Center else Alignment.TopCenter,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    KindBadge(file.kind, size = 48.dp)
+                }
+                if (file.pinned) {
+                    Icon(Icons.Rounded.PushPin, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(16.dp))
+                }
             }
-            if (t != null) {
-                Box(Modifier.align(Alignment.BottomStart).padding(6.dp)) { KindBadge(file.kind, size = 26.dp) }
-            }
-            if (file.pinned) {
-                Icon(Icons.Default.PushPin, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(16.dp))
+            Row(Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                KindBadge(file.kind, size = 22.dp)
+                Spacer(Modifier.width(8.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(file.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(formatRelative(file.lastOpened), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                }
             }
         }
-        Text(file.name, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-        Text(formatRelative(file.lastOpened), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
