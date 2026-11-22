@@ -1,6 +1,5 @@
 package com.office.app.ui.slides
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -229,14 +228,7 @@ class PresentationViewModel(private val container: AppContainer, val uri: Uri) :
     /** Decodes slide pictures once, downsampled; unsupported formats (EMF/WMF) yield null. */
     fun image(pic: SlideShape.Picture): ImageBitmap? = synchronized(images) {
         images.getOrPut(pic.contentPath) {
-            runCatching {
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeByteArray(pic.image, 0, pic.image.size, bounds)
-                var sample = 1
-                while (bounds.outWidth / (sample * 2) >= 1600 || bounds.outHeight / (sample * 2) >= 1600) sample *= 2
-                BitmapFactory.decodeByteArray(pic.image, 0, pic.image.size, BitmapFactory.Options().apply { inSampleSize = sample })
-                    ?.asImageBitmap()
-            }.getOrNull()
+            com.office.app.ui.common.Pictures.decode(pic.image, 1600)?.asImageBitmap()
         }
     }
 }
@@ -288,14 +280,14 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
         if (container.files.canWrite(uri)) vm.save(onDone = ::afterSave) else saveAs.launch(info.name)
     }
     com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
-    BackHandler(enabled = vm.dirty) { showUnsaved = true }
+    BackHandler(enabled = vm.dirty && !com.office.app.ui.tabs.inWorkspace()) { showUnsaved = true }
 
     LaunchedEffect(pager.currentPage) { thumbs.animateScrollToItem((pager.currentPage - 1).coerceAtLeast(0)) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                navigationIcon = { BackButton { if (vm.dirty) showUnsaved = true else onClose() } },
+                navigationIcon = { com.office.app.ui.tabs.EditorBack { if (vm.dirty) showUnsaved = true else onClose() } },
                 title = {
                     Column {
                         Text(info.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
@@ -339,6 +331,7 @@ fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClos
                             })
                         }
                     }
+                    com.office.app.ui.tabs.OpenFilesButton()
                 },
             )
         },

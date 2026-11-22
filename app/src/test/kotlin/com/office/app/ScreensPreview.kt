@@ -122,14 +122,38 @@ class ScreensPreview {
             rule.onNodeWithTag("tab_count").performClick()
             rule.waitForTag("tab_overview")
             shot("${prefix}_5_tab_overview")
+            // Back closes the list, then goes Home with the files still open.
+            scenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+            rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("tab_overview")).fetchSemanticsNodes().isEmpty() }
+            scenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+            rule.waitForTag("open_tabs")
+            shot("${prefix}_6_home_open_files")
         }
     }
 
-    @Test fun light() { seed(ThemeMode.LIGHT); homeScreens("light"); documentScreens("light") }
+    /** A Word file with a TIFF logo in its header; also any file named by -PscreensExtra (never committed). */
+    private fun headerLogo(prefix: String) {
+        val files = listOf(File(System.getProperty("user.dir"), "../core/src/test/resources/fixtures/logo-header.docx")) +
+            System.getProperty("screens.extra").orEmpty().split(java.io.File.pathSeparator).filter { it.isNotBlank() }.map(::File)
+        for ((i, src) in files.withIndex()) {
+            val dir = File(app.cacheDir, "samples").apply { mkdirs() }
+            val f = File(dir, "logo$i.docx").also { src.copyTo(it, overwrite = true) }
+            val uri = Uri.fromFile(f)
+            val intent = Intent(Intent.ACTION_VIEW, uri).setClassName(app, MainActivity::class.java.name)
+            ActivityScenario.launch<MainActivity>(intent).also { scenario = it }.use {
+                rule.waitForTag("tab_count")
+                Thread.sleep(1500)
+                rule.waitForIdle()
+                shot("${prefix}_7_header_logo_$i")
+            }
+        }
+    }
+
+    @Test fun light() { seed(ThemeMode.LIGHT); homeScreens("light"); documentScreens("light"); headerLogo("light") }
 
     @Test fun dark() { seed(ThemeMode.DARK); homeScreens("dark"); documentScreens("dark") }
 
-    @Test fun black() { seed(ThemeMode.BLACK); homeScreens("black"); documentScreens("black") }
+    @Test fun black() { seed(ThemeMode.BLACK); homeScreens("black"); documentScreens("black"); headerLogo("black") }
 }
 
 /** The root views of all windows of the app (activity, dialogs, popups). */

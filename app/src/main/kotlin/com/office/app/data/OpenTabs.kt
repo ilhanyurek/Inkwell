@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModelStore
 import com.office.core.FileKind
 import org.json.JSONArray
 import org.json.JSONObject
@@ -36,6 +37,9 @@ class OpenTabs(context: Context? = null) {
     private val dirty = mutableStateMapOf<String, Boolean>()
     private val titles = mutableStateMapOf<String, String>()
 
+    /** Each open file keeps its editor's state here, so leaving the editor screen does not lose it. */
+    private val stores = HashMap<String, ViewModelStore>()
+
     /** A tab whose editor should run its own close flow (it asks about unsaved changes). */
     var pendingClose by mutableStateOf<String?>(null)
     private var counter = 0
@@ -53,6 +57,8 @@ class OpenTabs(context: Context? = null) {
     }
 
     fun title(id: String): String? = titles[id]
+
+    fun viewModelStore(id: String): ViewModelStore = stores.getOrPut(id) { ViewModelStore() }
 
     fun setTitle(id: String, title: String) {
         if (titles[id] != title) {
@@ -117,6 +123,7 @@ class OpenTabs(context: Context? = null) {
         tabs.removeAt(i)
         dirty.remove(id)
         titles.remove(id)
+        stores.remove(id)?.clear()
         if (pendingClose == id) pendingClose = null
         if (selectedId == id) selectedId = tabs.getOrNull(i.coerceAtMost(tabs.lastIndex))?.id
         persist()

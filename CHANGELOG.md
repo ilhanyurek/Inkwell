@@ -11,10 +11,13 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 
 ### Added
 - Black (AMOLED) theme with a true black page and outlined cards
-- Several files open at once as tabs: a Home button, the number of open files (opens an overview of them all) and "+" to open or create another
-- Closing a tab with unsaved changes asks whether to save, discard or keep it open
-- Home can be shown over the open files without closing them; an "Open files" card leads back
-- Open tabs come back after the app is restarted
+- Several files can be open at once. Back goes Home and leaves them open; an "Open files" card on Home leads back
+- The number of open files sits in each editor's top bar and opens a list to switch, open another or close files
+- Closing a file with unsaved changes asks whether to save, discard or keep it open
+- Open files come back after the app is restarted
+
+### Fixed
+- Pictures saved as TIFF are shown, for example university logos in the header of a form
 
 ## [1.4.1] - 2026-11-21
 

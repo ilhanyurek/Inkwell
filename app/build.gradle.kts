@@ -81,6 +81,8 @@ android {
                 it.systemProperty("robolectric.graphicsMode", "NATIVE")
                 it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
                 it.maxHeapSize = "3g"
+                // Extra local files to render in the screen previews (never committed).
+                it.systemProperty("screens.extra", (findProperty("screensExtra") as String?).orEmpty())
             }
         }
     }

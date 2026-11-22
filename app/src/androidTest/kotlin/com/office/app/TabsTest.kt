@@ -2,6 +2,8 @@ package com.office.app
 
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -13,17 +15,23 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Several files open as tabs; each keeps its unsaved text while another one or Home is shown. */
+/**
+ * Several files open at once: Back goes Home and keeps them open, the count in the editor's bar lists them,
+ * and each keeps its unsaved text while another one or Home is shown.
+ */
 @RunWith(AndroidJUnit4::class)
 class TabsTest {
 
     @get:Rule
     val rule = createEmptyComposeRule()
 
+    private fun ComposeTestRule.waitForTag(tag: String) =
+        waitUntil(10_000) { onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty() }
+
     @Test
-    fun twoFilesAsTabs() = rule.explainFailure {
+    fun openFilesStayOpen() = rule.explainFailure {
         val tabs = (targetContext.applicationContext as OfficeApp).container.tabs
-        // Tabs live as long as the app process; start from none.
+        // Open files live as long as the app process; start from none.
         androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync {
             tabs.tabs.toList().forEach { tabs.close(it.id) }
         }
@@ -36,36 +44,41 @@ class TabsTest {
             scenario.onActivity { it.startActivity(Fixtures.viewIntent(Fixtures.csv(), "text/csv")) }
             rule.waitForText("Ankara")
             rule.waitUntil(10_000) { tabs.tabs.size == 2 }
-            rule.screenshot("40_tabs")
+            rule.waitUntil(5_000) { rule.onAllNodes(hasTestTag("tab_count") and hasText("2")).fetchSemanticsNodes().isNotEmpty() }
+            rule.screenshot("40_open_files")
 
-            // Home on top of the open files and back again: the unsaved edit is kept.
-            rule.onNodeWithTag("tab_home").performClick()
+            // Back goes Home; both files are still open.
+            pressBack()
             rule.waitForTag("open_tabs")
-            rule.screenshot("41_home_over_tabs")
+            assertEquals(2, tabs.tabs.size)
+            rule.screenshot("41_home_with_open_files")
+
+            // Back to the files, then to the note through the list: the unsaved edit is still there.
             rule.onNodeWithTag("open_tabs").performClick()
-            rule.waitForTag("tab_$first")
+            rule.waitForTag("tab_count")
+            rule.onNodeWithTag("tab_count").performClick()
+            rule.waitForTag("tab_overview")
+            rule.screenshot("42_open_files_list")
             rule.onNodeWithTag("tab_$first").performClick()
             rule.waitForText("Edited")
             assertEquals(true, tabs.isDirty(first))
 
-            // The overview lists every open file.
-            rule.onNodeWithTag("tab_count").performClick()
-            rule.waitForTag("tab_overview")
-            rule.screenshot("42_tab_overview")
-            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
-            rule.waitUntil(5_000) { rule.onAllNodes(hasTestTag("tab_overview")).fetchSemanticsNodes().isEmpty() }
-
-            // Closing the clean second tab leaves the first one.
+            // Closing the clean file from the list leaves the note.
             val second = tabs.tabs.first { it.id != first }.id
+            rule.onNodeWithTag("tab_count").performClick()
+            rule.waitForTag("tab_close_$second")
             rule.onNodeWithTag("tab_close_$second").performClick()
             rule.waitUntil(5_000) { tabs.tabs.size == 1 }
 
-            // Closing the edited tab asks first: Cancel keeps it, Discard closes it and returns Home.
+            // Closing the edited note asks first: Cancel keeps it, Discard closes it and returns Home.
+            rule.waitForTag("tab_close_$first")
             rule.onNodeWithTag("tab_close_$first").performClick()
             rule.waitForTag("unsaved_cancel")
             rule.onNodeWithTag("unsaved_cancel").performClick()
             rule.waitForIdle()
             assertEquals(1, tabs.tabs.size)
+            rule.onNodeWithTag("tab_count").performClick()
+            rule.waitForTag("tab_close_$first")
             rule.onNodeWithTag("tab_close_$first").performClick()
             rule.waitForTag("unsaved_discard")
             rule.onNodeWithTag("unsaved_discard").performClick()
@@ -74,6 +87,3 @@ class TabsTest {
         }
     }
 }
-
-private fun androidx.compose.ui.test.junit4.ComposeTestRule.waitForTag(tag: String) =
-    waitUntil(10_000) { onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty() }

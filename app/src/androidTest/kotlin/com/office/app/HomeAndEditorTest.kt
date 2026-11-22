@@ -72,8 +72,14 @@ class HomeAndEditorTest {
         rule.onNode(hasSetTextAction()).performTextInput("Draft text")
         // Autosave runs a few seconds after the last change.
         rule.waitUntil(15_000) { drafts.drafts.value.isNotEmpty() }
-        rule.onNodeWithContentDescription(str(R.string.action_back)).performClick()
-        rule.onNodeWithText(str(R.string.action_discard)).performClick()
+        // Closing the note from the list of open files offers to discard it.
+        val tabs = (targetContext.applicationContext as OfficeApp).container.tabs
+        val id = tabs.selected!!.id
+        rule.onNodeWithTag("tab_count").performClick()
+        rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("tab_close_$id")).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithTag("tab_close_$id").performClick()
+        rule.waitUntil(10_000) { rule.onAllNodes(hasTestTag("unsaved_discard")).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithTag("unsaved_discard").performClick()
         rule.waitUntil(10_000) { drafts.drafts.value.isEmpty() }
     }
 

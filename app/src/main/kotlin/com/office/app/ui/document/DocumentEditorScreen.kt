@@ -181,7 +181,7 @@ fun DocumentEditorScreen(
     }
 
     com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
-    BackHandler(enabled = vm.dirty) { showUnsaved = true }
+    BackHandler(enabled = vm.dirty && !com.office.app.ui.tabs.inWorkspace()) { showUnsaved = true }
 
     when (val state = vm.loadState) {
         DocumentEditorViewModel.LoadState.Loading -> { LoadingScreen(onBack = onClose, title = vm.fileName.orEmpty()); return }
@@ -195,7 +195,7 @@ fun DocumentEditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                navigationIcon = { BackButton { if (vm.dirty) showUnsaved = true else onClose() } },
+                navigationIcon = { com.office.app.ui.tabs.EditorBack { if (vm.dirty) showUnsaved = true else onClose() } },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -253,6 +253,7 @@ fun DocumentEditorScreen(
                             DropdownMenuItem(text = { Text(stringResource(R.string.action_document_info)) }, onClick = { menuOpen = false; showStats = true })
                         }
                     }
+                    com.office.app.ui.tabs.OpenFilesButton()
                 },
             )
         },

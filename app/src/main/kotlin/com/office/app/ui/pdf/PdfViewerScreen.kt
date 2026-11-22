@@ -210,7 +210,7 @@ fun PdfViewerScreen(
     }
 
     com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
-    BackHandler(enabled = vm.dirty || searching || tool != Tool.VIEW) {
+    BackHandler(enabled = (vm.dirty && !com.office.app.ui.tabs.inWorkspace()) || searching || tool != Tool.VIEW) {
         when {
             searching -> { searching = false; vm.clearSearch() }
             tool != Tool.VIEW -> tool = Tool.VIEW
@@ -234,7 +234,7 @@ fun PdfViewerScreen(
                 SearchTopBar(vm, onClose = { searching = false; vm.clearSearch() })
             } else {
                 TopAppBar(
-                    navigationIcon = { BackButton { if (vm.dirty) showUnsaved = true else onClose() } },
+                    navigationIcon = { com.office.app.ui.tabs.EditorBack { if (vm.dirty) showUnsaved = true else onClose() } },
                     title = {
                         Column {
                             Text(vm.fileName, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -289,6 +289,7 @@ fun PdfViewerScreen(
                                 })
                             }
                         }
+                        com.office.app.ui.tabs.OpenFilesButton()
                     },
                 )
             }

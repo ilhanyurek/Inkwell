@@ -175,7 +175,7 @@ fun SheetEditorScreen(
     }
 
     com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
-    BackHandler(enabled = vm.dirty || vm.editing) {
+    BackHandler(enabled = (vm.dirty && !com.office.app.ui.tabs.inWorkspace()) || vm.editing) {
         if (vm.editing) vm.cancelEdit() else showUnsaved = true
     }
 
@@ -191,7 +191,7 @@ fun SheetEditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                navigationIcon = { BackButton { if (vm.dirty) showUnsaved = true else onClose() } },
+                navigationIcon = { com.office.app.ui.tabs.EditorBack { if (vm.dirty) showUnsaved = true else onClose() } },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -267,6 +267,7 @@ fun SheetEditorScreen(
                             }
                         }
                     }
+                    com.office.app.ui.tabs.OpenFilesButton()
                 },
             )
         },

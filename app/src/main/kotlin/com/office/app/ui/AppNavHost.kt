@@ -27,9 +27,6 @@ object Routes {
     const val FOLDER = "folder?uri={uri}&name={name}"
     const val WORKSPACE = "workspace"
 
-    /** Home shown on top of the open files, which stay open underneath. */
-    const val HOME_OVER = "home_over"
-
     fun open(uri: Uri, tool: String? = null) = "open?uri=" + Uri.encode(uri.toString()) + (tool?.let { "&tool=$it" } ?: "")
     fun tool(id: com.office.app.ui.tools.ToolId) = "tool/${id.name}"
     fun new(kind: FileKind) = "new/${kind.name}"
@@ -52,14 +49,13 @@ fun AppNavHost(
     LaunchedEffect(incomingShortcut) {
         when (incomingShortcut) {
             null -> return@LaunchedEffect
-            // Open files stay open: new files join them as tabs, Home is shown on top of them.
+            // New files join the open files.
             "new_document" -> nav.navigate(Routes.new(FileKind.DOCUMENT))
             "new_sheet" -> nav.navigate(Routes.new(FileKind.SPREADSHEET))
             "scan" -> nav.navigate(Routes.tool(com.office.app.ui.tools.ToolId.SCAN))
             "tools" -> {
-                val workspaceOpen = runCatching { nav.getBackStackEntry(Routes.WORKSPACE) }.isSuccess
-                if (workspaceOpen) nav.navigate(Routes.HOME_OVER) { launchSingleTop = true }
-                else nav.popBackStack(Routes.HOME, inclusive = false)
+                // Open files stay open (they live with the open-files list), so Home can be shown directly.
+                nav.popBackStack(Routes.HOME, inclusive = false)
                 requestedHomeTab = 2
             }
         }
@@ -75,20 +71,6 @@ fun AppNavHost(
 
     NavHost(navController = nav, startDestination = Routes.HOME) {
         composable(Routes.HOME) {
-            HomeScreen(
-                container = container,
-                onOpen = { nav.navigate(Routes.open(it)) },
-                onNew = { nav.navigate(Routes.new(it)) },
-                onSettings = { nav.navigate(Routes.SETTINGS) },
-                onOpenDraft = { nav.navigate(Routes.draft(it)) },
-                onOpenFolder = { uri, name -> nav.navigate(Routes.folder(uri, name)) },
-                onTool = { nav.navigate(Routes.tool(it)) },
-                onOpenTabs = { toWorkspace(nav, null) },
-                requestedTab = requestedHomeTab,
-                onTabRequestHandled = { requestedHomeTab = null },
-            )
-        }
-        composable(Routes.HOME_OVER) {
             HomeScreen(
                 container = container,
                 onOpen = { nav.navigate(Routes.open(it)) },
@@ -169,7 +151,8 @@ fun AppNavHost(
             com.office.app.ui.tabs.Workspace(
                 container = container,
                 onAllClosed = { nav.popBackStack(Routes.WORKSPACE, inclusive = true) },
-                onHome = { nav.navigate(Routes.HOME_OVER) { launchSingleTop = true } },
+                // The files stay open; their editors keep their state with the open-files list.
+                onHome = { nav.popBackStack(Routes.WORKSPACE, inclusive = true) },
             )
         }
     }
