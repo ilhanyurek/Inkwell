@@ -2,6 +2,12 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+- Black (AMOLED) theme next to Light and Dark
+- Several files open at once as tabs, with a "+" to open or create another
+
 ## [1.4.1] - 2026-11-21
 
 ### Added
