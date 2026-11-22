@@ -60,6 +60,15 @@ class OpenTabs(context: Context? = null) {
 
     fun viewModelStore(id: String): ViewModelStore = stores.getOrPut(id) { ViewModelStore() }
 
+    /**
+     * Drops the editors of all open files (the files stay in the list). Called when the app's window is
+     * closed for good, so a later start reads every file afresh; unsaved text comes back from its draft.
+     */
+    fun releaseEditors() {
+        stores.values.forEach { it.clear() }
+        stores.clear()
+    }
+
     fun setTitle(id: String, title: String) {
         if (titles[id] != title) {
             titles[id] = title

@@ -44,6 +44,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // Open files keep their editors while the window lives (Home and back, rotation); not beyond it.
+        if (isFinishing && !isChangingConfigurations) (application as OfficeApp).container.tabs.releaseEditors()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         extractUri(intent)?.let { pendingUri.value = it }
