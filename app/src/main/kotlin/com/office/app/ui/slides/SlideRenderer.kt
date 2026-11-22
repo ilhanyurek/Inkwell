@@ -1,7 +1,6 @@
 package com.office.app.ui.slides
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -30,13 +29,7 @@ object SlideRenderer {
 
     private const val EMU_PER_POINT = 12700f
 
-    fun decode(pic: SlideShape.Picture, maxSide: Int = 1600): Bitmap? = runCatching {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(pic.image, 0, pic.image.size, bounds)
-        var sample = 1
-        while (bounds.outWidth / (sample * 2) >= maxSide || bounds.outHeight / (sample * 2) >= maxSide) sample *= 2
-        BitmapFactory.decodeByteArray(pic.image, 0, pic.image.size, BitmapFactory.Options().apply { inSampleSize = sample })
-    }.getOrNull()
+    fun decode(pic: SlideShape.Picture, maxSide: Int = 1600): Bitmap? = com.office.app.ui.common.Pictures.decode(pic.image, maxSide)
 
     /** Draws [slide] scaled so that one EMU is [scale] canvas units. */
     fun draw(canvas: Canvas, slide: Slide, pres: Presentation, scale: Float, images: (SlideShape.Picture) -> Bitmap? = { decode(it) }) {

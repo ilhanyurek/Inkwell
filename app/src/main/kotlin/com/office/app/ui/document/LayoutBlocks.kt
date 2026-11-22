@@ -1,6 +1,5 @@
 package com.office.app.ui.document
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -68,13 +67,7 @@ internal class LayoutMeasure(
     fun image(bytes: ByteArray?, maxPx: Int): ImageBitmap? {
         bytes ?: return null
         return images.getOrPut(bytes) {
-            runCatching {
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-                var sample = 1
-                while (bounds.outWidth / (sample * 2) >= maxPx.coerceAtLeast(64)) sample *= 2
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
-            }.getOrNull()
+            com.office.app.ui.common.Pictures.decode(bytes, maxPx)?.asImageBitmap()
         }
     }
 

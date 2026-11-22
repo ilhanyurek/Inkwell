@@ -326,11 +326,7 @@ class DocumentEditorViewModel(
         val bmp = withContext(Dispatchers.Default) {
             runCatching {
                 val bytes = DocxImages.bytes(embed, originalPackage) ?: return@runCatching null
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-                var sample = 1
-                while (bounds.outWidth / (sample * 2) >= maxPx) sample *= 2
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
+                com.office.app.ui.common.Pictures.decode(bytes, maxPx)?.asImageBitmap()
             }.getOrNull()
         }
         bitmaps[id] = bmp
@@ -374,6 +370,13 @@ class DocumentEditorViewModel(
 
     /** Keeps PNG/JPEG/GIF as they are unless very large; anything else is re-encoded. */
     private fun pictureEmbed(bytes: ByteArray): Embed {
+        if (com.office.app.ui.common.Pictures.needsConversion(bytes)) {
+            // TIFF and the like: stored as PNG so every app can show it.
+            val bmp = com.office.app.ui.common.Pictures.decode(bytes, 2400) ?: error("Cannot decode image")
+            val out = ByteArrayOutputStream()
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+            return DocxImages.newImage(out.toByteArray(), "png", bmp.width, bmp.height)
+        }
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         require(bounds.outWidth > 0 && bounds.outHeight > 0) { "Not an image" }

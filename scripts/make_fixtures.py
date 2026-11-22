@@ -268,6 +268,175 @@ def make_form_docx(out: Path):
     d.save(out / "form.docx")
 
 
+def tiff_pattern(mode, w=37, h=23):
+    """A small picture with a different colour in every pixel, so decoding mistakes show."""
+    from PIL import Image
+    im = Image.new("RGBA", (w, h))
+    px = im.load()
+    for y in range(h):
+        for x in range(w):
+            px[x, y] = ((x * 7) % 256, (y * 11) % 256, (x * y * 3) % 256, 255 if (x + y) % 5 else 96)
+    return im if mode == "RGBA" else im.convert(mode)
+
+
+def premultiplied_tiff_be(im):
+    """An uncompressed big-endian RGBA TIFF with associated (premultiplied) alpha, written by hand
+    because Pillow only writes unassociated alpha."""
+    w, h = im.size
+    data = bytearray()
+    raw = im.tobytes()
+    for i in range(0, len(raw), 4):
+        r, g, b, a = raw[i:i + 4]
+        data += bytes((r * a // 255, g * a // 255, b * a // 255, a))
+    entries = [
+        (256, 3, 1, w), (257, 3, 1, h), (258, 3, 4, None), (259, 3, 1, 1), (262, 3, 1, 2),
+        (273, 4, 1, None), (277, 3, 1, 4), (278, 3, 1, h), (279, 4, 1, len(data)), (338, 3, 1, 1),
+    ]
+    ifd_at = 8
+    ifd_size = 2 + len(entries) * 12 + 4
+    bps_at = ifd_at + ifd_size
+    data_at = bps_at + 8
+    out = bytearray(b"MM\x00\x2a" + struct.pack(">I", ifd_at))
+    out += struct.pack(">H", len(entries))
+    for tag, typ, count, value in entries:
+        if tag == 258:
+            out += struct.pack(">HHII", tag, typ, count, bps_at)
+        elif tag == 273:
+            out += struct.pack(">HHII", tag, typ, count, data_at)
+        elif typ == 3:
+            out += struct.pack(">HHIHH", tag, typ, count, value, 0)
+        else:
+            out += struct.pack(">HHII", tag, typ, count, value)
+    out += struct.pack(">I", 0)
+    out += struct.pack(">HHHH", 8, 8, 8, 8)
+    out += data
+    return bytes(out)
+
+
+def tiled_tiff_le(im, tile=16):
+    """An uncompressed little-endian RGB TIFF stored in 16×16 tiles (Pillow cannot write tiles)."""
+    w, h = im.size
+    raw = im.tobytes()
+    across, down = (w + tile - 1) // tile, (h + tile - 1) // tile
+    tiles = []
+    for ty in range(down):
+        for tx in range(across):
+            t = bytearray()
+            for y in range(ty * tile, ty * tile + tile):
+                for x in range(tx * tile, tx * tile + tile):
+                    t += raw[(y * w + x) * 3:(y * w + x) * 3 + 3] if x < w and y < h else b"\0\0\0"
+            tiles.append(bytes(t))
+    n = len(tiles)
+    entries = [(256, 3, 1, w), (257, 3, 1, h), (258, 3, 3, "bps"), (259, 3, 1, 1), (262, 3, 1, 2),
+               (277, 3, 1, 3), (322, 3, 1, tile), (323, 3, 1, tile), (324, 4, n, "offs"), (325, 4, n, "counts")]
+    ifd_size = 2 + len(entries) * 12 + 4
+    bps_at = 8 + ifd_size
+    offs_at = bps_at + 6
+    counts_at = offs_at + 4 * n
+    data_at = counts_at + 4 * n
+    out = bytearray(b"II\x2a\x00" + struct.pack("<I", 8) + struct.pack("<H", len(entries)))
+    for tag, typ, count, value in entries:
+        if value == "bps":
+            out += struct.pack("<HHII", tag, typ, count, bps_at)
+        elif value == "offs":
+            out += struct.pack("<HHII", tag, typ, count, offs_at)
+        elif value == "counts":
+            out += struct.pack("<HHII", tag, typ, count, counts_at)
+        elif typ == 3:
+            out += struct.pack("<HHIHH", tag, typ, count, value, 0)
+        else:
+            out += struct.pack("<HHII", tag, typ, count, value)
+    out += struct.pack("<I", 0) + struct.pack("<HHH", 8, 8, 8)
+    pos = data_at
+    for t in tiles:
+        out += struct.pack("<I", pos)
+        pos += len(t)
+    for t in tiles:
+        out += struct.pack("<I", len(t))
+    for t in tiles:
+        out += t
+    return bytes(out)
+
+
+def make_tiffs(out: Path):
+    """TIFF pictures in the encodings Word documents carry, each with the pixels it must decode to."""
+    d = out / "tiff"
+    d.mkdir(exist_ok=True)
+    cases = {
+        "lzw_predictor_rgba": ("RGBA", dict(compression="tiff_lzw", tiffinfo={317: 2})),
+        "packbits_rgb": ("RGB", dict(compression="packbits")),
+        "deflate_grey": ("L", dict(compression="tiff_adobe_deflate")),
+        "raw_palette": ("P", dict(compression="raw")),
+        "raw_bilevel": ("1", dict(compression="raw")),
+    }
+    for name, (mode, opts) in cases.items():
+        im = tiff_pattern(mode)
+        if mode == "P":
+            im = tiff_pattern("RGB").quantize(colors=40)
+        im.save(d / f"{name}.tiff", **opts)
+        (d / f"{name}.rgba").write_bytes(im.convert("RGBA").tobytes())
+    rgb = tiff_pattern("RGB")
+    (d / "le_tiled_rgb.tiff").write_bytes(tiled_tiff_le(rgb))
+    (d / "le_tiled_rgb.rgba").write_bytes(rgb.convert("RGBA").tobytes())
+    im = tiff_pattern("RGBA")
+    (d / "be_premultiplied_rgba.tiff").write_bytes(premultiplied_tiff_be(im))
+    (d / "be_premultiplied_rgba.rgba").write_bytes(im.tobytes())
+
+
+def make_logo_header_docx(out: Path):
+    """A form whose title block in the page header has its logo stored as a TIFF, as Word does when a
+    logo is inserted from a .tiff file."""
+    from docx import Document
+    from docx.shared import Cm, Pt
+    from PIL import Image
+    d = Document()
+    sec = d.sections[0]
+    header = sec.header
+    ht = header.add_table(rows=1, cols=3, width=Cm(17))
+    logo_im = Image.new("RGBA", (173, 232), (0, 0, 0, 0))
+    px = logo_im.load()
+    for y in range(232):
+        for x in range(173):
+            if (x - 86) ** 2 / 80 ** 2 + (y - 116) ** 2 / 110 ** 2 <= 1:
+                px[x, y] = (0, 61, 130, 255)
+    buf = io.BytesIO()
+    logo_im.save(buf, format="TIFF", compression="tiff_lzw", tiffinfo={317: 2})
+    # python-docx only accepts formats it knows; insert a PNG and swap in the TIFF bytes afterwards.
+    png_buf = io.BytesIO()
+    logo_im.save(png_buf, format="PNG")
+    png_buf.seek(0)
+    run = ht.cell(0, 0).paragraphs[0].add_run()
+    run.add_picture(png_buf, width=Cm(1.4))
+    mid = ht.cell(0, 1)
+    mid.text = ""
+    for i, line in enumerate(["Örnek Üniversitesi", "Mühendislik Fakültesi", "ÇALIŞMA ÖNERİ FORMU"]):
+        p = mid.paragraphs[0] if i == 0 else mid.add_paragraph()
+        r = p.add_run(line)
+        r.bold = True
+        r.font.size = Pt(11)
+    d.add_paragraph("Öğrenci adı:")
+    path = out / "logo-header.docx"
+    d.save(path)
+    # Replace the PNG part by the TIFF and point the header at it.
+    import zipfile
+    src = zipfile.ZipFile(path)
+    items = {n: src.read(n) for n in src.namelist()}
+    src.close()
+    png_name = next(n for n in items if n.startswith("word/media/"))
+    tiff_name = png_name.rsplit(".", 1)[0] + ".tiff"
+    items[tiff_name] = buf.getvalue()
+    del items[png_name]
+    for n in list(items):
+        if n.endswith(".rels") or n == "[Content_Types].xml":
+            text = items[n].decode("utf-8").replace(png_name.split("/", 1)[1], tiff_name.split("/", 1)[1])
+            if n == "[Content_Types].xml" and 'Extension="tiff"' not in text:
+                text = text.replace("</Types>", '<Default Extension="tiff" ContentType="image/tiff"/></Types>')
+            items[n] = text.encode("utf-8")
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        for n, b in items.items():
+            z.writestr(n, b)
+
+
 def make_xlsx(out: Path):
     from openpyxl import Workbook
     from openpyxl.chart import BarChart, Reference
@@ -366,6 +535,8 @@ if __name__ == "__main__":
     make_docx(target)
     make_styled_docx(target)
     make_form_docx(target)
+    make_tiffs(target)
+    make_logo_header_docx(target)
     make_xlsx(target)
     make_pptx(target)
     make_pdf(target)
