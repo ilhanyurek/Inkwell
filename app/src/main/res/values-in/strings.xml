@@ -416,6 +416,10 @@
     <string name="error_password_legacy">File ini dilindungi kata sandi. Buka di Office, hapus kata sandinya, lalu coba lagi.</string>
     <string name="settings_white_paper">Tampilkan dokumen di kertas putih</string>
     <string name="settings_white_paper_desc">Dokumen tampil dengan warnanya sendiri di lembar putih, juga dalam tema gelap.</string>
+    <string name="theme_black">Hitam (AMOLED)</string>
+    <string name="tab_close">Tutup tab</string>
+    <string name="tab_close_others">Tutup tab lainnya</string>
+    <string name="tab_new">Buka atau buat file</string>
     <plurals name="pdf_results">
         <item quantity="other">%d hasil</item>
     </plurals>

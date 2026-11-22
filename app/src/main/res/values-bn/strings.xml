@@ -416,6 +416,10 @@
     <string name="error_password_legacy">এই ফাইলটি পাসওয়ার্ড দিয়ে সুরক্ষিত। Office-এ খুলে পাসওয়ার্ড সরিয়ে আবার চেষ্টা করুন।</string>
     <string name="settings_white_paper">নথি সাদা পাতায় দেখান</string>
     <string name="settings_white_paper_desc">ডার্ক থিমেও নথিগুলো সাদা পাতায় নিজের রঙে দেখায়।</string>
+    <string name="theme_black">কালো (AMOLED)</string>
+    <string name="tab_close">ট্যাব বন্ধ করুন</string>
+    <string name="tab_close_others">অন্য ট্যাবগুলো বন্ধ করুন</string>
+    <string name="tab_new">ফাইল খুলুন বা তৈরি করুন</string>
     <plurals name="pdf_results">
         <item quantity="one">%dটি মিল</item>
         <item quantity="other">%dটি মিল</item>

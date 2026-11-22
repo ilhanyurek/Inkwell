@@ -416,6 +416,10 @@
     <string name="error_password_legacy">Tệp này có mật khẩu. Hãy mở trong Office, gỡ mật khẩu rồi thử lại.</string>
     <string name="settings_white_paper">Hiển thị tài liệu trên giấy trắng</string>
     <string name="settings_white_paper_desc">Tài liệu giữ màu gốc trên trang trắng, kể cả khi dùng giao diện tối.</string>
+    <string name="theme_black">Đen (AMOLED)</string>
+    <string name="tab_close">Đóng thẻ</string>
+    <string name="tab_close_others">Đóng các thẻ khác</string>
+    <string name="tab_new">Mở hoặc tạo tệp</string>
     <plurals name="pdf_results">
         <item quantity="other">%d kết quả</item>
     </plurals>

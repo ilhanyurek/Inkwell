@@ -416,6 +416,10 @@
     <string name="error_password_legacy">Este archivo está protegido con contraseña. Ábrelo en Office, quita la contraseña e inténtalo de nuevo.</string>
     <string name="settings_white_paper">Mostrar documentos en papel blanco</string>
     <string name="settings_white_paper_desc">Los documentos conservan sus colores sobre una hoja blanca, también con el tema oscuro.</string>
+    <string name="theme_black">Negro (AMOLED)</string>
+    <string name="tab_close">Cerrar pestaña</string>
+    <string name="tab_close_others">Cerrar las demás pestañas</string>
+    <string name="tab_new">Abrir o crear un archivo</string>
     <plurals name="pdf_results">
         <item quantity="one">%d coincidencia</item>
         <item quantity="other">%d coincidencias</item>

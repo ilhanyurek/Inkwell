@@ -416,6 +416,10 @@
     <string name="error_password_legacy">यह फ़ाइल पासवर्ड से सुरक्षित है। इसे Office में खोलें, पासवर्ड हटाएं और फिर से कोशिश करें।</string>
     <string name="settings_white_paper">दस्तावेज़ सफ़ेद पेज पर दिखाएं</string>
     <string name="settings_white_paper_desc">डार्क थीम में भी दस्तावेज़ सफ़ेद पेज पर अपने रंगों के साथ दिखते हैं।</string>
+    <string name="theme_black">काला (AMOLED)</string>
+    <string name="tab_close">टैब बंद करें</string>
+    <string name="tab_close_others">दूसरे टैब बंद करें</string>
+    <string name="tab_new">फ़ाइल खोलें या बनाएं</string>
     <plurals name="pdf_results">
         <item quantity="one">%d नतीजा</item>
         <item quantity="other">%d नतीजे</item>

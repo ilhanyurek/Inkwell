@@ -245,6 +245,7 @@ class PresentationViewModel(private val container: AppContainer, val uri: Uri) :
 @Composable
 fun PresentationScreen(container: AppContainer, uri: Uri, info: FileInfo, onClose: () -> Unit) {
     val vm: PresentationViewModel = viewModel(key = "pptx:$uri") { PresentationViewModel(container, uri) }
+    com.office.app.ui.tabs.ReportTab(info.name, vm.dirty)
     val context = LocalContext.current
     val pres = vm.presentation
     vm.error?.let {

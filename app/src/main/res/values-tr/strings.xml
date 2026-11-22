@@ -439,4 +439,8 @@
     <string name="error_password_legacy">Bu dosya parolalı. Office\'te açıp parolayı kaldırın ve yeniden deneyin.</string>
     <string name="settings_white_paper">Belgeleri beyaz sayfada göster</string>
     <string name="settings_white_paper_desc">Belgeler koyu temada da beyaz bir sayfada, kendi renkleriyle görünür.</string>
+    <string name="theme_black">Siyah (AMOLED)</string>
+    <string name="tab_close">Sekmeyi kapat</string>
+    <string name="tab_close_others">Diğer sekmeleri kapat</string>
+    <string name="tab_new">Dosya aç veya oluştur</string>
 </resources>

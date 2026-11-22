@@ -416,6 +416,10 @@
     <string name="error_password_legacy">Faili hii inalindwa na nenosiri. Ifungue katika Office, ondoa nenosiri kisha ujaribu tena.</string>
     <string name="settings_white_paper">Onyesha hati kwenye karatasi nyeupe</string>
     <string name="settings_white_paper_desc">Hati huonekana kwa rangi zake kwenye karatasi nyeupe, hata katika mandhari meusi.</string>
+    <string name="theme_black">Nyeusi (AMOLED)</string>
+    <string name="tab_close">Funga kichupo</string>
+    <string name="tab_close_others">Funga vichupo vingine</string>
+    <string name="tab_new">Fungua au unda faili</string>
     <plurals name="pdf_results">
         <item quantity="one">Kinacholingana %d</item>
         <item quantity="other">Vinavyolingana %d</item>

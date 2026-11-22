@@ -416,6 +416,10 @@
     <string name="error_password_legacy">Файл защищён паролем. Откройте его в Office, снимите пароль и попробуйте снова.</string>
     <string name="settings_white_paper">Показывать документы на белой странице</string>
     <string name="settings_white_paper_desc">Документы сохраняют свои цвета на белом листе, даже в тёмной теме.</string>
+    <string name="theme_black">Чёрная (AMOLED)</string>
+    <string name="tab_close">Закрыть вкладку</string>
+    <string name="tab_close_others">Закрыть другие вкладки</string>
+    <string name="tab_new">Открыть или создать файл</string>
     <plurals name="pdf_results">
         <item quantity="one">%d совпадение</item>
         <item quantity="few">%d совпадения</item>

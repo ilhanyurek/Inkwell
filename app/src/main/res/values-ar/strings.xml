@@ -416,6 +416,10 @@
     <string name="error_password_legacy">هذا الملف محمي بكلمة مرور. افتحه في Office وأزل كلمة المرور ثم أعد المحاولة.</string>
     <string name="settings_white_paper">عرض المستندات على ورقة بيضاء</string>
     <string name="settings_white_paper_desc">تحتفظ المستندات بألوانها على ورقة بيضاء، حتى في المظهر الداكن.</string>
+    <string name="theme_black">أسود (AMOLED)</string>
+    <string name="tab_close">إغلاق علامة التبويب</string>
+    <string name="tab_close_others">إغلاق علامات التبويب الأخرى</string>
+    <string name="tab_new">فتح ملف أو إنشاؤه</string>
     <plurals name="pdf_results">
         <item quantity="zero">لا توجد نتائج (%d)</item>
         <item quantity="one">نتيجة واحدة (%d)</item>

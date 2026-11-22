@@ -32,6 +32,16 @@ android {
                 keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
             }
         }
+        // Trial builds are signed with their own key, so they never replace the real app.
+        val previewKeystore = System.getenv("PREVIEW_KEYSTORE_PATH")
+        if (!previewKeystore.isNullOrBlank()) {
+            create("preview") {
+                storeFile = file(previewKeystore)
+                storePassword = System.getenv("PREVIEW_STORE_PASSWORD")
+                keyAlias = System.getenv("PREVIEW_KEY_ALIAS")
+                keyPassword = System.getenv("PREVIEW_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -40,6 +50,14 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+        }
+        // A trial build that installs next to the real app ("Inkwell Preview").
+        create("preview") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".preview"
+            versionNameSuffix = "-preview"
+            matchingFallbacks += "release"
+            signingConfig = signingConfigs.findByName("preview") ?: signingConfigs.getByName("debug")
         }
     }
 

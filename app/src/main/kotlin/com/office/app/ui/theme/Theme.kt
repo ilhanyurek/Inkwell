@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -112,6 +113,22 @@ private val AppShapes = Shapes(
     extraLarge = RoundedCornerShape(20.dp),
 )
 
+/** True black for AMOLED screens: the dark palette with black surfaces and barely lifted containers. */
+private fun ColorScheme.blackened() = copy(
+    background = Color.Black,
+    surface = Color.Black,
+    surfaceVariant = Color(0xFF121212),
+    surfaceContainerLowest = Color.Black,
+    surfaceContainerLow = Color(0xFF0A0A0A),
+    surfaceContainer = Color(0xFF0F0F0F),
+    surfaceContainerHigh = Color(0xFF151515),
+    surfaceContainerHighest = Color(0xFF1C1C1C),
+    surfaceDim = Color.Black,
+    surfaceBright = Color(0xFF1C1C1C),
+    outline = Color(0xFF3A3B3E),
+    outlineVariant = Color(0xFF242527),
+)
+
 /** Colours used for a document drawn as a white sheet, whatever the app theme. */
 val PaperColorScheme get() = LightColors
 
@@ -127,7 +144,7 @@ fun OfficeTheme(
     val dark = when (themeMode) {
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
         ThemeMode.LIGHT -> false
-        ThemeMode.DARK -> true
+        ThemeMode.DARK, ThemeMode.BLACK -> true
     }
     val colors = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -136,7 +153,7 @@ fun OfficeTheme(
         }
         dark -> DarkColors
         else -> LightColors
-    }
+    }.let { if (themeMode == ThemeMode.BLACK) it.blackened() else it }
     androidx.compose.runtime.CompositionLocalProvider(LocalKindColors provides if (dark) DarkKinds else LightKinds) {
         MaterialTheme(colorScheme = colors, typography = AppTypography, shapes = AppShapes, content = content)
     }

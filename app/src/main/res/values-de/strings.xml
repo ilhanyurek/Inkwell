@@ -416,6 +416,10 @@
     <string name="error_password_legacy">Diese Datei ist kennwortgeschützt. Öffnen Sie sie in Office, entfernen Sie das Kennwort und versuchen Sie es erneut.</string>
     <string name="settings_white_paper">Dokumente auf weißem Papier zeigen</string>
     <string name="settings_white_paper_desc">Dokumente behalten ihre eigenen Farben auf einem weißen Blatt, auch im dunklen Design.</string>
+    <string name="theme_black">Schwarz (AMOLED)</string>
+    <string name="tab_close">Tab schließen</string>
+    <string name="tab_close_others">Andere Tabs schließen</string>
+    <string name="tab_new">Datei öffnen oder erstellen</string>
     <plurals name="pdf_results">
         <item quantity="one">%d Treffer</item>
         <item quantity="other">%d Treffer</item>

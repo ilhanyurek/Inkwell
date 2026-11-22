@@ -439,4 +439,8 @@
     <string name="error_password_legacy">This file is password protected. Open it in Office, remove the password and try again.</string>
     <string name="settings_white_paper">Show documents on white paper</string>
     <string name="settings_white_paper_desc">Documents keep their own colours on a white sheet, also in the dark theme.</string>
+    <string name="theme_black">Black (AMOLED)</string>
+    <string name="tab_close">Close tab</string>
+    <string name="tab_close_others">Close other tabs</string>
+    <string name="tab_new">Open or create a file</string>
 </resources>

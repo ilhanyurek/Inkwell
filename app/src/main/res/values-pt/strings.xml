@@ -416,6 +416,10 @@
     <string name="error_password_legacy">Este arquivo está protegido por senha. Abra-o no Office, remova a senha e tente novamente.</string>
     <string name="settings_white_paper">Mostrar documentos em papel branco</string>
     <string name="settings_white_paper_desc">Os documentos mantêm as próprias cores numa folha branca, também no tema escuro.</string>
+    <string name="theme_black">Preto (AMOLED)</string>
+    <string name="tab_close">Fechar aba</string>
+    <string name="tab_close_others">Fechar as outras abas</string>
+    <string name="tab_new">Abrir ou criar um arquivo</string>
     <plurals name="pdf_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>

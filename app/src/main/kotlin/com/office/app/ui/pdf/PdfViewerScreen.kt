@@ -137,6 +137,7 @@ fun PdfViewerScreen(
     startTool: String? = null,
 ) {
     val vm: PdfViewerViewModel = viewModel(key = "pdf:$uri") { PdfViewerViewModel(container, uri, info) }
+    com.office.app.ui.tabs.ReportTab(info.name, vm.dirty)
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.flushDraft() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

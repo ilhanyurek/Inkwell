@@ -416,6 +416,10 @@
     <string name="error_password_legacy">ही फाइल पासवर्डने संरक्षित आहे. ती Office मध्ये उघडा, पासवर्ड काढा आणि पुन्हा प्रयत्न करा.</string>
     <string name="settings_white_paper">दस्तऐवज पांढऱ्या पानावर दाखवा</string>
     <string name="settings_white_paper_desc">डार्क थीममध्येही दस्तऐवज पांढऱ्या पानावर त्यांच्या रंगांसह दिसतात.</string>
+    <string name="theme_black">काळा (AMOLED)</string>
+    <string name="tab_close">टॅब बंद करा</string>
+    <string name="tab_close_others">इतर टॅब बंद करा</string>
+    <string name="tab_new">फाइल उघडा किंवा तयार करा</string>
     <plurals name="pdf_results">
         <item quantity="one">%d जुळणी</item>
         <item quantity="other">%d जुळण्या</item>

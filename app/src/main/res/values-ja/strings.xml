@@ -416,6 +416,10 @@
     <string name="error_password_legacy">このファイルはパスワードで保護されています。Office で開いてパスワードを解除してから、もう一度お試しください。</string>
     <string name="settings_white_paper">文書を白い用紙に表示</string>
     <string name="settings_white_paper_desc">ダークテーマでも、文書は白い用紙の上に元の色で表示されます。</string>
+    <string name="theme_black">ブラック (AMOLED)</string>
+    <string name="tab_close">タブを閉じる</string>
+    <string name="tab_close_others">他のタブを閉じる</string>
+    <string name="tab_new">ファイルを開くか作成</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 件一致</item>
     </plurals>

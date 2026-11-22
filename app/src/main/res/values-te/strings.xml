@@ -416,6 +416,10 @@
     <string name="error_password_legacy">ఈ ఫైల్‌కు పాస్‌వర్డ్ ఉంది. దాన్ని Officeలో తెరిచి, పాస్‌వర్డ్ తీసివేసి మళ్లీ ప్రయత్నించండి.</string>
     <string name="settings_white_paper">పత్రాలను తెల్ల పేజీపై చూపు</string>
     <string name="settings_white_paper_desc">డార్క్ థీమ్‌లోనూ పత్రాలు తెల్ల పేజీపై వాటి రంగులతో కనిపిస్తాయి.</string>
+    <string name="theme_black">నలుపు (AMOLED)</string>
+    <string name="tab_close">ట్యాబ్ మూసివేయి</string>
+    <string name="tab_close_others">ఇతర ట్యాబ్‌లు మూసివేయి</string>
+    <string name="tab_new">ఫైల్ తెరువు లేదా సృష్టించు</string>
     <plurals name="pdf_results">
         <item quantity="one">%d సరిపోలిక</item>
         <item quantity="other">%d సరిపోలికలు</item>

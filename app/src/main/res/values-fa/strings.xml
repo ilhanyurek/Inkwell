@@ -416,6 +416,10 @@
     <string name="error_password_legacy">این فایل رمز دارد. آن را در Office باز کنید، رمز را بردارید و دوباره امتحان کنید.</string>
     <string name="settings_white_paper">نمایش اسناد روی کاغذ سفید</string>
     <string name="settings_white_paper_desc">اسناد حتی در پوسته تیره، با رنگ‌های خودشان روی برگه سفید نمایش داده می‌شوند.</string>
+    <string name="theme_black">سیاه (AMOLED)</string>
+    <string name="tab_close">بستن زبانه</string>
+    <string name="tab_close_others">بستن زبانه‌های دیگر</string>
+    <string name="tab_new">باز کردن یا ساختن فایل</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجه</item>
         <item quantity="other">%d نتیجه</item>

@@ -129,6 +129,7 @@ fun DocumentEditorScreen(
     draftKey: String? = null,
 ) {
     val vm: DocumentEditorViewModel = viewModel(key = "doc:$uri:$kind:$draftKey") { DocumentEditorViewModel(container, uri, info, kind, draftKey) }
+    com.office.app.ui.tabs.ReportTab(vm.fileName, vm.dirty)
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.flushDraft() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

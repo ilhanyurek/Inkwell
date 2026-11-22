@@ -62,6 +62,7 @@ fun SettingsScreen(container: AppContainer, onBack: () -> Unit) {
                             ThemeMode.SYSTEM -> R.string.theme_system
                             ThemeMode.LIGHT -> R.string.theme_light
                             ThemeMode.DARK -> R.string.theme_dark
+                            ThemeMode.BLACK -> R.string.theme_black
                         },
                     ),
                     selected = settings.theme == mode,

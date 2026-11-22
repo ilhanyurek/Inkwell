@@ -25,6 +25,7 @@ object Routes {
     const val NEW = "new/{kind}"
     const val DRAFT = "draft/{key}"
     const val FOLDER = "folder?uri={uri}&name={name}"
+    const val WORKSPACE = "workspace"
 
     fun open(uri: Uri, tool: String? = null) = "open?uri=" + Uri.encode(uri.toString()) + (tool?.let { "&tool=$it" } ?: "")
     fun tool(id: com.office.app.ui.tools.ToolId) = "tool/${id.name}"
@@ -88,7 +89,7 @@ fun AppNavHost(
                 tool = id,
                 onBack = { nav.popBackStack() },
                 onOpen = { nav.navigate(Routes.open(it)) },
-                onOpenInViewer = { uri, t -> nav.navigate(Routes.open(uri, t)) { popUpTo(Routes.HOME) } },
+                onOpenInViewer = { uri, t -> nav.navigate(Routes.open(uri, t)) { popUpTo(Routes.TOOL) { inclusive = true } } },
             )
         }
         composable(Routes.DRAFT, arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
@@ -97,8 +98,10 @@ fun AppNavHost(
             when {
                 draft == null -> LaunchedEffect(key) { nav.popBackStack() }
                 // Drafts of existing files open the file; the editor then offers to restore the draft.
-                draft.uri != null -> EditorHost(container, draft.uri, null, onClose = { nav.popBackStack() }, onOpenOther = { nav.navigate(Routes.open(it)) })
-                else -> EditorHost(container, null, draft.kind, onClose = { nav.popBackStack() }, onOpenOther = { nav.navigate(Routes.open(it)) }, draftKey = key)
+                else -> LaunchedEffect(key) {
+                    container.tabs.openDraft(key, draft.uri, draft.kind)
+                    toWorkspace(nav, Routes.DRAFT)
+                }
             }
         }
         composable(
@@ -125,27 +128,43 @@ fun AppNavHost(
             ),
         ) { entry ->
             val uri = Uri.parse(entry.arguments?.getString("uri").orEmpty())
-            EditorHost(
-                container = container,
-                uri = uri,
-                newKind = null,
-                startTool = entry.arguments?.getString("tool"),
-                onClose = { nav.popBackStack() },
-                onOpenOther = { nav.navigate(Routes.open(it)) { popUpTo(Routes.HOME) } },
-            )
+            val tool = entry.arguments?.getString("tool")
+            LaunchedEffect(uri) {
+                container.tabs.open(uri, tool)
+                toWorkspace(nav, Routes.OPEN)
+            }
         }
         composable(
             Routes.NEW,
             arguments = listOf(navArgument("kind") { type = NavType.StringType }),
         ) { entry ->
             val kind = runCatching { FileKind.valueOf(entry.arguments?.getString("kind").orEmpty()) }.getOrDefault(FileKind.DOCUMENT)
-            EditorHost(
+            LaunchedEffect(kind) {
+                container.tabs.openNew(kind)
+                toWorkspace(nav, Routes.NEW)
+            }
+        }
+        composable(Routes.WORKSPACE) {
+            com.office.app.ui.tabs.Workspace(
                 container = container,
-                uri = null,
-                newKind = kind,
-                onClose = { nav.popBackStack() },
-                onOpenOther = { nav.navigate(Routes.open(it)) { popUpTo(Routes.HOME) } },
+                onAllClosed = { nav.popBackStack(Routes.WORKSPACE, inclusive = true) },
             )
+        }
+    }
+}
+
+/**
+ * Shows the workspace in place of the route that asked for a file. The workspace entry is reused when it is
+ * already on the back stack, so the other open files keep their state.
+ */
+private fun toWorkspace(nav: androidx.navigation.NavHostController, from: String) {
+    val inStack = runCatching { nav.getBackStackEntry(Routes.WORKSPACE) }.isSuccess
+    if (inStack) {
+        nav.popBackStack(Routes.WORKSPACE, inclusive = false)
+    } else {
+        nav.navigate(Routes.WORKSPACE) {
+            popUpTo(from) { inclusive = true }
+            launchSingleTop = true
         }
     }
 }
