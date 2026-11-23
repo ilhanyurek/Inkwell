@@ -624,13 +624,20 @@ class FormulaEngine(
         )
 
         private val decimalComma = Regex("^-?\\d+,\\d+$")
+        private val groupedComma = Regex("^-?\\d{1,3}(\\.\\d{3})+,\\d+$")
+        private val groupedDot = Regex("^-?\\d{1,3}(,\\d{3})+\\.\\d+$")
 
-        /** Parses user-typed numbers: `12`, `-3.5`, `3,5` (Turkish decimal comma), `1e3`, `45%`. */
+        /**
+         * Parses user-typed numbers: `12`, `-3.5`, `3,5` (Turkish decimal comma), `1.250,50` and `1,250.50`
+         * (thousands and decimals, as in CSV files), `1e3`, `45%`.
+         */
         fun parseNumber(s: String): Double? {
             val t = s.trim()
             if (t.isEmpty()) return null
             if (t.endsWith("%")) return parseNumber(t.dropLast(1))?.div(100)
             if (decimalComma.matches(t)) return t.replace(',', '.').toDoubleOrNull()
+            if (groupedComma.matches(t)) return t.replace(".", "").replace(',', '.').toDoubleOrNull()
+            if (groupedDot.matches(t)) return t.replace(",", "").toDoubleOrNull()
             if (t.any { it.isLetter() && it != 'e' && it != 'E' }) return null
             return t.toDoubleOrNull()?.takeIf { !it.isNaN() && !it.isInfinite() }
         }

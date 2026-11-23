@@ -122,10 +122,16 @@ class RichTextTransformation(
                     transToOrig += end
                     out.append('\n')
                 }
+                // The newline ending a styled paragraph adds an empty line of the paragraph's line height; for
+                // a block that would be a second table- or picture-high gap, so that line keeps only text height.
+                // A block at the very end has no such line and keeps its full height.
                 out.addStyle(
                     ParagraphStyle(
                         lineHeight = blockHeights.getValue(blockId),
-                        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Top, LineHeightStyle.Trim.None),
+                        lineHeightStyle = LineHeightStyle(
+                            LineHeightStyle.Alignment.Top,
+                            if (end < src.length) LineHeightStyle.Trim.LastLineBottom else LineHeightStyle.Trim.None,
+                        ),
                     ),
                     paraStartTrans, out.length,
                 )

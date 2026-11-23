@@ -216,7 +216,8 @@ object FormulaParser {
                             }
                         }
                         expect(Tok.RParen)
-                        Expr.Call(tok.v.uppercase(java.util.Locale.ROOT), args)
+                        // Excel saves newer functions with a prefix, e.g. _xlfn.XLOOKUP.
+                        Expr.Call(tok.v.uppercase(java.util.Locale.ROOT).removePrefix("_XLFN.").removePrefix("_XLWS."), args)
                     } else {
                         when (tok.v.uppercase(java.util.Locale.ROOT)) {
                             "TRUE", "DOĞRU", "DOGRU" -> Expr.Bool(true)

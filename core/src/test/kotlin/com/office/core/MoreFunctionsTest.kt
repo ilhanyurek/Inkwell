@@ -32,6 +32,8 @@ class MoreFunctionsTest {
         assertEquals("Silgi", f("INDEX(A1:A5,MATCH(7,C1:C5,0))"))
         assertEquals("2", f("XLOOKUP(\"Silgi\",A2:A5,D2:D5)"))
         assertEquals("yok", f("XLOOKUP(\"Cetvel\",A2:A5,D2:D5,\"yok\")"))
+        // As Excel saves it in the file.
+        assertEquals("2", f("_xlfn.XLOOKUP(\"Silgi\",A2:A5,D2:D5)"))
         assertEquals("Adet", f("HLOOKUP(\"Adet\",A1:D5,1,FALSE)"))
         assertEquals("Defter", f("VLOOKUP(\"Def*\",A2:B5,1,FALSE)"))
     }

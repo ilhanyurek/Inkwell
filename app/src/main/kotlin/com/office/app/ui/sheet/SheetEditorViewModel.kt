@@ -229,7 +229,13 @@ class SheetEditorViewModel(
     /** The text shown in a cell: numbers go through the cell's number format. */
     fun displayText(ref: CellRef, value: Value = display(ref)): String {
         val fmt = sheet.styles[ref]?.numFmt
-        return if (value is Value.Num && fmt != null) NumberFormat.format(value.v, fmt) else value.display()
+        if (value is Value.Num && fmt != null) return NumberFormat.format(value.v, fmt)
+        if (value is Value.Num) {
+            // A number written with a comma (3,5 or 1.250,50, common in Turkish CSV files) is shown as written.
+            val raw = sheet[ref].trim()
+            if (!raw.startsWith("=") && raw.contains(',') && FormulaEngine.parseNumber(raw) != null) return raw
+        }
+        return value.display()
     }
 
     /** What the formula bar shows: dates and percentages as typed rather than as raw numbers. */

@@ -21,6 +21,9 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 
 ### Fixed
 - Pictures saved as TIFF are shown, for example university logos in the header of a form
+- No more large empty space after tables and pictures in Word documents
+- Formulas Excel saves with a prefix, such as XLOOKUP, are calculated
+- Numbers like 1.250,50 or 1,250.50 in CSV files count as numbers and are shown as written
 
 ## [1.4.1] - 2026-11-21
 
