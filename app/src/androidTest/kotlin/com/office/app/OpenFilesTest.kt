@@ -35,6 +35,15 @@ class OpenFilesTest {
     private fun open(file: File, mime: String): ActivityScenario<MainActivity> =
         ActivityScenario.launch(Fixtures.viewIntent(file, mime))
 
+    /** Waits for [done]; on timeout says which step and which table parts were on screen, readable in the CI log. */
+    private fun step(name: String, timeoutMs: Long = 10_000, done: () -> Boolean) {
+        if (runCatching { rule.waitUntil(timeoutMs) { done() } }.isSuccess) return
+        val tags = rule.onAllNodes(androidx.compose.ui.test.SemanticsMatcher("any") { true }).fetchSemanticsNodes()
+            .mapNotNull { it.config.getOrElseNullable(androidx.compose.ui.semantics.SemanticsProperties.TestTag) { null } }
+            .filter { it.startsWith("doc_") || it.startsWith("table") || it.startsWith("insert") }
+        throw AssertionError("Step '$name' did not happen; on screen: $tags")
+    }
+
     @Test
     fun opensDocx() {
         open(Fixtures.docx(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document").use {
@@ -73,24 +82,24 @@ class OpenFilesTest {
             rule.waitUntil(15_000) { rule.onAllNodesWithTag("doc_table_0").fetchSemanticsNodes().isNotEmpty() }
             // Tables are edited in place: tap a cell, type, and use the table bar.
             rule.onNodeWithTag("doc_cell_0_1_1").performClick()
-            rule.waitUntil(10_000) { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isNotEmpty() }
+            step("cell editor opens") { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("table_cell_editor").performTextReplacement("Z9")
             rule.onNodeWithTag("table_row_below").performClick()
             // The new row is below the edited one and its first cell is now being edited.
-            rule.waitUntil(10_000) { rule.onAllNodesWithTag("doc_cell_0_2_0").fetchSemanticsNodes().isNotEmpty() }
+            step("row is added below") { rule.onAllNodesWithTag("doc_cell_0_2_0").fetchSemanticsNodes().isNotEmpty() }
             rule.waitForText("Z9")
             rule.onNodeWithTag("table_cell_editor").performTextInput("A3")
             rule.screenshot("18_docx_table_in_place")
             rule.onNodeWithTag("table_done").performClick()
             rule.waitForText("A3")
-            rule.waitUntil(5_000) { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isEmpty() }
+            step("editing ends", 5_000) { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isEmpty() }
 
             rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
             rule.onNodeWithTag("menu_insert_table").performClick()
             rule.onNodeWithTag("insert_table_confirm").performClick()
-            rule.waitUntil(10_000) { rule.onAllNodesWithTag("doc_table_1").fetchSemanticsNodes().isNotEmpty() }
+            step("table is inserted") { rule.onAllNodesWithTag("doc_table_1").fetchSemanticsNodes().isNotEmpty() }
             // A new table opens with its first cell ready for typing.
-            rule.waitUntil(10_000) { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isNotEmpty() }
+            step("new table is being edited") { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("table_done").performClick()
             rule.screenshot("18_docx_tables")
 

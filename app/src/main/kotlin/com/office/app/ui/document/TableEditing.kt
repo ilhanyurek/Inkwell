@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -97,6 +98,8 @@ internal fun TableView(
                     Modifier
                         .offset { IntOffset(c.x.toInt(), c.y.toInt()) }
                         .size(c.w.dp(), c.h.dp())
+                        // Tapping a cell must not take focus away from the cell being typed in first.
+                        .focusProperties { canFocus = false }
                         .clickable { onCell(c.row, c.tc) }
                         .testTag("doc_cell_${index}_${c.row}_${c.tc}"),
                 )
@@ -152,7 +155,9 @@ internal fun TableBar(
     onDone: () -> Unit,
 ) {
     com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding().imePadding()) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp)) {
+        // The buttons never take focus: the cell keeps it, so a press (also with a keyboard attached, where
+        // buttons are focusable) does not end the edit before the button acts.
+        Column(Modifier.fillMaxWidth().focusProperties { canFocus = false }.padding(horizontal = 6.dp, vertical = 4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onPrev, modifier = Modifier.testTag("table_prev")) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, modifier = Modifier.size(20.dp))
