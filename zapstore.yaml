@@ -13,13 +13,13 @@ description: |
 
   **Spreadsheets (XLSX, XLS, ODS, CSV):** cell formatting, number and date formats, 50+ formulas (VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates, TEXT…), sorting, multiple sheets, charts, freeze panes and filters.
 
-  **PDF:** removable highlights and notes, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), select and copy text, table of contents, rotate/delete/extract pages, merge, search, password-protected files.
+  **PDF:** edit the text on the page (tap a paragraph and type; the old text is taken out of the file), removable highlights and notes, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), select and copy text, table of contents, rotate/delete/extract pages, merge, search, password-protected files.
 
   **Presentations (PPTX, ODP):** view and present with speaker notes, edit slide text, add, duplicate, move and delete slides, create new presentations, export to PDF.
 
   **Tools:** 29 offline tools: merge, split, organize, compress, repair; images, scans, Word, Excel, PowerPoint and text to PDF; PDF to images, Word, PowerPoint and text; watermark, page numbers, password protect/unlock, crop, flatten, properties, extract images and compare.
 
-  Undo and redo everywhere, autosaved drafts with crash recovery, folders, thumbnail grid, launcher shortcuts, 22 languages, light and dark theme, an icon that follows your wallpaper. Free and open source, without ads or tracking.
+  Several files open at once (or one at a time, if you prefer), undo and redo everywhere, autosaved drafts with crash recovery, folders, thumbnail grid, launcher shortcuts, 22 languages, light, dark and true black themes, an icon that follows your wallpaper. Free and open source, without ads or tracking.
 license: GPL-3.0-or-later
 website: https://github.com/ilhanyurek/Inkwell
 tags: [productivity, office, documents, pdf, spreadsheet]

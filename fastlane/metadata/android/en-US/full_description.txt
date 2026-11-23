@@ -2,7 +2,7 @@ Inkwell opens and edits office files on your phone. When you save, it keeps the 
 
 <b>Documents (DOCX, DOC, ODT, TXT, Markdown)</b>
 • Bold, italic, underline, headings, lists, quotes, alignment, find and replace
-• Tables and pictures appear in place; edit tables and insert new ones
+• Tables, pictures and headers appear as in the file, on a white sheet; edit tables and insert new ones
 • Links, equations and styles are kept when you save
 • Export to PDF or print
 
@@ -14,6 +14,7 @@ Inkwell opens and edits office files on your phone. When you save, it keeps the 
 • Merged cells and conditional formatting are kept
 
 <b>PDF</b>
+• Edit the text on the page: tap a paragraph and type; the old text is taken out of the file
 • Highlights and notes you can remove later
 • Draw your signature and place it on the page
 • Fill in forms
@@ -35,8 +36,9 @@ Inkwell opens and edits office files on your phone. When you save, it keeps the 
 
 <b>And</b>
 • Launcher shortcuts for new files, scanning and your last file
+• Several files open at once, or one at a time if you prefer
 • Undo and redo everywhere
 • Drafts are saved automatically and restored after a crash
 • Folders tab, thumbnail grid, pinned and recent files
-• 22 languages, light and dark theme, icon that follows your wallpaper
+• 22 languages, light, dark and true black themes, icon that follows your wallpaper
 • Free and open source (GPL-3.0), without ads or tracking

@@ -2,7 +2,7 @@
 
 All notable changes to Inkwell are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## Unreleased
+## [1.5.0] - 2026-11-23
 
 ### Changed
 - New look across the app: a deep navy accent on a light grey page, white rounded cards, large bold titles, pill-shaped switches between Recent, Folders and Tools, and the Figtree typeface

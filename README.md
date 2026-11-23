@@ -7,11 +7,11 @@ with Jetpack Compose, and its own `core` module reads and writes the file format
 
 | Format | Open | Edit | Save as |
 |---|---|---|---|
-| **DOCX** | ✓ Shows tables and pictures in place; keeps links, equations, headers and styles | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace; edit tables, insert tables and pictures | DOCX (only the text you changed is rewritten), PDF, print |
+| **DOCX** | ✓ Shows tables, pictures (also TIFF), headers and the document's own formatting on a white sheet; keeps links, equations and styles | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace; edit tables, insert tables and pictures | DOCX (only the text you changed is rewritten), PDF, print |
 | **TXT / MD** | ✓ | Plain text; headings, lists and bold/italic in Markdown | TXT / MD, PDF |
 | **XLSX** | ✓ Multiple sheets, styles, number and date formats, charts; keeps merged cells and conditional formatting | Cell editing; bold/italic/colours/fill/borders/alignment/number formats; 50+ formulas incl. VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates and TEXT (also under Turkish names such as DÜŞEYARA, ETOPLA, BUGÜN); rows/columns, sort, fill down, sheets, freeze panes, filter | XLSX, CSV, PDF |
 | **CSV / TSV** | ✓ Detects the delimiter and encoding | Spreadsheet editor; typed dates, percentages and amounts become numbers | CSV, XLSX, PDF |
-| **PDF** | ✓ Including password-protected files | Highlights and notes you can delete later, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), rotate/delete/extract pages, merge, search, select and copy text, table of contents | PDF |
+| **PDF** | ✓ Including password-protected files | Edit the text on the page: tap a paragraph and type, the old text is taken out of the file and the new one uses the paragraph's size, colour and alignment; highlights and notes you can delete later, signatures, form filling, redaction (blur or black box; Inkwell deletes the hidden content from the file), rotate/delete/extract pages, merge, search, select and copy text, table of contents | PDF |
 | **PPTX** | ✓ Text boxes, images, layouts, speaker notes, presentation mode | Slide text; add, duplicate, move and delete slides; new presentations | PPTX, PDF |
 | **DOC / XLS** | ✓ Word and Excel 97-2003 files: text, formatting, headings, lists, tables, sheets and values | Same editors as DOCX and XLSX | DOCX, XLSX (a new copy), PDF |
 | **ODT / ODS / ODP** | ✓ | Same editors as DOCX and XLSX; ODP is view only | ODT, ODS, PDF |
@@ -25,7 +25,8 @@ with Jetpack Compose, and its own `core` module reads and writes the file format
 - Drafts: Inkwell saves your changes as a draft a few seconds after you type and offers them back after a crash. You can also turn on saving straight to the file.
 - Home: recent and pinned files, list or thumbnail grid, search, type filters, recovered drafts, and a **Folders** tab to browse, rename and delete files.
 - 22 interface languages: Turkish, English, Chinese, Hindi, Spanish, French, Arabic, Bengali, Portuguese, Russian, Urdu, Indonesian, German, Japanese, Marathi, Telugu, Tamil, Vietnamese, Filipino, Korean, Persian and Swahili.
-- Light/dark theme, Material You colours; the app icon follows the wallpaper palette and themed icons.
+- Several files open at once: Back goes Home and leaves them open, the number in the top bar lists them. Can be turned off in Settings for one file at a time.
+- Light, dark and true black themes, Material You colours; the app icon follows the wallpaper palette and themed icons.
 
 ## Download
 
@@ -75,8 +76,9 @@ app/    Android app: Compose UI, file access (SAF), PDF (PdfRenderer + PdfBox-An
 
 ## Known limitations
 
-- Legacy binary formats (.doc, .xls, .ppt) are not supported.
-- DOCX tables, images and equations are kept but not editable in the app (they appear as labelled chips).
+- Legacy .doc and .xls files open with their text, basic formatting and tables, and are saved as .docx/.xlsx; pictures and headers of .doc files are not shown yet. Legacy .ppt is not supported.
+- DOCX equations are kept but not editable in the app.
+- PDF text editing works on one paragraph at a time; the edited paragraph takes a single style and justified text becomes left-aligned. Scanned pages have no text to edit.
 - XLSX charts are kept but not shown; formulas the app does not know show the value Excel last saved.
 - PPTX: only text can be edited; shapes and images are kept as they are.
 

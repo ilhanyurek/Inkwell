@@ -2,7 +2,7 @@ Inkwell ofis dosyalarını telefonunuzda açar ve düzenler. Kaydederken düzenl
 
 <b>Belgeler (DOCX, DOC, ODT, TXT, Markdown)</b>
 • Kalın, italik, altı çizili, başlıklar, listeler, alıntılar, hizalama, bul ve değiştir
-• Tablolar ve resimler yerinde görünür; tabloları düzenleyin, yeni tablo ve resim ekleyin
+• Tablolar, resimler ve üst bilgiler dosyadaki gibi, beyaz sayfada görünür; tabloları düzenleyin, yeni tablo ve resim ekleyin
 • Kaydederken bağlantılar, denklemler ve stiller korunur
 • PDF olarak dışa aktarma veya yazdırma
 
@@ -14,6 +14,7 @@ Inkwell ofis dosyalarını telefonunuzda açar ve düzenler. Kaydederken düzenl
 • Birleştirilmiş hücreler ve koşullu biçimlendirme korunur
 
 <b>PDF</b>
+• Sayfadaki metni düzenleyin: bir paragrafa dokunup yazın, eski metin dosyadan silinir
 • Sonradan silinebilen vurgular ve notlar
 • İmzanızı çizip sayfaya yerleştirme
 • Form doldurma
@@ -35,8 +36,9 @@ Inkwell ofis dosyalarını telefonunuzda açar ve düzenler. Kaydederken düzenl
 
 <b>Ayrıca</b>
 • Yeni dosya, tarama ve son dosya için başlatıcı kısayolları
+• Aynı anda birden çok dosya açık kalabilir, isterseniz tek dosya
 • Her yerde geri al ve yinele
 • Taslaklar otomatik kaydedilir, çökme sonrası geri yüklenir
 • Klasörler sekmesi, küçük resim ızgarası, sabitlenmiş ve son dosyalar
-• 22 dil, açık ve koyu tema, duvar kâğıdına uyan simge
+• 22 dil, açık, koyu ve tam siyah tema, duvar kâğıdına uyan simge
 • Ücretsiz ve açık kaynak (GPL-3.0), reklam ve takip içermez
