@@ -1284,36 +1284,39 @@ private val EditColors = listOf(0x000000, 0x444444, 0x1D2B5E, 0x2F56B8, 0xC0392B
 @Composable
 private fun EditTextBar(style: PdfTextStyle, onStyle: (PdfTextStyle) -> Unit, onCancel: () -> Unit, onDone: () -> Unit) {
     com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding().imePadding()) {
-        Row(
-            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            IconButton(onClick = onCancel) { Icon(Icons.Default.Close, stringResource(R.string.action_cancel)) }
-            IconButton(onClick = { onStyle(style.copy(sizePt = (style.sizePt - 1f).coerceAtLeast(4f))) }) {
-                Icon(Icons.Default.TextDecrease, stringResource(R.string.pdf_edit_smaller))
+        // Cancel and Done stay in view; the formatting buttons between them scroll on narrow screens.
+        Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onCancel, modifier = Modifier.testTag("pdf_block_cancel")) { Icon(Icons.Default.Close, stringResource(R.string.action_cancel)) }
+            Row(
+                Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                IconButton(onClick = { onStyle(style.copy(sizePt = (style.sizePt - 1f).coerceAtLeast(4f))) }) {
+                    Icon(Icons.Default.TextDecrease, stringResource(R.string.pdf_edit_smaller))
+                }
+                Text("${"%.1f".format(style.sizePt).removeSuffix(".0")} pt", style = MaterialTheme.typography.labelLarge)
+                IconButton(onClick = { onStyle(style.copy(sizePt = (style.sizePt + 1f).coerceAtMost(96f))) }) {
+                    Icon(Icons.Default.TextIncrease, stringResource(R.string.pdf_edit_larger))
+                }
+                androidx.compose.material3.IconToggleButton(checked = style.bold, onCheckedChange = { onStyle(style.copy(bold = it)) }) {
+                    Icon(Icons.Default.FormatBold, stringResource(R.string.format_bold), tint = if (style.bold) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+                }
+                androidx.compose.material3.IconToggleButton(checked = style.italic, onCheckedChange = { onStyle(style.copy(italic = it)) }) {
+                    Icon(Icons.Default.FormatItalic, stringResource(R.string.format_italic), tint = if (style.italic) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+                }
+                (listOf(style.rgb) + EditColors).distinct().take(7).forEach { c ->
+                    Box(
+                        Modifier
+                            .padding(horizontal = 3.dp)
+                            .size(22.dp)
+                            .background(Color(0xFF000000 or c.toLong()), CircleShape)
+                            .then(if (c == style.rgb) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier)
+                            .clickable { onStyle(style.copy(rgb = c)) },
+                    )
+                }
             }
-            Text("${"%.1f".format(style.sizePt).removeSuffix(".0")} pt", style = MaterialTheme.typography.labelLarge)
-            IconButton(onClick = { onStyle(style.copy(sizePt = (style.sizePt + 1f).coerceAtMost(96f))) }) {
-                Icon(Icons.Default.TextIncrease, stringResource(R.string.pdf_edit_larger))
-            }
-            androidx.compose.material3.IconToggleButton(checked = style.bold, onCheckedChange = { onStyle(style.copy(bold = it)) }) {
-                Icon(Icons.Default.FormatBold, stringResource(R.string.format_bold), tint = if (style.bold) MaterialTheme.colorScheme.primary else LocalContentColor.current)
-            }
-            androidx.compose.material3.IconToggleButton(checked = style.italic, onCheckedChange = { onStyle(style.copy(italic = it)) }) {
-                Icon(Icons.Default.FormatItalic, stringResource(R.string.format_italic), tint = if (style.italic) MaterialTheme.colorScheme.primary else LocalContentColor.current)
-            }
-            (listOf(style.rgb) + EditColors).distinct().take(7).forEach { c ->
-                Box(
-                    Modifier
-                        .padding(horizontal = 3.dp)
-                        .size(22.dp)
-                        .background(Color(0xFF000000 or c.toLong()), CircleShape)
-                        .then(if (c == style.rgb) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier)
-                        .clickable { onStyle(style.copy(rgb = c)) },
-                )
-            }
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(4.dp))
             androidx.compose.material3.Button(onClick = onDone, shape = CircleShape, modifier = Modifier.testTag("pdf_block_done")) {
                 Text(stringResource(R.string.pdf_edit_done))
             }

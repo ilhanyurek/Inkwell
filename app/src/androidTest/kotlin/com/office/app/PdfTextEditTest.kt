@@ -98,15 +98,21 @@ class PdfTextEditTest {
             rule.onNodeWithTag("pdf_block_editor").performTextReplacement("Başvuru formu")
             rule.screenshot("32_pdf_edit_text")
             rule.onNodeWithTag("pdf_block_done").performClick()
-            rule.waitUntil(30_000) {
-                val draft = drafts.drafts.value.firstOrNull() ?: return@waitUntil false
-                runCatching {
-                    PDDocument.load(draft.file).use { doc ->
-                        val page1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(doc)
-                        page1.contains("Başvuru formu") && !page1.contains("Application form")
-                    }
-                }.getOrDefault(false)
-            }
+            var seen = "no draft"
+            val done = runCatching {
+                rule.waitUntil(30_000) {
+                    val draft = drafts.drafts.value.firstOrNull() ?: return@waitUntil false
+                    runCatching {
+                        PDDocument.load(draft.file).use { doc ->
+                            val page1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(doc)
+                            seen = page1.replace("\n", " | ").take(200)
+                            page1.contains("Başvuru formu") && !page1.contains("Application form")
+                        }
+                    }.getOrDefault(false)
+                }
+            }.isSuccess
+            // Say what the draft held, so a failure on CI is readable from the log.
+            assertTrue("page 1 of the draft: $seen", done)
             rule.screenshot("33_pdf_text_edited")
         }
     }
