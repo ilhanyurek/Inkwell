@@ -16,6 +16,9 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 - Closing a file with unsaved changes asks whether to save, discard or keep it open
 - Open files come back after the app is restarted
 
+- Edit the text of a PDF on the page: tap a paragraph, type, and its lines rewrap in place. The old text is taken out of the file (not covered), the new text uses the paragraph's size, colour and alignment and the PDF's own font when it has the letters
+- "Keep several files open" can be turned off in Settings; then one file is open at a time and Back closes it
+
 ### Fixed
 - Pictures saved as TIFF are shown, for example university logos in the header of a form
 

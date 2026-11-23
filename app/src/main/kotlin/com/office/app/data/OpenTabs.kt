@@ -40,6 +40,9 @@ class OpenTabs(context: Context? = null) {
     /** Each open file keeps its editor's state here, so leaving the editor screen does not lose it. */
     private val stores = HashMap<String, ViewModelStore>()
 
+    /** One file at a time: opening a file closes the others that have no unsaved changes. */
+    @Volatile var singleFile = false
+
     /** A tab whose editor should run its own close flow (it asks about unsaved changes). */
     var pendingClose by mutableStateOf<String?>(null)
     private var counter = 0
@@ -92,6 +95,7 @@ class OpenTabs(context: Context? = null) {
         if (existing != null) {
             if (tool != null && existing.tool != tool) tabs[tabs.indexOf(existing)] = existing.copy(tool = tool)
             selectedId = existing.id
+            if (singleFile) tabs.filter { it.id != existing.id && !isDirty(it.id) }.forEach { close(it.id) }
             persist()
             return
         }
@@ -119,6 +123,7 @@ class OpenTabs(context: Context? = null) {
     }
 
     private fun add(tab: Tab) {
+        if (singleFile) tabs.filter { !isDirty(it.id) }.forEach { close(it.id) }
         val at = tabs.indexOfFirst { it.id == selectedId }.let { if (it < 0) tabs.size else it + 1 }
         tabs.add(at, tab)
         selectedId = tab.id

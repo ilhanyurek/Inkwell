@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Fechar todos os arquivos salvos</string>
     <string name="tabs_home">Início</string>
     <string name="tabs_unsaved">Alterações não salvas</string>
+    <string name="settings_keep_files_open">Manter vários arquivos abertos</string>
+    <string name="settings_keep_files_open_desc">Voltar leva ao início e os arquivos continuam abertos; o número na barra superior lista todos. Desativado, só um arquivo fica aberto por vez e Voltar o fecha.</string>
+    <string name="pdf_tool_edit_text">Editar texto</string>
+    <string name="pdf_edit_text_hint">Toque em um parágrafo para mudar o texto</string>
+    <string name="pdf_edit_text_none">Não há texto para editar nesta página</string>
+    <string name="pdf_edit_done">Concluído</string>
+    <string name="pdf_edit_smaller">Texto menor</string>
+    <string name="pdf_edit_larger">Texto maior</string>
     <plurals name="pdf_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>

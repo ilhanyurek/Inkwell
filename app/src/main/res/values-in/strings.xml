@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Tutup semua file yang tersimpan</string>
     <string name="tabs_home">Beranda</string>
     <string name="tabs_unsaved">Perubahan belum disimpan</string>
+    <string name="settings_keep_files_open">Biarkan beberapa file tetap terbuka</string>
+    <string name="settings_keep_files_open_desc">Kembali menuju Beranda dan file tetap terbuka; angka di bilah atas menampilkan daftarnya. Jika nonaktif, hanya satu file yang terbuka dan Kembali menutupnya.</string>
+    <string name="pdf_tool_edit_text">Edit teks</string>
+    <string name="pdf_edit_text_hint">Ketuk paragraf untuk mengubah teksnya</string>
+    <string name="pdf_edit_text_none">Tidak ada teks yang bisa diedit di halaman ini</string>
+    <string name="pdf_edit_done">Selesai</string>
+    <string name="pdf_edit_smaller">Perkecil teks</string>
+    <string name="pdf_edit_larger">Perbesar teks</string>
     <plurals name="pdf_results">
         <item quantity="other">%d hasil</item>
     </plurals>

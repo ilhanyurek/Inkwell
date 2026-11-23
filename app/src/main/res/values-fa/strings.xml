@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">بستن همه فایل‌های ذخیره‌شده</string>
     <string name="tabs_home">خانه</string>
     <string name="tabs_unsaved">تغییرات ذخیره‌نشده</string>
+    <string name="settings_keep_files_open">چند فایل باز بماند</string>
+    <string name="settings_keep_files_open_desc">دکمه بازگشت به خانه می‌رود و فایل‌ها باز می‌مانند؛ عدد نوار بالا آن‌ها را فهرست می‌کند. اگر خاموش باشد، هر بار یک فایل باز است و بازگشت آن را می‌بندد.</string>
+    <string name="pdf_tool_edit_text">ویرایش متن</string>
+    <string name="pdf_edit_text_hint">برای تغییر متن روی یک بند ضربه بزنید</string>
+    <string name="pdf_edit_text_none">در این صفحه متنی برای ویرایش نیست</string>
+    <string name="pdf_edit_done">تمام</string>
+    <string name="pdf_edit_smaller">کوچک‌کردن متن</string>
+    <string name="pdf_edit_larger">بزرگ‌کردن متن</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجه</item>
         <item quantity="other">%d نتیجه</item>

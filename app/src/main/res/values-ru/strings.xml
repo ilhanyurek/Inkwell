@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Закрыть все сохранённые файлы</string>
     <string name="tabs_home">Главная</string>
     <string name="tabs_unsaved">Несохранённые изменения</string>
+    <string name="settings_keep_files_open">Держать несколько файлов открытыми</string>
+    <string name="settings_keep_files_open_desc">«Назад» ведёт на главную, а файлы остаются открытыми; число на верхней панели показывает их список. Если выключено, открыт только один файл, и «Назад» закрывает его.</string>
+    <string name="pdf_tool_edit_text">Изменить текст</string>
+    <string name="pdf_edit_text_hint">Нажмите на абзац, чтобы изменить его текст</string>
+    <string name="pdf_edit_text_none">На этой странице нет текста для изменения</string>
+    <string name="pdf_edit_done">Готово</string>
+    <string name="pdf_edit_smaller">Уменьшить текст</string>
+    <string name="pdf_edit_larger">Увеличить текст</string>
     <plurals name="pdf_results">
         <item quantity="one">%d совпадение</item>
         <item quantity="few">%d совпадения</item>

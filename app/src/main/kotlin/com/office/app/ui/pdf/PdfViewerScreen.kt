@@ -1,5 +1,22 @@
 package com.office.app.ui.pdf
 
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material.icons.filled.FormatBold
+import androidx.compose.material.icons.filled.FormatItalic
+import androidx.compose.material.icons.filled.TextDecrease
+import androidx.compose.material.icons.filled.TextIncrease
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import com.office.app.ui.design.PillChip
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -119,7 +136,10 @@ import com.office.app.ui.common.shareUri
 import com.office.app.ui.common.toast
 import kotlinx.coroutines.launch
 
-private enum class Tool { VIEW, HIGHLIGHT, TEXT, SIGN, REDACT }
+private enum class Tool { VIEW, HIGHLIGHT, TEXT, EDIT_TEXT, SIGN, REDACT }
+
+/** A paragraph being edited on the page: its new text and look, and the page colour behind it. */
+private data class BlockEdit(val block: PdfTextBlock, val text: TextFieldValue, val style: PdfTextStyle, val background: Int)
 
 /** Where a signature is about to be placed: page, centre and width as a fraction of the page width. */
 private data class Placement(val page: Int, val center: PagePoint, val width: Float)
@@ -178,6 +198,8 @@ fun PdfViewerScreen(
     var deleteCandidate by remember { mutableStateOf<AnnotationInfo?>(null) }
     var selection by remember { mutableStateOf<TextSelection?>(null) }
     var showOutline by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<BlockEdit?>(null) }
+    val noTextMsg = stringResource(R.string.pdf_edit_text_none)
     val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
     val copiedMsg = stringResource(R.string.copied)
 
@@ -209,9 +231,18 @@ fun PdfViewerScreen(
         else saveAs.launch(vm.fileName)
     }
 
+    /** Writes the paragraph being edited into the page, if it changed. */
+    fun applyEdit() {
+        val e = editing ?: return
+        editing = null
+        if (e.text.text == e.block.text && e.style == e.block.style) return
+        vm.replaceBlock(e.block, e.text.text, e.style, e.background) { toast(context, failedMsg) }
+    }
+
     com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
-    BackHandler(enabled = (vm.dirty && !com.office.app.ui.tabs.inWorkspace()) || searching || tool != Tool.VIEW) {
+    BackHandler(enabled = (vm.dirty && !com.office.app.ui.tabs.inWorkspace()) || searching || tool != Tool.VIEW || editing != null) {
         when {
+            editing != null -> editing = null
             searching -> { searching = false; vm.clearSearch() }
             tool != Tool.VIEW -> tool = Tool.VIEW
             else -> showUnsaved = true
@@ -297,7 +328,15 @@ fun PdfViewerScreen(
         bottomBar = {
             val p = placement
             val sel = selection
-            if (sel != null && tool == Tool.VIEW) {
+            val edit = editing
+            if (edit != null) {
+                EditTextBar(
+                    style = edit.style,
+                    onStyle = { editing = edit.copy(style = it) },
+                    onCancel = { editing = null },
+                    onDone = ::applyEdit,
+                )
+            } else if (sel != null && tool == Tool.VIEW) {
                 SelectionBar(
                     count = sel.selected.size,
                     onCopy = {
@@ -422,6 +461,14 @@ fun PdfViewerScreen(
                                 selected = selection?.takeIf { it.page == index }?.selected.orEmpty(),
                                 redactions = redactions[index].orEmpty(),
                                 onRedact = { a, b -> redactions[index] = redactions[index].orEmpty() + (a to b) },
+                                editing = editing?.takeIf { it.block.page == index },
+                                onEditBlock = { block, background, cursor ->
+                                    applyEdit()
+                                    editing = BlockEdit(block, TextFieldValue(block.text, TextRange(cursor)), block.style, background)
+                                },
+                                onEditText = { v -> editing = editing?.copy(text = v) },
+                                onEditOutside = ::applyEdit,
+                                onNoText = { toast(context, noTextMsg) },
                             )
                         }
                     }
@@ -558,8 +605,16 @@ private fun PdfPage(
     selected: List<PdfWord> = emptyList(),
     redactions: List<Pair<PagePoint, PagePoint>> = emptyList(),
     onRedact: (PagePoint, PagePoint) -> Unit = { _, _ -> },
+    editing: BlockEdit? = null,
+    onEditBlock: (PdfTextBlock, Int, Int) -> Unit = { _, _, _ -> },
+    onEditText: (TextFieldValue) -> Unit = {},
+    onEditOutside: () -> Unit = {},
+    onNoText: () -> Unit = {},
 ) {
     val (pw, ph) = vm.pageSizes.getOrNull(index) ?: (612 to 792)
+    val blocks by produceState<List<PdfTextBlock>?>(null, index, vm.version, tool) {
+        value = if (tool == Tool.EDIT_TEXT) vm.textBlocks(index) else null
+    }
     val density = LocalDensity.current
     // Render at the on-screen width, bucketed so small zoom changes reuse bitmaps.
     val targetPx = with(density) { width.toPx() }.let { ((it / 256f).toInt() + 1) * 256 }.coerceIn(256, 2560)
@@ -597,6 +652,21 @@ private fun PdfPage(
                     Tool.TEXT -> Modifier.pointerInput(index) {
                         detectTapGestures { p -> onTextAt(PagePoint(p.x / size.width, p.y / size.height)) }
                     }
+                    Tool.EDIT_TEXT -> Modifier.pointerInput(index, blocks, editing != null) {
+                        detectTapGestures { p ->
+                            val pt = PagePoint(p.x / size.width, p.y / size.height)
+                            val list = blocks
+                            val slack = 0.006f
+                            val hit = list?.firstOrNull { b ->
+                                pt.x in (b.left - slack)..(b.right + slack) && pt.y in (b.top - slack)..(b.bottom + slack)
+                            }
+                            when {
+                                hit != null -> onEditBlock(hit, pageColor(bitmap, hit), cursorAt(hit, pt))
+                                editing != null -> onEditOutside()
+                                list != null && list.isEmpty() -> onNoText()
+                            }
+                        }
+                    }
                     Tool.SIGN -> Modifier.pointerInput(index) {
                         detectTapGestures { p -> onSignAt(PagePoint(p.x / size.width, p.y / size.height)) }
                     }
@@ -616,6 +686,36 @@ private fun PdfPage(
         bitmap?.let {
             Image(it.asImageBitmap(), contentDescription = null, contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
         }
+        if (tool == Tool.EDIT_TEXT) {
+            val outline = MaterialTheme.colorScheme.primary
+            val list = blocks.orEmpty()
+            Canvas(Modifier.fillMaxSize()) {
+                list.forEach { b ->
+                    if (editing?.block?.index == b.index) return@forEach
+                    drawRect(
+                        outline.copy(alpha = 0.55f),
+                        Offset(b.left * size.width - 2f, b.top * size.height - 2f),
+                        Size((b.right - b.left) * size.width + 4f, (b.bottom - b.top) * size.height + 4f),
+                        style = Stroke(1.5f, pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(8f, 6f))),
+                    )
+                }
+            }
+            // Invisible tap targets so tests (and accessibility) can reach each paragraph.
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val wPx = constraints.maxWidth.toFloat()
+                val hPx = constraints.maxHeight.toFloat()
+                list.forEach { b ->
+                    Box(
+                        Modifier
+                            .offset { androidx.compose.ui.unit.IntOffset((b.left * wPx).toInt(), (b.top * hPx).toInt()) }
+                            .size(with(density) { ((b.right - b.left) * wPx).toDp() }, with(density) { ((b.bottom - b.top) * hPx).toDp() })
+                            .testTag("pdf_block_${index}_${b.index}")
+                            .semantics { contentDescription = b.text.take(80) },
+                    )
+                }
+            }
+        }
+        if (editing != null) BlockEditor(editing, pageWidthPt = pw.toFloat(), onText = onEditText)
         // Android's PdfRenderer does not draw annotations, so draw ours on top of the page.
         val pageAnnotations = vm.annotations.filter { it.page == index }
         if (pageAnnotations.isNotEmpty()) {
@@ -726,13 +826,23 @@ private fun ToolBar(vm: PdfViewerViewModel, tool: Tool, onTool: (Tool) -> Unit, 
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 UndoRedoButtons(vm.canUndo && !vm.busy, vm.canRedo && !vm.busy, vm::undo, vm::redo)
-                FilterChip(selected = tool == Tool.VIEW, onClick = { onTool(Tool.VIEW) }, label = { Text(stringResource(R.string.pdf_tool_view)) })
-                FilterChip(selected = tool == Tool.HIGHLIGHT, onClick = { onTool(Tool.HIGHLIGHT) }, label = { Text(stringResource(R.string.pdf_tool_highlight)) })
-                FilterChip(selected = tool == Tool.TEXT, onClick = { onTool(Tool.TEXT) }, label = { Text(stringResource(R.string.pdf_tool_text)) })
-                FilterChip(selected = tool == Tool.SIGN, onClick = { onTool(Tool.SIGN) }, label = { Text(stringResource(R.string.pdf_tool_sign)) })
-                FilterChip(selected = tool == Tool.REDACT, onClick = { onTool(Tool.REDACT) }, label = { Text(stringResource(R.string.pdf_tool_redact)) })
+                PillChip(stringResource(R.string.pdf_tool_view), tool == Tool.VIEW, { onTool(Tool.VIEW) })
+                PillChip(
+                    stringResource(R.string.pdf_tool_edit_text), tool == Tool.EDIT_TEXT, { onTool(Tool.EDIT_TEXT) },
+                    modifier = Modifier.testTag("pdf_tool_edit_text"),
+                )
+                PillChip(stringResource(R.string.pdf_tool_highlight), tool == Tool.HIGHLIGHT, { onTool(Tool.HIGHLIGHT) })
+                PillChip(stringResource(R.string.pdf_tool_text), tool == Tool.TEXT, { onTool(Tool.TEXT) })
+                PillChip(stringResource(R.string.pdf_tool_sign), tool == Tool.SIGN, { onTool(Tool.SIGN) })
+                PillChip(stringResource(R.string.pdf_tool_redact), tool == Tool.REDACT, { onTool(Tool.REDACT) })
                 Spacer(Modifier.width(4.dp))
-                if (tool == Tool.HIGHLIGHT) {
+                if (tool == Tool.EDIT_TEXT) {
+                    Text(
+                        stringResource(R.string.pdf_edit_text_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else if (tool == Tool.HIGHLIGHT) {
                     HighlightColors.forEach { c ->
                         Box(
                             Modifier
@@ -1084,6 +1194,129 @@ private fun SelectionBar(count: Int, onCopy: () -> Unit, onSelectAll: () -> Unit
             TextButton(onClick = onSelectAll) { Text(stringResource(R.string.pdf_select_page)) }
             TextButton(onClick = onCopy, modifier = Modifier.testTag("pdf_copy")) { Text(stringResource(R.string.sheet_copy)) }
             IconButton(onClick = onClose) { Icon(Icons.Default.Close, stringResource(R.string.action_close)) }
+        }
+    }
+}
+
+// --- editing text in place ---------------------------------------------------------------------------
+
+/** The page colour around [block], read from the rendered page (white when unknown). */
+private fun pageColor(bitmap: Bitmap?, block: PdfTextBlock): Int {
+    val bmp = bitmap ?: return 0xFFFFFF
+    val w = bmp.width
+    val h = bmp.height
+    val l = ((block.left * w).toInt() - 4).coerceIn(0, w - 1)
+    val r = ((block.right * w).toInt() + 4).coerceIn(0, w - 1)
+    val t = ((block.top * h).toInt() - 4).coerceIn(0, h - 1)
+    val b = ((block.bottom * h).toInt() + 4).coerceIn(0, h - 1)
+    val cx = (l + r) / 2
+    val cy = (t + b) / 2
+    val samples = listOf(l to t, r to t, l to b, r to b, cx to t, cx to b, l to cy, r to cy)
+        .map { (x, y) -> bmp.getPixel(x, y) and 0xFFFFFF }
+    fun median(shift: Int) = samples.map { (it shr shift) and 0xFF }.sorted()[samples.size / 2]
+    return (median(16) shl 16) or (median(8) shl 8) or median(0)
+}
+
+/** Roughly where in [block]'s text a tap at [pt] landed, snapped to the end of that word. */
+private fun cursorAt(block: PdfTextBlock, pt: PagePoint): Int {
+    val text = block.text
+    if (text.isEmpty()) return 0
+    val lines = block.lineCount.coerceAtLeast(1)
+    val fy = ((pt.y - block.top) / (block.bottom - block.top).coerceAtLeast(1e-4f)).coerceIn(0f, 0.999f)
+    val fx = ((pt.x - block.left) / (block.right - block.left).coerceAtLeast(1e-4f)).coerceIn(0f, 1f)
+    val perLine = text.length / lines.toFloat()
+    var at = ((fy * lines).toInt() * perLine + fx * perLine).toInt().coerceIn(0, text.length)
+    while (at < text.length && !text[at].isWhitespace()) at++
+    return at
+}
+
+private fun pdfFamily(family: Int) = when (family) {
+    1 -> FontFamily.Serif
+    2 -> FontFamily.Monospace
+    else -> FontFamily.SansSerif
+}
+
+/** The text field laid over the paragraph being edited, at the same place, size and look as on the page. */
+@Composable
+private fun BlockEditor(edit: BlockEdit, pageWidthPt: Float, onText: (TextFieldValue) -> Unit) {
+    val density = LocalDensity.current
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(edit.block) { runCatching { focus.requestFocus() } }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val wPx = constraints.maxWidth.toFloat()
+        val hPx = constraints.maxHeight.toFloat()
+        val pxPerPt = wPx / pageWidthPt
+        val b = edit.block
+        val style = edit.style
+        // A single line may grow to the right margin that mirrors its left one, as it will in the file.
+        val widthFrac = if (b.lineCount > 1) b.right - b.left else maxOf(b.right - b.left, 1f - 2 * b.left)
+        val spacingPt = if (b.lineCount > 1) b.lineSpacing else style.sizePt * 1.2f
+        val bg = Color(0xFF000000 or edit.background.toLong())
+        val ink = Color(0xFF000000 or style.rgb.toLong())
+        BasicTextField(
+            value = edit.text,
+            onValueChange = onText,
+            textStyle = TextStyle(
+                color = ink,
+                fontSize = with(density) { (style.sizePt * pxPerPt).toSp() },
+                lineHeight = with(density) { (spacingPt * pxPerPt).toSp() },
+                fontFamily = pdfFamily(style.family),
+                fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
+                fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
+                textAlign = when (style.align) { 1 -> TextAlign.Center; 2 -> TextAlign.End; else -> TextAlign.Start },
+            ),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .offset { androidx.compose.ui.unit.IntOffset((b.left * wPx).toInt() - 3, (b.top * hPx).toInt() - 3) }
+                .width(with(density) { (widthFrac * wPx + 6).toDp() })
+                .background(bg)
+                .border(1.5.dp, MaterialTheme.colorScheme.primary)
+                .padding(1.5.dp)
+                .focusRequester(focus)
+                .testTag("pdf_block_editor"),
+        )
+    }
+}
+
+private val EditColors = listOf(0x000000, 0x444444, 0x1D2B5E, 0x2F56B8, 0xC0392B, 0x1E7F4F)
+
+/** Size, weight, slant and colour of the paragraph being edited, plus Cancel and Done. */
+@Composable
+private fun EditTextBar(style: PdfTextStyle, onStyle: (PdfTextStyle) -> Unit, onCancel: () -> Unit, onDone: () -> Unit) {
+    com.office.app.ui.design.FloatingBar(Modifier.navigationBarsPadding().imePadding()) {
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            IconButton(onClick = onCancel) { Icon(Icons.Default.Close, stringResource(R.string.action_cancel)) }
+            IconButton(onClick = { onStyle(style.copy(sizePt = (style.sizePt - 1f).coerceAtLeast(4f))) }) {
+                Icon(Icons.Default.TextDecrease, stringResource(R.string.pdf_edit_smaller))
+            }
+            Text("${"%.1f".format(style.sizePt).removeSuffix(".0")} pt", style = MaterialTheme.typography.labelLarge)
+            IconButton(onClick = { onStyle(style.copy(sizePt = (style.sizePt + 1f).coerceAtMost(96f))) }) {
+                Icon(Icons.Default.TextIncrease, stringResource(R.string.pdf_edit_larger))
+            }
+            androidx.compose.material3.IconToggleButton(checked = style.bold, onCheckedChange = { onStyle(style.copy(bold = it)) }) {
+                Icon(Icons.Default.FormatBold, stringResource(R.string.format_bold), tint = if (style.bold) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+            }
+            androidx.compose.material3.IconToggleButton(checked = style.italic, onCheckedChange = { onStyle(style.copy(italic = it)) }) {
+                Icon(Icons.Default.FormatItalic, stringResource(R.string.format_italic), tint = if (style.italic) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+            }
+            (listOf(style.rgb) + EditColors).distinct().take(7).forEach { c ->
+                Box(
+                    Modifier
+                        .padding(horizontal = 3.dp)
+                        .size(22.dp)
+                        .background(Color(0xFF000000 or c.toLong()), CircleShape)
+                        .then(if (c == style.rgb) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier)
+                        .clickable { onStyle(style.copy(rgb = c)) },
+                )
+            }
+            Spacer(Modifier.width(6.dp))
+            androidx.compose.material3.Button(onClick = onDone, shape = CircleShape, modifier = Modifier.testTag("pdf_block_done")) {
+                Text(stringResource(R.string.pdf_edit_done))
+            }
         }
     }
 }

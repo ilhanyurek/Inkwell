@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Funga faili zote zilizohifadhiwa</string>
     <string name="tabs_home">Mwanzo</string>
     <string name="tabs_unsaved">Mabadiliko ambayo hayajahifadhiwa</string>
+    <string name="settings_keep_files_open">Acha faili kadhaa wazi</string>
+    <string name="settings_keep_files_open_desc">Nyuma inarudi Mwanzo na faili zinabaki wazi; nambari kwenye upau wa juu inaziorodhesha. Ikizimwa, faili moja tu hufunguliwa na Nyuma huifunga.</string>
+    <string name="pdf_tool_edit_text">Hariri maandishi</string>
+    <string name="pdf_edit_text_hint">Gusa aya ili kubadilisha maandishi yake</string>
+    <string name="pdf_edit_text_none">Hakuna maandishi ya kuhariri kwenye ukurasa huu</string>
+    <string name="pdf_edit_done">Imekamilika</string>
+    <string name="pdf_edit_smaller">Punguza maandishi</string>
+    <string name="pdf_edit_larger">Ongeza maandishi</string>
     <plurals name="pdf_results">
         <item quantity="one">Kinacholingana %d</item>
         <item quantity="other">Vinavyolingana %d</item>

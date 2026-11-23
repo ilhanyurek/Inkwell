@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Cerrar todos los archivos guardados</string>
     <string name="tabs_home">Inicio</string>
     <string name="tabs_unsaved">Cambios sin guardar</string>
+    <string name="settings_keep_files_open">Mantener varios archivos abiertos</string>
+    <string name="settings_keep_files_open_desc">Atrás vuelve al inicio y los archivos siguen abiertos; el número de la barra superior los muestra. Si está desactivado, solo hay un archivo abierto y Atrás lo cierra.</string>
+    <string name="pdf_tool_edit_text">Editar texto</string>
+    <string name="pdf_edit_text_hint">Toca un párrafo para cambiar su texto</string>
+    <string name="pdf_edit_text_none">No hay texto que editar en esta página</string>
+    <string name="pdf_edit_done">Listo</string>
+    <string name="pdf_edit_smaller">Texto más pequeño</string>
+    <string name="pdf_edit_larger">Texto más grande</string>
     <plurals name="pdf_results">
         <item quantity="one">%d coincidencia</item>
         <item quantity="other">%d coincidencias</item>

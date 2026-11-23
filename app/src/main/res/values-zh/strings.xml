@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">关闭所有已保存的文件</string>
     <string name="tabs_home">主页</string>
     <string name="tabs_unsaved">未保存的更改</string>
+    <string name="settings_keep_files_open">保持多个文件打开</string>
+    <string name="settings_keep_files_open_desc">返回键回到主页，文件保持打开；顶部栏中的数字会列出它们。关闭后一次只打开一个文件，返回键会将其关闭。</string>
+    <string name="pdf_tool_edit_text">编辑文本</string>
+    <string name="pdf_edit_text_hint">点按段落以修改其文本</string>
+    <string name="pdf_edit_text_none">此页面上没有可编辑的文本</string>
+    <string name="pdf_edit_done">完成</string>
+    <string name="pdf_edit_smaller">缩小文字</string>
+    <string name="pdf_edit_larger">放大文字</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 个匹配项</item>
     </plurals>

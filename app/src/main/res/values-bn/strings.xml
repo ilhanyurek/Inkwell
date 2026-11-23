@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">সংরক্ষিত সব ফাইল বন্ধ করুন</string>
     <string name="tabs_home">হোম</string>
     <string name="tabs_unsaved">অসংরক্ষিত পরিবর্তন</string>
+    <string name="settings_keep_files_open">একাধিক ফাইল খোলা রাখুন</string>
+    <string name="settings_keep_files_open_desc">ব্যাক হোমে ফেরে এবং ফাইলগুলো খোলা থাকে; উপরের বারের সংখ্যাটি সেগুলোর তালিকা দেখায়। বন্ধ থাকলে একবারে একটি ফাইল খোলে এবং ব্যাক সেটি বন্ধ করে।</string>
+    <string name="pdf_tool_edit_text">লেখা সম্পাদনা</string>
+    <string name="pdf_edit_text_hint">লেখা বদলাতে একটি অনুচ্ছেদে ট্যাপ করুন</string>
+    <string name="pdf_edit_text_none">এই পৃষ্ঠায় সম্পাদনার মতো লেখা নেই</string>
+    <string name="pdf_edit_done">সম্পন্ন</string>
+    <string name="pdf_edit_smaller">লেখা ছোট করুন</string>
+    <string name="pdf_edit_larger">লেখা বড় করুন</string>
     <plurals name="pdf_results">
         <item quantity="one">%dটি মিল</item>
         <item quantity="other">%dটি মিল</item>

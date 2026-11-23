@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Alle gespeicherten Dateien schließen</string>
     <string name="tabs_home">Start</string>
     <string name="tabs_unsaved">Nicht gespeicherte Änderungen</string>
+    <string name="settings_keep_files_open">Mehrere Dateien geöffnet lassen</string>
+    <string name="settings_keep_files_open_desc">Zurück führt zur Startseite und die Dateien bleiben offen; die Zahl in der oberen Leiste listet sie auf. Ausgeschaltet ist immer nur eine Datei offen und Zurück schließt sie.</string>
+    <string name="pdf_tool_edit_text">Text bearbeiten</string>
+    <string name="pdf_edit_text_hint">Tippe auf einen Absatz, um seinen Text zu ändern</string>
+    <string name="pdf_edit_text_none">Auf dieser Seite gibt es keinen bearbeitbaren Text</string>
+    <string name="pdf_edit_done">Fertig</string>
+    <string name="pdf_edit_smaller">Text verkleinern</string>
+    <string name="pdf_edit_larger">Text vergrößern</string>
     <plurals name="pdf_results">
         <item quantity="one">%d Treffer</item>
         <item quantity="other">%d Treffer</item>

@@ -21,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.office.app.AppContainer
+import com.office.app.data.Settings
 import com.office.app.ui.EditorHost
 import com.office.core.FileKind
 
@@ -39,8 +41,11 @@ fun Workspace(container: AppContainer, onAllClosed: () -> Unit, onHome: () -> Un
 
     var overview by rememberSaveable { mutableStateOf(false) }
     val home by rememberUpdatedState(onHome)
-    // Back leaves the files open and goes Home; edit, search and tool modes of the editor come first.
-    BackHandler { home() }
+    val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = Settings())
+    val keepOpen = settings.keepFilesOpen
+    // With several files open, Back leaves them open and goes Home; otherwise it closes the file. Edit, search
+    // and tool modes of the editor, and its own unsaved-changes question, come first.
+    BackHandler { if (keepOpen) home() else if (tabs.close(selected.id)) onAllClosed() }
     val openFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) tabs.open(uri)
     }
@@ -51,7 +56,7 @@ fun Workspace(container: AppContainer, onAllClosed: () -> Unit, onHome: () -> Un
         key(selected.id) {
             val owner = remember(selected.id) { StoreOwner(tabs.viewModelStore(selected.id)) }
             saveable.SaveableStateProvider(selected.id) {
-                CompositionLocalProvider(LocalViewModelStoreOwner provides owner, LocalWorkspace provides actions) {
+                CompositionLocalProvider(LocalViewModelStoreOwner provides owner, LocalWorkspace provides actions.takeIf { keepOpen }) {
                     ProvideTab(container, selected) {
                         EditorHost(
                             container = container,

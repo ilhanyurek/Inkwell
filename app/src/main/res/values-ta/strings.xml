@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">சேமித்த எல்லா கோப்புகளையும் மூடு</string>
     <string name="tabs_home">முகப்பு</string>
     <string name="tabs_unsaved">சேமிக்கப்படாத மாற்றங்கள்</string>
+    <string name="settings_keep_files_open">பல கோப்புகளைத் திறந்தே வை</string>
+    <string name="settings_keep_files_open_desc">பின் செல்வது முகப்புக்கு அழைத்துச் செல்லும், கோப்புகள் திறந்தே இருக்கும்; மேல் பட்டியிலுள்ள எண் அவற்றைப் பட்டியலிடும். அணைத்தால் ஒரு நேரத்தில் ஒரு கோப்பு மட்டும் திறக்கும், பின் செல்வது அதை மூடும்.</string>
+    <string name="pdf_tool_edit_text">உரையைத் திருத்து</string>
+    <string name="pdf_edit_text_hint">உரையை மாற்ற ஒரு பத்தியைத் தட்டவும்</string>
+    <string name="pdf_edit_text_none">இந்தப் பக்கத்தில் திருத்த உரை இல்லை</string>
+    <string name="pdf_edit_done">முடிந்தது</string>
+    <string name="pdf_edit_smaller">எழுத்தைச் சிறிதாக்கு</string>
+    <string name="pdf_edit_larger">எழுத்தைப் பெரிதாக்கு</string>
     <plurals name="pdf_results">
         <item quantity="one">%d பொருத்தம்</item>
         <item quantity="other">%d பொருத்தங்கள்</item>

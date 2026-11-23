@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Đóng tất cả tệp đã lưu</string>
     <string name="tabs_home">Trang chủ</string>
     <string name="tabs_unsaved">Thay đổi chưa lưu</string>
+    <string name="settings_keep_files_open">Giữ nhiều tệp cùng mở</string>
+    <string name="settings_keep_files_open_desc">Quay lại sẽ về Trang chủ và các tệp vẫn mở; con số trên thanh trên cùng liệt kê chúng. Khi tắt, mỗi lần chỉ mở một tệp và Quay lại sẽ đóng tệp đó.</string>
+    <string name="pdf_tool_edit_text">Sửa văn bản</string>
+    <string name="pdf_edit_text_hint">Chạm vào một đoạn để sửa văn bản</string>
+    <string name="pdf_edit_text_none">Trang này không có văn bản để sửa</string>
+    <string name="pdf_edit_done">Xong</string>
+    <string name="pdf_edit_smaller">Chữ nhỏ hơn</string>
+    <string name="pdf_edit_larger">Chữ lớn hơn</string>
     <plurals name="pdf_results">
         <item quantity="other">%d kết quả</item>
     </plurals>

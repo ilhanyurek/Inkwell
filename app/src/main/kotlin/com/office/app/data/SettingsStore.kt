@@ -20,6 +20,8 @@ data class Settings(
     val autoSaveToFile: Boolean = false,
     /** Show documents as a white sheet with their own colours, also in the dark theme. */
     val whitePaper: Boolean = true,
+    /** Several files stay open (Back goes Home); off: one file at a time and Back closes it. */
+    val keepFilesOpen: Boolean = true,
 )
 
 private val Context.settingsStore by preferencesDataStore("settings")
@@ -30,6 +32,7 @@ class SettingsStore(private val context: Context) {
     private val scaleKey = floatPreferencesKey("editor_scale")
     private val autoSaveKey = booleanPreferencesKey("autosave_to_file")
     private val paperKey = booleanPreferencesKey("white_paper")
+    private val keepOpenKey = booleanPreferencesKey("keep_files_open")
 
     val settings: Flow<Settings> = context.settingsStore.data.map { p ->
         Settings(
@@ -38,12 +41,14 @@ class SettingsStore(private val context: Context) {
             editorTextScale = p[scaleKey] ?: 1f,
             autoSaveToFile = p[autoSaveKey] ?: false,
             whitePaper = p[paperKey] ?: true,
+            keepFilesOpen = p[keepOpenKey] ?: true,
         )
     }
 
     suspend fun setTheme(mode: ThemeMode) = context.settingsStore.edit { it[themeKey] = mode.name }
     suspend fun setDynamicColor(enabled: Boolean) = context.settingsStore.edit { it[dynamicKey] = enabled }
     suspend fun setWhitePaper(enabled: Boolean) = context.settingsStore.edit { it[paperKey] = enabled }
+    suspend fun setKeepFilesOpen(enabled: Boolean) = context.settingsStore.edit { it[keepOpenKey] = enabled }
     suspend fun setAutoSaveToFile(enabled: Boolean) = context.settingsStore.edit { it[autoSaveKey] = enabled }
     suspend fun setEditorTextScale(scale: Float) = context.settingsStore.edit { it[scaleKey] = scale.coerceIn(0.8f, 1.6f) }
 }

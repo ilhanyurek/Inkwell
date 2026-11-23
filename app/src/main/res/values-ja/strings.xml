@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">保存済みのファイルをすべて閉じる</string>
     <string name="tabs_home">ホーム</string>
     <string name="tabs_unsaved">未保存の変更</string>
+    <string name="settings_keep_files_open">複数のファイルを開いたままにする</string>
+    <string name="settings_keep_files_open_desc">戻るとホームに戻り、ファイルは開いたままになります。上部バーの数字から一覧を開けます。オフにすると一度に1つのファイルだけが開き、戻ると閉じます。</string>
+    <string name="pdf_tool_edit_text">テキストを編集</string>
+    <string name="pdf_edit_text_hint">段落をタップしてテキストを変更</string>
+    <string name="pdf_edit_text_none">このページには編集できるテキストがありません</string>
+    <string name="pdf_edit_done">完了</string>
+    <string name="pdf_edit_smaller">文字を小さく</string>
+    <string name="pdf_edit_larger">文字を大きく</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 件一致</item>
     </plurals>

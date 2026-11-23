@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">Isara ang lahat ng naka-save na file</string>
     <string name="tabs_home">Home</string>
     <string name="tabs_unsaved">Mga hindi naka-save na pagbabago</string>
+    <string name="settings_keep_files_open">Panatilihing bukas ang ilang file</string>
+    <string name="settings_keep_files_open_desc">Bumabalik sa Home ang Back at nananatiling bukas ang mga file; inililista sila ng numero sa itaas na bar. Kapag naka-off, isang file lang ang bukas at isinasara ito ng Back.</string>
+    <string name="pdf_tool_edit_text">I-edit ang teksto</string>
+    <string name="pdf_edit_text_hint">I-tap ang isang talata para baguhin ang teksto nito</string>
+    <string name="pdf_edit_text_none">Walang tekstong mae-edit sa pahinang ito</string>
+    <string name="pdf_edit_done">Tapos na</string>
+    <string name="pdf_edit_smaller">Paliitin ang teksto</string>
+    <string name="pdf_edit_larger">Palakihin ang teksto</string>
     <plurals name="pdf_results">
         <item quantity="one">%d tugma</item>
         <item quantity="other">%d tugma</item>

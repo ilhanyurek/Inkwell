@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.Tab
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
@@ -134,6 +136,15 @@ fun SettingsScreen(container: AppContainer, onBack: () -> Unit) {
                     )
                 }
                 CardDivider(inset = 0.dp)
+                SwitchRow(
+                    title = stringResource(R.string.settings_keep_files_open),
+                    subtitle = stringResource(R.string.settings_keep_files_open_desc),
+                    checked = settings.keepFilesOpen,
+                    icon = Icons.Outlined.Tab,
+                    onChange = { v -> scope.launch { container.settings.setKeepFilesOpen(v) } },
+                    modifier = Modifier.testTag("setting_keep_files_open"),
+                )
+                CardDivider()
                 SwitchRow(
                     title = stringResource(R.string.settings_autosave),
                     subtitle = stringResource(R.string.settings_autosave_desc),

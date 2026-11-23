@@ -491,6 +491,9 @@ object PdfTools {
     }
 
     /** Converts a PDF user-space point to a normalised point on the displayed page. */
+    /** A point in user space as a [PagePoint] on the displayed page. */
+    internal fun fromUser(page: PDPage, x: Float, y: Float): PagePoint = fromUserSpace(page, x, y)
+
     private fun fromUserSpace(page: PDPage, x: Float, y: Float): PagePoint {
         val box: PDRectangle = page.cropBox
         val u = (x - box.lowerLeftX) / box.width

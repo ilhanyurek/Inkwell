@@ -451,4 +451,12 @@
     <string name="tabs_home">Home</string>
     <string name="tabs_unsaved">Unsaved changes</string>
     <string name="settings_font_license" translatable="false">Figtree typeface, SIL Open Font License 1.1</string>
+    <string name="settings_keep_files_open">Keep several files open</string>
+    <string name="settings_keep_files_open_desc">Back goes Home and files stay open; the number in the top bar lists them. When off, one file is open at a time and Back closes it.</string>
+    <string name="pdf_tool_edit_text">Edit text</string>
+    <string name="pdf_edit_text_hint">Tap a paragraph to change its text</string>
+    <string name="pdf_edit_text_none">No text to edit on this page</string>
+    <string name="pdf_edit_done">Done</string>
+    <string name="pdf_edit_smaller">Smaller text</string>
+    <string name="pdf_edit_larger">Larger text</string>
 </resources>

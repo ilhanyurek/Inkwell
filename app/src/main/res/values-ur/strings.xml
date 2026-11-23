@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">محفوظ کی گئی تمام فائلیں بند کریں</string>
     <string name="tabs_home">ہوم</string>
     <string name="tabs_unsaved">غیر محفوظ تبدیلیاں</string>
+    <string name="settings_keep_files_open">کئی فائلیں کھلی رکھیں</string>
+    <string name="settings_keep_files_open_desc">واپس ہوم پر لے جاتا ہے اور فائلیں کھلی رہتی ہیں؛ اوپر والی پٹی کا نمبر ان کی فہرست دکھاتا ہے۔ بند ہونے پر ایک وقت میں ایک ہی فائل کھلتی ہے اور واپس اسے بند کرتا ہے۔</string>
+    <string name="pdf_tool_edit_text">متن میں ترمیم کریں</string>
+    <string name="pdf_edit_text_hint">متن بدلنے کے لیے کسی پیراگراف پر ٹیپ کریں</string>
+    <string name="pdf_edit_text_none">اس صفحے پر ترمیم کے لیے کوئی متن نہیں</string>
+    <string name="pdf_edit_done">ہو گیا</string>
+    <string name="pdf_edit_smaller">متن چھوٹا کریں</string>
+    <string name="pdf_edit_larger">متن بڑا کریں</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجہ</item>
         <item quantity="other">%d نتائج</item>

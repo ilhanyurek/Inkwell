@@ -450,4 +450,12 @@
     <string name="tabs_close_saved">Kaydedilmiş dosyaların hepsini kapat</string>
     <string name="tabs_home">Ana sayfa</string>
     <string name="tabs_unsaved">Kaydedilmemiş değişiklikler</string>
+    <string name="settings_keep_files_open">Birden çok dosya açık kalsın</string>
+    <string name="settings_keep_files_open_desc">Geri tuşu ana sayfaya döner, dosyalar açık kalır; üst çubuktaki sayı onları listeler. Kapalıyken tek dosya açılır ve geri tuşu onu kapatır.</string>
+    <string name="pdf_tool_edit_text">Metni düzenle</string>
+    <string name="pdf_edit_text_hint">Metnini değiştirmek için bir paragrafa dokun</string>
+    <string name="pdf_edit_text_none">Bu sayfada düzenlenecek metin yok</string>
+    <string name="pdf_edit_done">Bitti</string>
+    <string name="pdf_edit_smaller">Yazıyı küçült</string>
+    <string name="pdf_edit_larger">Yazıyı büyüt</string>
 </resources>

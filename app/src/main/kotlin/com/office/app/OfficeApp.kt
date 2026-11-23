@@ -4,6 +4,7 @@ import android.app.Application
 import com.office.app.data.FileRepository
 import com.office.app.data.RecentFilesStore
 import com.office.app.data.SettingsStore
+import kotlinx.coroutines.launch
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 
 class OfficeApp : Application() {
@@ -14,6 +15,9 @@ class OfficeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         PDFBoxResourceLoader.init(applicationContext)
+        com.office.app.ui.pdf.PdfText.bundledFont = { bold ->
+            resources.openRawResource(if (bold) R.font.figtree_bold else R.font.figtree_regular)
+        }
         container = AppContainer(this)
     }
 }
@@ -31,4 +35,9 @@ class AppContainer(app: Application) {
 
     /** Outlives screens, so drafts can still be written while an editor is closing. */
     val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
+
+    init {
+        // One file at a time unless the user keeps several open.
+        appScope.launch { settings.settings.collect { tabs.singleFile = !it.keepFilesOpen } }
+    }
 }

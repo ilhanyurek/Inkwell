@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">सहेजी गई सभी फ़ाइलें बंद करें</string>
     <string name="tabs_home">होम</string>
     <string name="tabs_unsaved">बिना सहेजे बदलाव</string>
+    <string name="settings_keep_files_open">कई फ़ाइलें खुली रखें</string>
+    <string name="settings_keep_files_open_desc">बैक होम पर ले जाता है और फ़ाइलें खुली रहती हैं; ऊपर की पट्टी की संख्या उनकी सूची दिखाती है। बंद होने पर एक बार में एक ही फ़ाइल खुलती है और बैक उसे बंद करता है।</string>
+    <string name="pdf_tool_edit_text">टेक्स्ट संपादित करें</string>
+    <string name="pdf_edit_text_hint">टेक्स्ट बदलने के लिए किसी अनुच्छेद पर टैप करें</string>
+    <string name="pdf_edit_text_none">इस पेज पर संपादित करने लायक टेक्स्ट नहीं है</string>
+    <string name="pdf_edit_done">हो गया</string>
+    <string name="pdf_edit_smaller">टेक्स्ट छोटा करें</string>
+    <string name="pdf_edit_larger">टेक्स्ट बड़ा करें</string>
     <plurals name="pdf_results">
         <item quantity="one">%d नतीजा</item>
         <item quantity="other">%d नतीजे</item>

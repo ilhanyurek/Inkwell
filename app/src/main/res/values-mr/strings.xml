@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">जतन केलेल्या सर्व फाइल्स बंद करा</string>
     <string name="tabs_home">होम</string>
     <string name="tabs_unsaved">जतन न केलेले बदल</string>
+    <string name="settings_keep_files_open">अनेक फाइल्स उघड्या ठेवा</string>
+    <string name="settings_keep_files_open_desc">मागे होमवर नेते आणि फाइल्स उघड्या राहतात; वरच्या पट्टीतील संख्या त्यांची यादी दाखवते. बंद असताना एका वेळी एकच फाइल उघडते आणि मागे ती बंद करते.</string>
+    <string name="pdf_tool_edit_text">मजकूर संपादित करा</string>
+    <string name="pdf_edit_text_hint">मजकूर बदलण्यासाठी परिच्छेदावर टॅप करा</string>
+    <string name="pdf_edit_text_none">या पानावर संपादित करण्यासाठी मजकूर नाही</string>
+    <string name="pdf_edit_done">झाले</string>
+    <string name="pdf_edit_smaller">मजकूर लहान करा</string>
+    <string name="pdf_edit_larger">मजकूर मोठा करा</string>
     <plurals name="pdf_results">
         <item quantity="one">%d जुळणी</item>
         <item quantity="other">%d जुळण्या</item>

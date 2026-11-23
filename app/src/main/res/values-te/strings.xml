@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">సేవ్ చేసిన అన్ని ఫైళ్లు మూసివేయి</string>
     <string name="tabs_home">హోమ్</string>
     <string name="tabs_unsaved">సేవ్ చేయని మార్పులు</string>
+    <string name="settings_keep_files_open">అనేక ఫైళ్లను తెరిచే ఉంచు</string>
+    <string name="settings_keep_files_open_desc">వెనుకకు హోమ్‌కు తీసుకెళ్తుంది, ఫైళ్లు తెరిచే ఉంటాయి; పై బార్‌లోని సంఖ్య వాటి జాబితా చూపుతుంది. ఆఫ్‌లో ఒకసారి ఒక ఫైల్ మాత్రమే తెరుచుకుంటుంది, వెనుకకు దాన్ని మూసివేస్తుంది.</string>
+    <string name="pdf_tool_edit_text">టెక్స్ట్‌ను సవరించు</string>
+    <string name="pdf_edit_text_hint">టెక్స్ట్ మార్చడానికి ఒక పేరాను తాకండి</string>
+    <string name="pdf_edit_text_none">ఈ పేజీలో సవరించడానికి టెక్స్ట్ లేదు</string>
+    <string name="pdf_edit_done">పూర్తయింది</string>
+    <string name="pdf_edit_smaller">అక్షరాలు చిన్నవి చేయి</string>
+    <string name="pdf_edit_larger">అక్షరాలు పెద్దవి చేయి</string>
     <plurals name="pdf_results">
         <item quantity="one">%d సరిపోలిక</item>
         <item quantity="other">%d సరిపోలికలు</item>

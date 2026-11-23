@@ -427,6 +427,14 @@
     <string name="tabs_close_saved">저장된 파일 모두 닫기</string>
     <string name="tabs_home">홈</string>
     <string name="tabs_unsaved">저장되지 않은 변경 사항</string>
+    <string name="settings_keep_files_open">여러 파일을 열어 두기</string>
+    <string name="settings_keep_files_open_desc">뒤로 가기를 누르면 홈으로 가고 파일은 열린 채로 남습니다. 위쪽 막대의 숫자로 목록을 볼 수 있습니다. 끄면 한 번에 파일 하나만 열리고 뒤로 가기가 파일을 닫습니다.</string>
+    <string name="pdf_tool_edit_text">텍스트 편집</string>
+    <string name="pdf_edit_text_hint">텍스트를 바꾸려면 문단을 탭하세요</string>
+    <string name="pdf_edit_text_none">이 페이지에는 편집할 텍스트가 없습니다</string>
+    <string name="pdf_edit_done">완료</string>
+    <string name="pdf_edit_smaller">글자 작게</string>
+    <string name="pdf_edit_larger">글자 크게</string>
     <plurals name="pdf_results">
         <item quantity="other">일치 항목 %d개</item>
     </plurals>

@@ -336,6 +336,20 @@ class PdfViewerViewModel(
         return runCatching { PdfTools.words(file, page) }.getOrDefault(emptyList()).also { wordCache[key] = it }
     }
 
+    private val blockCache = HashMap<Pair<Int, Int>, List<PdfTextBlock>>()
+
+    /** Paragraphs of a page for editing text in place; cached per document version. */
+    suspend fun textBlocks(page: Int): List<PdfTextBlock> {
+        val key = version to page
+        blockCache[key]?.let { return it }
+        val file = working ?: return emptyList()
+        return runCatching { PdfText.blocks(file, page) }.getOrDefault(emptyList()).also { blockCache[key] = it }
+    }
+
+    /** Replaces a paragraph's text on the page (the old glyphs are removed, not covered). */
+    fun replaceBlock(block: PdfTextBlock, text: String, style: PdfTextStyle, background: Int, onError: (Throwable) -> Unit) =
+        modify({ PdfText.replace(it, block, text, style, background) }, onError)
+
     fun loadFormFields() {
         val file = working ?: return
         viewModelScope.launch {
