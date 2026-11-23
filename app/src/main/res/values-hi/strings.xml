@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">हो गया</string>
     <string name="pdf_edit_smaller">टेक्स्ट छोटा करें</string>
     <string name="pdf_edit_larger">टेक्स्ट बड़ा करें</string>
+    <string name="table_prev_cell">पिछला सेल</string>
+    <string name="table_next_cell">अगला सेल</string>
+    <string name="table_row_above">ऊपर पंक्ति</string>
+    <string name="table_row_below">नीचे पंक्ति</string>
+    <string name="table_col_left">बाएँ कॉलम</string>
+    <string name="table_col_right">दाएँ कॉलम</string>
     <plurals name="pdf_results">
         <item quantity="one">%d नतीजा</item>
         <item quantity="other">%d नतीजे</item>

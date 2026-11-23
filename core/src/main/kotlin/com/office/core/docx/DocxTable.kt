@@ -84,6 +84,119 @@ object DocxTable {
         return XmlWriter.write(tbl.withChildren(children))
     }
 
+    // --- single steps used when a table is edited in place -------------------------------------
+
+    /** True when every row has the same cells and nothing is merged, so columns can be added or removed. */
+    fun isRegular(xml: String): Boolean = runCatching {
+        val tbl = XmlParser.parse(xml)
+        val rows = tbl.children("tr")
+        val counts = rows.map { it.children("tc").size }.distinct()
+        counts.size == 1 && rows.none { tr ->
+            tr.children("tc").any { tc ->
+                val pr = tc.child("tcPr")
+                (pr?.child("gridSpan")?.attr("val")?.toIntOrNull() ?: 1) > 1 || pr?.child("vMerge") != null || pr?.child("hMerge") != null
+            }
+        }
+    }.getOrDefault(false)
+
+    /** [xml] with the text of cell [tc] of row [row] replaced; every other cell is left as it is. */
+    fun setCellText(xml: String, row: Int, tc: Int, text: String): String {
+        val tbl = XmlParser.parse(xml)
+        val p = prefix(tbl)
+        var r = -1
+        var changed = false
+        val children = tbl.children.map { node ->
+            if (node !is XmlElement || node.localName != "tr") return@map node
+            r++
+            if (r != row) return@map node
+            var c = -1
+            node.withChildren(
+                node.children.map { cell ->
+                    if (cell !is XmlElement || cell.localName != "tc") return@map cell
+                    c++
+                    if (c != tc || cellText(cell) == text) cell else { changed = true; setText(cell, text, p, clearMerge = false) }
+                },
+            )
+        }
+        return if (changed) XmlWriter.write(tbl.withChildren(children)) else xml
+    }
+
+    /**
+     * [xml] with an empty row inserted at index [at], shaped like row [like] (same cells and widths, no
+     * text, no vertical merge, not a repeated header).
+     */
+    fun insertRow(xml: String, at: Int, like: Int): String {
+        val tbl = XmlParser.parse(xml)
+        val p = prefix(tbl)
+        val rows = tbl.children("tr")
+        if (rows.isEmpty()) return xml
+        val model = rows[like.coerceIn(0, rows.lastIndex)]
+        val blank = model.withChildren(
+            model.children.mapNotNull { n ->
+                when {
+                    n !is XmlElement -> n
+                    n.localName == "trPr" -> stripChildren(n, "tblHeader")
+                    n.localName == "tc" -> {
+                        val cleared = setText(n, "", p, clearMerge = false)
+                        val pr = cleared.child("tcPr")
+                        if (pr == null) cleared else cleared.withChildren(cleared.children.map { if (it === pr) stripChildren(pr, "vMerge") else it })
+                    }
+                    else -> n
+                }
+            },
+        )
+        val target = at.coerceIn(0, rows.size)
+        val out = ArrayList<XmlNode>()
+        var r = 0
+        var placed = false
+        for (n in tbl.children) {
+            if (n is XmlElement && n.localName == "tr") {
+                if (r == target && !placed) { out += blank; placed = true }
+                r++
+            }
+            out += n
+        }
+        if (!placed) {
+            // After the last row (before anything that follows the rows).
+            val lastRow = out.indexOfLast { it is XmlElement && it.localName == "tr" }
+            out.add(lastRow + 1, blank)
+        }
+        return XmlWriter.write(tbl.withChildren(out))
+    }
+
+    /** [xml] without row [row]; a table keeps at least one row. */
+    fun deleteRow(xml: String, row: Int): String {
+        val tbl = XmlParser.parse(xml)
+        if (tbl.children("tr").size <= 1) return xml
+        var r = -1
+        val out = tbl.children.filter { n -> !(n is XmlElement && n.localName == "tr" && ++r == row) }
+        return XmlWriter.write(tbl.withChildren(out))
+    }
+
+    /** [xml] with an empty column inserted before column [at] (regular tables only; widths are shared out again). */
+    fun insertColumn(xml: String, at: Int): String {
+        if (!isRegular(xml)) return xml
+        val rows = rows(xml)
+        val cols = rows.maxOfOrNull { it.size } ?: return xml
+        val target = at.coerceIn(0, cols)
+        val colMap = (0 until cols).map { it as Int? }.toMutableList().apply { add(target, null) }
+        val newRows = rows.map { r -> r.toMutableList().apply { while (size < cols) add(""); add(target, "") } }
+        return edit(xml, newRows, rows.indices.map { it }, colMap)
+    }
+
+    /** [xml] without column [col] (regular tables only); a table keeps at least one column. */
+    fun deleteColumn(xml: String, col: Int): String {
+        if (!isRegular(xml)) return xml
+        val rows = rows(xml)
+        val cols = rows.maxOfOrNull { it.size } ?: return xml
+        if (cols <= 1 || col !in 0 until cols) return xml
+        val colMap = (0 until cols).filter { it != col }.map { it as Int? }
+        val newRows = rows.map { r -> r.filterIndexed { i, _ -> i != col } }
+        return edit(xml, newRows, rows.indices.map { it }, colMap)
+    }
+
+    private fun prefix(tbl: XmlElement) = tbl.name.substringBefore(':', "").let { if (it.isEmpty()) "" else "$it:" }
+
     /** A new bordered table with [rows] × [cols] cells, sized to a typical page width. */
     fun create(rows: Int, cols: Int, texts: List<List<String>> = emptyList()): String {
         val width = 9000 / cols

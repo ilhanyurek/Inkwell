@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">Concluído</string>
     <string name="pdf_edit_smaller">Texto menor</string>
     <string name="pdf_edit_larger">Texto maior</string>
+    <string name="table_prev_cell">Célula anterior</string>
+    <string name="table_next_cell">Próxima célula</string>
+    <string name="table_row_above">Linha acima</string>
+    <string name="table_row_below">Linha abaixo</string>
+    <string name="table_col_left">Coluna à esquerda</string>
+    <string name="table_col_right">Coluna à direita</string>
     <plurals name="pdf_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>

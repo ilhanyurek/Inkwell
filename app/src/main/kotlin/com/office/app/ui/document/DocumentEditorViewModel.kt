@@ -35,6 +35,7 @@ import com.office.core.doc.DocReader
 import com.office.core.odf.OdtReader
 import com.office.core.odf.OdtWriter
 import com.office.core.text.Embed
+import com.office.core.text.EmbedKind
 import com.office.core.text.TextDocument
 import com.office.core.zip.ZipPackage
 import com.office.core.text.Alignment
@@ -349,13 +350,28 @@ class DocumentEditorViewModel(
         commit(next, TextRange(offset.coerceAtMost(next.text.length)))
     }
 
-    fun insertBlock(embed: Embed) {
+    /** Inserts [embed] as its own paragraph at the cursor; returns the offset of its character. */
+    fun insertBlock(embed: Embed): Int {
         val id = addEmbed(embed)
         val (next, at) = model.insertEmbedParagraph(value.selection.max, id)
         commit(next, TextRange((at + 2).coerceAtMost(next.text.length)))
+        return at
     }
 
-    fun insertTable(rows: Int, cols: Int) = insertBlock(DocxTable.embed(DocxTable.create(rows, cols)))
+    fun insertTable(rows: Int, cols: Int): Int = insertBlock(DocxTable.embed(DocxTable.create(rows, cols)))
+
+    /** Changes the table at [offset] with [transform] on its XML, as one undoable step. */
+    fun tableChange(offset: Int, transform: (String) -> String) {
+        val id = model.styles.getOrNull(offset)?.embedId ?: return
+        val e = embeds[id] ?: return
+        if (e.kind != EmbedKind.TABLE) return
+        val xml = runCatching { transform(e.xml) }.getOrNull() ?: return
+        if (xml != e.xml) replaceEmbed(offset, DocxTable.embed(xml))
+    }
+
+    /** The XML of the table at [offset], or null. */
+    fun tableXml(offset: Int): String? =
+        model.styles.getOrNull(offset)?.embedId?.let { embeds[it] }?.takeIf { it.kind == EmbedKind.TABLE }?.xml
 
     fun insertImage(source: Uri, onDone: (Throwable?) -> Unit) {
         viewModelScope.launch {

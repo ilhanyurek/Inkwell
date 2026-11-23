@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">పూర్తయింది</string>
     <string name="pdf_edit_smaller">అక్షరాలు చిన్నవి చేయి</string>
     <string name="pdf_edit_larger">అక్షరాలు పెద్దవి చేయి</string>
+    <string name="table_prev_cell">మునుపటి సెల్</string>
+    <string name="table_next_cell">తదుపరి సెల్</string>
+    <string name="table_row_above">పైన వరుస</string>
+    <string name="table_row_below">కింద వరుస</string>
+    <string name="table_col_left">ఎడమవైపు నిలువు వరుస</string>
+    <string name="table_col_right">కుడివైపు నిలువు వరుస</string>
     <plurals name="pdf_results">
         <item quantity="one">%d సరిపోలిక</item>
         <item quantity="other">%d సరిపోలికలు</item>

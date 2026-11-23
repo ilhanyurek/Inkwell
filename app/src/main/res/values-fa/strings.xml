@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">تمام</string>
     <string name="pdf_edit_smaller">کوچک‌کردن متن</string>
     <string name="pdf_edit_larger">بزرگ‌کردن متن</string>
+    <string name="table_prev_cell">خانه قبلی</string>
+    <string name="table_next_cell">خانه بعدی</string>
+    <string name="table_row_above">ردیف بالا</string>
+    <string name="table_row_below">ردیف پایین</string>
+    <string name="table_col_left">ستون چپ</string>
+    <string name="table_col_right">ستون راست</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجه</item>
         <item quantity="other">%d نتیجه</item>

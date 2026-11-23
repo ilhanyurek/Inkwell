@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">Tapos na</string>
     <string name="pdf_edit_smaller">Paliitin ang teksto</string>
     <string name="pdf_edit_larger">Palakihin ang teksto</string>
+    <string name="table_prev_cell">Nakaraang cell</string>
+    <string name="table_next_cell">Susunod na cell</string>
+    <string name="table_row_above">Hilera sa itaas</string>
+    <string name="table_row_below">Hilera sa ibaba</string>
+    <string name="table_col_left">Column sa kaliwa</string>
+    <string name="table_col_right">Column sa kanan</string>
     <plurals name="pdf_results">
         <item quantity="one">%d tugma</item>
         <item quantity="other">%d tugma</item>

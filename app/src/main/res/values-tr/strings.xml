@@ -458,4 +458,10 @@
     <string name="pdf_edit_done">Bitti</string>
     <string name="pdf_edit_smaller">Yazıyı küçült</string>
     <string name="pdf_edit_larger">Yazıyı büyüt</string>
+    <string name="table_prev_cell">Önceki hücre</string>
+    <string name="table_next_cell">Sonraki hücre</string>
+    <string name="table_row_above">Üste satır</string>
+    <string name="table_row_below">Alta satır</string>
+    <string name="table_col_left">Sola sütun</string>
+    <string name="table_col_right">Sağa sütun</string>
 </resources>

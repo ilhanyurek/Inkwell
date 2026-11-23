@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">Fertig</string>
     <string name="pdf_edit_smaller">Text verkleinern</string>
     <string name="pdf_edit_larger">Text vergrößern</string>
+    <string name="table_prev_cell">Vorherige Zelle</string>
+    <string name="table_next_cell">Nächste Zelle</string>
+    <string name="table_row_above">Zeile darüber</string>
+    <string name="table_row_below">Zeile darunter</string>
+    <string name="table_col_left">Spalte links</string>
+    <string name="table_col_right">Spalte rechts</string>
     <plurals name="pdf_results">
         <item quantity="one">%d Treffer</item>
         <item quantity="other">%d Treffer</item>

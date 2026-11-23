@@ -71,18 +71,27 @@ class OpenFilesTest {
         val file = Fixtures.richDocx()
         open(file, "application/vnd.openxmlformats-officedocument.wordprocessingml.document").use {
             rule.waitUntil(15_000) { rule.onAllNodesWithTag("doc_table_0").fetchSemanticsNodes().isNotEmpty() }
-            rule.onNodeWithTag("doc_table_0").performClick()
-            rule.onNodeWithTag("table_cell_1_1").performTextReplacement("Z9")
-            rule.onNodeWithTag("table_add_row").performClick()
-            rule.onNodeWithTag("table_cell_2_0").performTextInput("A3")
-            rule.onNodeWithTag("table_save").performClick()
+            // Tables are edited in place: tap a cell, type, and use the table bar.
+            rule.onNodeWithTag("doc_cell_0_1_1").performClick()
+            rule.waitUntil(10_000) { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isNotEmpty() }
+            rule.onNodeWithTag("table_cell_editor").performTextReplacement("Z9")
+            rule.onNodeWithTag("table_row_below").performClick()
+            // The new row is below the edited one and its first cell is now being edited.
+            rule.waitUntil(10_000) { rule.onAllNodesWithTag("doc_cell_0_2_0").fetchSemanticsNodes().isNotEmpty() }
             rule.waitForText("Z9")
+            rule.onNodeWithTag("table_cell_editor").performTextInput("A3")
+            rule.screenshot("18_docx_table_in_place")
+            rule.onNodeWithTag("table_done").performClick()
             rule.waitForText("A3")
+            rule.waitUntil(5_000) { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isEmpty() }
 
             rule.onNodeWithContentDescription(str(R.string.action_more)).performClick()
             rule.onNodeWithTag("menu_insert_table").performClick()
             rule.onNodeWithTag("insert_table_confirm").performClick()
             rule.waitUntil(10_000) { rule.onAllNodesWithTag("doc_table_1").fetchSemanticsNodes().isNotEmpty() }
+            // A new table opens with its first cell ready for typing.
+            rule.waitUntil(10_000) { rule.onAllNodesWithTag("table_cell_editor").fetchSemanticsNodes().isNotEmpty() }
+            rule.onNodeWithTag("table_done").performClick()
             rule.screenshot("18_docx_tables")
 
             rule.onNodeWithContentDescription(str(R.string.action_save)).performClick()

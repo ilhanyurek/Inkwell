@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">ہو گیا</string>
     <string name="pdf_edit_smaller">متن چھوٹا کریں</string>
     <string name="pdf_edit_larger">متن بڑا کریں</string>
+    <string name="table_prev_cell">پچھلا خانہ</string>
+    <string name="table_next_cell">اگلا خانہ</string>
+    <string name="table_row_above">اوپر قطار</string>
+    <string name="table_row_below">نیچے قطار</string>
+    <string name="table_col_left">بائیں کالم</string>
+    <string name="table_col_right">دائیں کالم</string>
     <plurals name="pdf_results">
         <item quantity="one">%d نتیجہ</item>
         <item quantity="other">%d نتائج</item>

@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">முடிந்தது</string>
     <string name="pdf_edit_smaller">எழுத்தைச் சிறிதாக்கு</string>
     <string name="pdf_edit_larger">எழுத்தைப் பெரிதாக்கு</string>
+    <string name="table_prev_cell">முந்தைய கலம்</string>
+    <string name="table_next_cell">அடுத்த கலம்</string>
+    <string name="table_row_above">மேலே வரிசை</string>
+    <string name="table_row_below">கீழே வரிசை</string>
+    <string name="table_col_left">இடப்பக்க நெடுவரிசை</string>
+    <string name="table_col_right">வலப்பக்க நெடுவரிசை</string>
     <plurals name="pdf_results">
         <item quantity="one">%d பொருத்தம்</item>
         <item quantity="other">%d பொருத்தங்கள்</item>

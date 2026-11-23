@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">完了</string>
     <string name="pdf_edit_smaller">文字を小さく</string>
     <string name="pdf_edit_larger">文字を大きく</string>
+    <string name="table_prev_cell">前のセル</string>
+    <string name="table_next_cell">次のセル</string>
+    <string name="table_row_above">上に行</string>
+    <string name="table_row_below">下に行</string>
+    <string name="table_col_left">左に列</string>
+    <string name="table_col_right">右に列</string>
     <plurals name="pdf_results">
         <item quantity="other">%d 件一致</item>
     </plurals>

@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">Listo</string>
     <string name="pdf_edit_smaller">Texto más pequeño</string>
     <string name="pdf_edit_larger">Texto más grande</string>
+    <string name="table_prev_cell">Celda anterior</string>
+    <string name="table_next_cell">Celda siguiente</string>
+    <string name="table_row_above">Fila arriba</string>
+    <string name="table_row_below">Fila abajo</string>
+    <string name="table_col_left">Columna a la izquierda</string>
+    <string name="table_col_right">Columna a la derecha</string>
     <plurals name="pdf_results">
         <item quantity="one">%d coincidencia</item>
         <item quantity="other">%d coincidencias</item>

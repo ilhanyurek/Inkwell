@@ -459,4 +459,10 @@
     <string name="pdf_edit_done">Done</string>
     <string name="pdf_edit_smaller">Smaller text</string>
     <string name="pdf_edit_larger">Larger text</string>
+    <string name="table_prev_cell">Previous cell</string>
+    <string name="table_next_cell">Next cell</string>
+    <string name="table_row_above">Row above</string>
+    <string name="table_row_below">Row below</string>
+    <string name="table_col_left">Column left</string>
+    <string name="table_col_right">Column right</string>
 </resources>

@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">Imekamilika</string>
     <string name="pdf_edit_smaller">Punguza maandishi</string>
     <string name="pdf_edit_larger">Ongeza maandishi</string>
+    <string name="table_prev_cell">Kisanduku kilichotangulia</string>
+    <string name="table_next_cell">Kisanduku kinachofuata</string>
+    <string name="table_row_above">Safu juu</string>
+    <string name="table_row_below">Safu chini</string>
+    <string name="table_col_left">Safuwima kushoto</string>
+    <string name="table_col_right">Safuwima kulia</string>
     <plurals name="pdf_results">
         <item quantity="one">Kinacholingana %d</item>
         <item quantity="other">Vinavyolingana %d</item>

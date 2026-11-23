@@ -8,6 +8,7 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 - New look across the app: a deep navy accent on a light grey page, white rounded cards, large bold titles, pill-shaped switches between Recent, Folders and Tools, and the Figtree typeface
 - Editor tool bars float as rounded cards above the bottom edge
 - Theme is picked with one control: System, Light, Dark or Black
+- Tables are edited right in the document: tap a cell and type, and the row grows as you write. A bar moves between cells and adds or removes rows and columns
 
 ### Added
 - Black (AMOLED) theme with a true black page and outlined cards
@@ -15,7 +16,6 @@ All notable changes to Inkwell are listed here. The format follows [Keep a Chang
 - The number of open files sits in each editor's top bar and opens a list to switch, open another or close files
 - Closing a file with unsaved changes asks whether to save, discard or keep it open
 - Open files come back after the app is restarted
-
 - Edit the text of a PDF on the page: tap a paragraph, type, and its lines rewrap in place. The old text is taken out of the file (not covered), the new text uses the paragraph's size, colour and alignment and the PDF's own font when it has the letters
 - "Keep several files open" can be turned off in Settings; then one file is open at a time and Back closes it
 

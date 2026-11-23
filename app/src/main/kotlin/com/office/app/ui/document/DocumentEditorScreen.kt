@@ -112,6 +112,7 @@ import com.office.core.FileKind
 import com.office.core.docx.DocxReader
 import com.office.core.text.Embed
 import com.office.core.text.EmbedKind
+import com.office.core.docx.DocxTable
 import com.office.core.text.InlineAttr
 import com.office.core.text.ListType
 import com.office.core.text.ParagraphStyle
@@ -144,6 +145,55 @@ fun DocumentEditorScreen(
     var menuOpen by remember { mutableStateOf(false) }
     var editingBlock by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showInsertTable by remember { mutableStateOf(false) }
+    var cellEdit by remember { mutableStateOf<CellEdit?>(null) }
+    var cellGen by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    var confirmDeleteTable by remember { mutableStateOf<Int?>(null) }
+
+    fun tableRows(offset: Int): List<List<String>>? = vm.tableXml(offset)?.let { runCatching { DocxTable.rows(it) }.getOrNull() }
+
+    /** Starts editing cell [tc] of row [row] of the table at [offset]. */
+    fun startCell(offset: Int, row: Int, tc: Int) {
+        val rows = tableRows(offset)?.takeIf { it.isNotEmpty() } ?: run { cellEdit = null; return }
+        val r = row.coerceIn(0, rows.lastIndex)
+        val c = tc.coerceIn(0, (rows[r].size - 1).coerceAtLeast(0))
+        val text = rows[r].getOrElse(c) { "" }
+        cellGen++
+        cellEdit = CellEdit(offset, r, c, androidx.compose.ui.text.input.TextFieldValue(text, androidx.compose.ui.text.TextRange(text.length)), text, cellGen)
+    }
+
+    /** Writes the typed text into the table, together with [reshape] (a change of its rows or columns), as one step. */
+    fun commitCell(reshape: ((String) -> String)? = null) {
+        val e = cellEdit ?: return
+        val typed = e.text.text
+        if (typed == e.original && reshape == null) return
+        vm.tableChange(e.offset) { xml ->
+            val withText = if (typed != e.original) DocxTable.setCellText(xml, e.row, e.tc, typed) else xml
+            reshape?.invoke(withText) ?: withText
+        }
+    }
+
+    fun finishCell() {
+        commitCell()
+        cellEdit = null
+        cellGen++
+    }
+
+    fun moveCell(delta: Int) {
+        val e = cellEdit ?: return
+        commitCell()
+        val rows = tableRows(e.offset) ?: return finishCell()
+        val cells = rows.flatMapIndexed { r, row -> row.indices.map { r to it } }
+        if (cells.isEmpty()) return finishCell()
+        val i = cells.indexOf(e.row to e.tc).coerceAtLeast(0)
+        val (r, c) = cells[(i + delta).coerceIn(0, cells.lastIndex)]
+        startCell(e.offset, r, c)
+    }
+
+    fun reshape(transform: (String) -> String, row: Int, tc: Int) {
+        val e = cellEdit ?: return
+        commitCell(transform)
+        startCell(e.offset, row, tc)
+    }
 
     val untitled = stringResource(R.string.untitled)
     val savedMsg = stringResource(R.string.saved)
@@ -169,6 +219,7 @@ fun DocumentEditorScreen(
     }
 
     fun requestSave() {
+        finishCell()
         when {
             vm.uri == null || vm.isLegacy -> saveAs.launch(vm.suggestedName(untitled))
             vm.lossyImport -> showLossyWarning = true
@@ -182,6 +233,8 @@ fun DocumentEditorScreen(
 
     com.office.app.ui.tabs.TabCloseRequests { if (vm.dirty) showUnsaved = true else onClose() }
     BackHandler(enabled = vm.dirty && !com.office.app.ui.tabs.inWorkspace()) { showUnsaved = true }
+    // Back first ends the cell being edited (keeping what was typed).
+    BackHandler(enabled = cellEdit != null) { finishCell() }
 
     when (val state = vm.loadState) {
         DocumentEditorViewModel.LoadState.Loading -> { LoadingScreen(onBack = onClose, title = vm.fileName.orEmpty()); return }
@@ -216,7 +269,7 @@ fun DocumentEditorScreen(
                         Icon(Icons.Outlined.Save, contentDescription = stringResource(R.string.action_save))
                     }
                     Box {
-                        IconButton(onClick = { menuOpen = true }) {
+                        IconButton(onClick = { finishCell(); menuOpen = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more))
                         }
                         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
@@ -288,10 +341,18 @@ fun DocumentEditorScreen(
                             LayoutMeasure(measurer, density, baseSize.value, inkColor, pageColor, inkColor.copy(alpha = 0.85f))
                         }
                         // Tables of Word documents, measured as laid out in the file.
-                        val measuredTables = remember(vm.embeds, vm.layout, contentPx, measure) {
-                            val engine = vm.layout ?: return@remember emptyMap<Int, MeasuredBlock>()
+                        val plainLayout = remember { com.office.core.docx.DocxLayout(null) }
+                        // The cell being typed in is laid out with its new text, so its row grows as you type.
+                        val typing = cellEdit?.takeIf { it.text.text != it.original }
+                        val typingId = typing?.let { vm.model.styles.getOrNull(it.offset)?.embedId }
+                        val measuredTables = remember(vm.embeds, vm.layout, contentPx, measure, typingId, typing?.row, typing?.tc, typing?.text?.text) {
+                            // Word tables without the file's styles (from .doc files or inserted here) use defaults.
+                            val engine = vm.layout ?: plainLayout
                             vm.embeds.filter { it.value.kind == EmbedKind.TABLE }.mapNotNull { (id, e) ->
-                                runCatching { engine.table(e.xml)?.let { id to measure.table(it, contentPx) } }.getOrNull()
+                                runCatching {
+                                    val xml = if (id == typingId && typing != null) DocxTable.setCellText(e.xml, typing.row, typing.tc, typing.text.text) else e.xml
+                                    engine.table(xml)?.let { id to measure.table(it, contentPx) }
+                                }.getOrNull()
                             }.toMap()
                         }
                         val sizes = remember<Map<Int, androidx.compose.ui.unit.Dp>>(vm.embeds, contentWidth, vm.supportsRichFormatting, measuredTables) {
@@ -352,12 +413,26 @@ fun DocumentEditorScreen(
                                             val measured = measuredTables[a.embedId]
                                             when {
                                                 isPageBreak(embed) -> PageBreakBlock(contentWidth, inkColor.copy(alpha = 0.35f), place)
-                                                embed.kind == EmbedKind.TABLE && measured != null -> MeasuredBlockView(
-                                                    measured,
-                                                    modifier = place.padding(top = 3.dp).testTag("doc_table_${tables++}"),
-                                                    onClick = { if (vm.supportsBlockEditing) editingBlock = a.offset to a.embedId },
-                                                )
-                                                embed.kind == EmbedKind.TABLE -> TableBlock(embed, contentWidth, onClick = { if (vm.supportsBlockEditing) editingBlock = a.offset to a.embedId }, modifier = place.testTag("doc_table_${tables++}"))
+                                                embed.kind == EmbedKind.TABLE && measured != null -> {
+                                                    val tableIndex = tables++
+                                                    TableView(
+                                                        block = measured,
+                                                        index = tableIndex,
+                                                        editable = vm.supportsBlockEditing,
+                                                        edit = cellEdit?.takeIf { it.offset == a.offset },
+                                                        page = pageColor,
+                                                        onCell = { r, c ->
+                                                            val current = cellEdit
+                                                            if (current != null && current.offset == a.offset && current.row == r && current.tc == c) return@TableView
+                                                            commitCell()
+                                                            startCell(a.offset, r, c)
+                                                        },
+                                                        onText = { v -> cellEdit = cellEdit?.copy(text = v) },
+                                                        onFocusLost = { g -> if (cellEdit?.generation == g) finishCell() },
+                                                        modifier = place.padding(top = 3.dp).testTag("doc_table_$tableIndex"),
+                                                    )
+                                                }
+                                                embed.kind == EmbedKind.TABLE -> TableBlock(embed, contentWidth, onClick = {}, modifier = place.testTag("doc_table_${tables++}"))
                                                 else -> ImageBlock(
                                                     rememberEmbedBitmap(vm, a.embedId),
                                                     imageSize(embed, contentWidth),
@@ -380,8 +455,36 @@ fun DocumentEditorScreen(
                 }
                 }
             }
-            EmbedBar(vm) { o, id -> editingBlock = o to id }
-            FormattingToolbar(vm, showFormatting = vm.supportsRichFormatting || vm.supportsMarkdownFormatting)
+            val edit = cellEdit
+            if (edit != null) {
+                val regular = remember(vm.embeds, edit.offset) { vm.tableXml(edit.offset)?.let(DocxTable::isRegular) ?: false }
+                TableBar(
+                    regular = regular,
+                    onPrev = { moveCell(-1) },
+                    onNext = { moveCell(1) },
+                    onRowAbove = { reshape({ DocxTable.insertRow(it, edit.row, like = edit.row) }, edit.row, 0) },
+                    onRowBelow = { reshape({ DocxTable.insertRow(it, edit.row + 1, like = edit.row) }, edit.row + 1, 0) },
+                    onDeleteRow = {
+                        val rows = tableRows(edit.offset)?.size ?: 0
+                        if (rows <= 1) confirmDeleteTable = edit.offset
+                        else reshape({ DocxTable.deleteRow(it, edit.row) }, minOf(edit.row, rows - 2), edit.tc)
+                    },
+                    onColLeft = { reshape({ DocxTable.insertColumn(it, edit.tc) }, edit.row, edit.tc) },
+                    onColRight = { reshape({ DocxTable.insertColumn(it, edit.tc + 1) }, edit.row, edit.tc + 1) },
+                    onDeleteCol = {
+                        val cols = tableRows(edit.offset)?.maxOfOrNull { it.size } ?: 0
+                        if (cols <= 1) confirmDeleteTable = edit.offset
+                        else reshape({ DocxTable.deleteColumn(it, edit.tc) }, edit.row, minOf(edit.tc, cols - 2))
+                    },
+                    onDeleteTable = { confirmDeleteTable = edit.offset },
+                    onDone = ::finishCell,
+                )
+            } else {
+                EmbedBar(vm) { o, id ->
+                    if (vm.embeds[id]?.kind == EmbedKind.TABLE) startCell(o, 0, 0) else editingBlock = o to id
+                }
+                FormattingToolbar(vm, showFormatting = vm.supportsRichFormatting || vm.supportsMarkdownFormatting)
+            }
         }
     }
 
@@ -390,12 +493,9 @@ fun DocumentEditorScreen(
         if (embed == null || vm.model.styles.getOrNull(offset)?.embedId != id) {
             editingBlock = null
         } else if (embed.kind == EmbedKind.TABLE) {
-            TableEditorDialog(
-                embed,
-                onSave = { vm.replaceEmbed(offset, it); editingBlock = null },
-                onDelete = { vm.removeEmbed(offset); editingBlock = null },
-                onDismiss = { editingBlock = null },
-            )
+            // Tables are edited in place; start in their first cell.
+            editingBlock = null
+            startCell(offset, 0, 0)
         } else {
             ImageDialog(
                 rememberEmbedBitmap(vm, id),
@@ -405,7 +505,30 @@ fun DocumentEditorScreen(
         }
     }
     if (showInsertTable) {
-        InsertTableDialog(onInsert = { r, c -> showInsertTable = false; vm.insertTable(r, c) }, onDismiss = { showInsertTable = false })
+        InsertTableDialog(
+            onInsert = { r, c ->
+                showInsertTable = false
+                finishCell()
+                val at = vm.insertTable(r, c)
+                startCell(at, 0, 0)
+            },
+            onDismiss = { showInsertTable = false },
+        )
+    }
+    confirmDeleteTable?.let { offset ->
+        AlertDialog(
+            onDismissRequest = { confirmDeleteTable = null },
+            title = { Text(stringResource(R.string.table_delete)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDeleteTable = null
+                    cellEdit = null
+                    cellGen++
+                    vm.removeEmbed(offset)
+                }, modifier = Modifier.testTag("table_delete_confirm")) { Text(stringResource(R.string.action_delete)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmDeleteTable = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
     if (showUnsaved) {
         UnsavedChangesDialog(

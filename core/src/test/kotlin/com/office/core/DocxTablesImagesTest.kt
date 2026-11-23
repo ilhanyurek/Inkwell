@@ -48,6 +48,50 @@ class DocxTablesImagesTest {
         assertEquals(1, XmlParser.parse(removed).path("tblGrid")!!.children("gridCol").size)
     }
 
+    /** A form table: a heading cell spanning two columns and a cell merged down two rows. */
+    private val merged = """<w:tbl xmlns:w="$w"><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/></w:tblGrid>""" +
+        """<w:tr><w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Başlık</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>X</w:t></w:r></w:p></w:tc></w:tr>""" +
+        """<w:tr><w:tc><w:tcPr><w:vMerge w:val="restart"/></w:tcPr><w:p><w:r><w:t>Ad</w:t></w:r></w:p></w:tc><w:tc><w:p/></w:tc><w:tc><w:p><w:r><w:t>1</w:t></w:r></w:p></w:tc></w:tr>""" +
+        """<w:tr><w:tc><w:tcPr><w:vMerge/></w:tcPr><w:p/></w:tc><w:tc><w:p><w:r><w:t>b</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>2</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"""
+
+    @Test fun cellEditLeavesMergedCellsAlone() {
+        assertTrue(!DocxTable.isRegular(merged))
+        assertTrue(DocxTable.isRegular(table))
+        val out = DocxTable.setCellText(merged, 1, 1, "Ada Lovelace")
+        assertEquals(listOf(listOf("Başlık", "X"), listOf("Ad", "Ada Lovelace", "1"), listOf("", "b", "2")), DocxTable.rows(out))
+        val root = XmlParser.parse(out)
+        assertEquals(1, root.descendants("gridSpan").size)
+        assertEquals(2, root.descendants("vMerge").size)
+        assertTrue(out.contains("<w:b/>"))
+        // Same text: the XML is not touched at all.
+        assertEquals(merged, DocxTable.setCellText(merged, 0, 1, "X"))
+        // Columns cannot be changed in a merged table.
+        assertEquals(merged, DocxTable.insertColumn(merged, 1))
+        assertEquals(merged, DocxTable.deleteColumn(merged, 1))
+    }
+
+    @Test fun rowsAreInsertedWhereAsked() {
+        val below = DocxTable.insertRow(merged, 2, like = 1)
+        assertEquals(listOf("", "", ""), DocxTable.rows(below)[2])
+        assertEquals(listOf("", "b", "2"), DocxTable.rows(below)[3])
+        // The copy keeps the row's shape but not its vertical merge.
+        assertEquals(2, XmlParser.parse(below).descendants("vMerge").size)
+        val top = DocxTable.insertRow(table, 0, like = 0)
+        assertEquals(listOf("", ""), DocxTable.rows(top)[0])
+        assertEquals(1, XmlParser.parse(top).descendants("tblHeader").size)
+        val last = DocxTable.insertRow(table, 99, like = 1)
+        assertEquals(3, DocxTable.rows(last).size)
+        assertEquals(listOf("", ""), DocxTable.rows(last)[2])
+        assertEquals(2, DocxTable.rows(DocxTable.deleteRow(last, 0)).size)
+    }
+
+    @Test fun columnsAreInsertedWhereAsked() {
+        val left = DocxTable.insertColumn(table, 1)
+        assertEquals(listOf(listOf("Name", "", "Score"), listOf("Ada", "", "90")), DocxTable.rows(left))
+        assertEquals(3, XmlParser.parse(left).path("tblGrid")!!.children("gridCol").size)
+        assertEquals(listOf(listOf("Name", "Score"), listOf("Ada", "90")), DocxTable.rows(DocxTable.deleteColumn(left, 1)))
+    }
+
     @Test fun multiLineCells() {
         val out = DocxTable.edit(table, listOf(listOf("Name", "Score"), listOf("Ada\nLovelace", "90")), listOf(0, 1), listOf(0, 1))
         val cell = XmlParser.parse(out).children("tr")[1].children("tc")[0]

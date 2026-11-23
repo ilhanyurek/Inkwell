@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">Selesai</string>
     <string name="pdf_edit_smaller">Perkecil teks</string>
     <string name="pdf_edit_larger">Perbesar teks</string>
+    <string name="table_prev_cell">Sel sebelumnya</string>
+    <string name="table_next_cell">Sel berikutnya</string>
+    <string name="table_row_above">Baris di atas</string>
+    <string name="table_row_below">Baris di bawah</string>
+    <string name="table_col_left">Kolom di kiri</string>
+    <string name="table_col_right">Kolom di kanan</string>
     <plurals name="pdf_results">
         <item quantity="other">%d hasil</item>
     </plurals>

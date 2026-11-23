@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">Xong</string>
     <string name="pdf_edit_smaller">Chữ nhỏ hơn</string>
     <string name="pdf_edit_larger">Chữ lớn hơn</string>
+    <string name="table_prev_cell">Ô trước</string>
+    <string name="table_next_cell">Ô tiếp theo</string>
+    <string name="table_row_above">Hàng phía trên</string>
+    <string name="table_row_below">Hàng phía dưới</string>
+    <string name="table_col_left">Cột bên trái</string>
+    <string name="table_col_right">Cột bên phải</string>
     <plurals name="pdf_results">
         <item quantity="other">%d kết quả</item>
     </plurals>

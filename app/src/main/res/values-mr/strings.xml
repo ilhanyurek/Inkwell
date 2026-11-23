@@ -435,6 +435,12 @@
     <string name="pdf_edit_done">झाले</string>
     <string name="pdf_edit_smaller">मजकूर लहान करा</string>
     <string name="pdf_edit_larger">मजकूर मोठा करा</string>
+    <string name="table_prev_cell">मागील सेल</string>
+    <string name="table_next_cell">पुढील सेल</string>
+    <string name="table_row_above">वर ओळ</string>
+    <string name="table_row_below">खाली ओळ</string>
+    <string name="table_col_left">डावीकडे स्तंभ</string>
+    <string name="table_col_right">उजवीकडे स्तंभ</string>
     <plurals name="pdf_results">
         <item quantity="one">%d जुळणी</item>
         <item quantity="other">%d जुळण्या</item>

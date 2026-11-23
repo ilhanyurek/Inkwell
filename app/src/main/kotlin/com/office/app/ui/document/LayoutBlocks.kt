@@ -41,7 +41,31 @@ import com.office.core.text.Alignment
  * Tables, headers and footers measured for the screen and drawn on a canvas. Everything is measured up
  * front, so the text can leave exactly the space a table needs.
  */
-internal class MeasuredBlock(val width: Float, val height: Float, val ops: List<DrawOp>, val text: String)
+internal class MeasuredBlock(
+    val width: Float,
+    val height: Float,
+    val ops: List<DrawOp>,
+    val text: String,
+    /** The cells of a table, for editing them in place; empty for other blocks. */
+    val cells: List<CellBox> = emptyList(),
+)
+
+/**
+ * One cell of a measured table: [row] and [tc] (its position among the row's cells, as in the file), its box
+ * and inner padding in pixels, its fill, and the look of its first paragraph.
+ */
+internal class CellBox(
+    val row: Int,
+    val tc: Int,
+    val x: Float,
+    val y: Float,
+    val w: Float,
+    val h: Float,
+    val padX: Float,
+    val padY: Float,
+    val fill: Color?,
+    val style: TextStyle,
+)
 
 internal sealed class DrawOp {
     class Fill(val x: Float, val y: Float, val w: Float, val h: Float, val color: Color) : DrawOp()
@@ -148,15 +172,15 @@ internal class LayoutMeasure(
         val rowCount = t.rows.size
 
         // Measure every visible cell.
-        class Cell(val ri: Int, val c: com.office.core.docx.LayoutCell, val x: Float, val w: Float, val content: MeasuredBlock)
+        class Cell(val ri: Int, val tc: Int, val c: com.office.core.docx.LayoutCell, val x: Float, val w: Float, val content: MeasuredBlock)
         val cells = ArrayList<Cell>()
         for ((ri, row) in t.rows.withIndex()) {
-            for (c in row.cells) {
+            for ((tc, c) in row.cells.withIndex()) {
                 if (c.rowSpan == 0) continue
                 val x = xs.getOrElse(c.col) { width }
                 val w = (xs.getOrElse(c.col + c.span) { width } - x).coerceAtLeast(1f)
                 val bg = c.fill?.let { Color(it) } ?: page
-                cells += Cell(ri, c, x, w, items(c.items, (w - 2 * pad).coerceAtLeast(1f), bg))
+                cells += Cell(ri, tc, c, x, w, items(c.items, (w - 2 * pad).coerceAtLeast(1f), bg))
             }
         }
         val heights = FloatArray(rowCount) { ri ->
@@ -200,7 +224,34 @@ internal class LayoutMeasure(
             edge(cell.c.left, cell.x, y, cell.x, y + h)
             edge(cell.c.right, cell.x + cell.w, y, cell.x + cell.w, y + h)
         }
-        return MeasuredBlock(width, ys.last() + 1f, ops + lines, t.text)
+        fun firstLook(c: com.office.core.docx.LayoutCell) =
+            (c.items.firstOrNull { it is LayoutItem.Para } as? LayoutItem.Para)?.runs?.firstOrNull()?.look
+        val boxes = cells.map { cell ->
+            val y = ys[cell.ri]
+            val h = ys[(cell.ri + cell.c.rowSpan).coerceAtMost(rowCount)] - y
+            // An empty cell (a new row, say) is typed in the look of the nearest filled cell of its column.
+            val fallback = if (firstLook(cell.c) != null) null else
+                cells.filter { it !== cell && firstLook(it.c) != null }
+                    .minByOrNull { (if (it.tc == cell.tc) 0 else 1000) + kotlin.math.abs(it.ri - cell.ri) }?.let { firstLook(it.c) }
+            CellBox(cell.ri, cell.tc, cell.x, y, cell.w, h, pad, vpad, cell.c.fill?.let { Color(it) }, cellStyle(cell.c, fallback))
+        }
+        return MeasuredBlock(width, ys.last() + 1f, ops + lines, t.text, boxes)
+    }
+
+    /** How the first paragraph of [cell] looks, so the editor laid over it matches. */
+    private fun cellStyle(cell: com.office.core.docx.LayoutCell, fallback: com.office.core.text.RunLook? = null): TextStyle {
+        val para = cell.items.firstOrNull { it is LayoutItem.Para } as? LayoutItem.Para
+        val bg = cell.fill?.let { Color(it) } ?: page
+        val base = TextStyle(color = textColor, fontSize = baseSp.sp)
+        val look = para?.runs?.firstOrNull()?.look ?: fallback
+        val styled = if (look != null) base.merge(lookSpanStyle(look, baseSp, bg)) else base
+        return styled.copy(
+            textAlign = when (para?.alignment) {
+                Alignment.CENTER -> TextAlign.Center
+                Alignment.END -> TextAlign.End
+                else -> TextAlign.Start
+            },
+        )
     }
 }
 

@@ -7,7 +7,7 @@ with Jetpack Compose, and its own `core` module reads and writes the file format
 
 | Format | Open | Edit | Save as |
 |---|---|---|---|
-| **DOCX** | ✓ Shows tables, pictures (also TIFF), headers and the document's own formatting on a white sheet; keeps links, equations and styles | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace; edit tables, insert tables and pictures | DOCX (only the text you changed is rewritten), PDF, print |
+| **DOCX** | ✓ Shows tables, pictures (also TIFF), headers and the document's own formatting on a white sheet; keeps links, equations and styles | Bold, italic, underline, strikethrough, font size, headings, lists, quotes, alignment, find and replace; edit tables in place (tap a cell and type, add or remove rows and columns), insert tables and pictures | DOCX (only the text you changed is rewritten), PDF, print |
 | **TXT / MD** | ✓ | Plain text; headings, lists and bold/italic in Markdown | TXT / MD, PDF |
 | **XLSX** | ✓ Multiple sheets, styles, number and date formats, charts; keeps merged cells and conditional formatting | Cell editing; bold/italic/colours/fill/borders/alignment/number formats; 50+ formulas incl. VLOOKUP, XLOOKUP, INDEX/MATCH, SUMIFS, dates and TEXT (also under Turkish names such as DÜŞEYARA, ETOPLA, BUGÜN); rows/columns, sort, fill down, sheets, freeze panes, filter | XLSX, CSV, PDF |
 | **CSV / TSV** | ✓ Detects the delimiter and encoding | Spreadsheet editor; typed dates, percentages and amounts become numbers | CSV, XLSX, PDF |
